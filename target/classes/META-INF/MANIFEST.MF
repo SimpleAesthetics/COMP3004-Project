@@ -1,0 +1,43 @@
+Manifest-Version: 1.0
+Implementation-Title: Grouper-Server
+Implementation-Version: 0.0.1-SNAPSHOT
+Built-By: Jon
+Implementation-Vendor-Id: com.simpleaesthetics
+Class-Path: dependency-jars/spring-boot-starter-actuator-1.5.7.RELEASE
+ .jar dependency-jars/spring-boot-starter-1.5.7.RELEASE.jar dependency
+ -jars/spring-boot-1.5.7.RELEASE.jar dependency-jars/spring-boot-autoc
+ onfigure-1.5.7.RELEASE.jar dependency-jars/spring-boot-starter-loggin
+ g-1.5.7.RELEASE.jar dependency-jars/logback-classic-1.1.11.jar depend
+ ency-jars/logback-core-1.1.11.jar dependency-jars/jul-to-slf4j-1.7.25
+ .jar dependency-jars/log4j-over-slf4j-1.7.25.jar dependency-jars/snak
+ eyaml-1.17.jar dependency-jars/spring-boot-actuator-1.5.7.RELEASE.jar
+  dependency-jars/spring-context-4.3.11.RELEASE.jar dependency-jars/sp
+ ring-boot-starter-web-1.5.7.RELEASE.jar dependency-jars/spring-boot-s
+ tarter-tomcat-1.5.7.RELEASE.jar dependency-jars/tomcat-embed-core-8.5
+ .20.jar dependency-jars/tomcat-embed-el-8.5.20.jar dependency-jars/to
+ mcat-embed-websocket-8.5.20.jar dependency-jars/hibernate-validator-5
+ .3.5.Final.jar dependency-jars/validation-api-1.1.0.Final.jar depende
+ ncy-jars/jboss-logging-3.3.1.Final.jar dependency-jars/classmate-1.3.
+ 4.jar dependency-jars/jackson-databind-2.8.10.jar dependency-jars/jac
+ kson-annotations-2.8.0.jar dependency-jars/jackson-core-2.8.10.jar de
+ pendency-jars/spring-web-4.3.11.RELEASE.jar dependency-jars/spring-ao
+ p-4.3.11.RELEASE.jar dependency-jars/spring-beans-4.3.11.RELEASE.jar 
+ dependency-jars/spring-webmvc-4.3.11.RELEASE.jar dependency-jars/spri
+ ng-expression-4.3.11.RELEASE.jar dependency-jars/slf4j-api-1.7.25.jar
+  dependency-jars/spring-core-4.3.11.RELEASE.jar dependency-jars/sprin
+ g-boot-starter-data-solr-1.5.7.RELEASE.jar dependency-jars/solr-solrj
+ -5.5.4.jar dependency-jars/commons-io-2.4.jar dependency-jars/httpcli
+ ent-4.5.3.jar dependency-jars/httpcore-4.4.6.jar dependency-jars/zook
+ eeper-3.4.6.jar dependency-jars/stax2-api-3.1.4.jar dependency-jars/w
+ oodstox-core-asl-4.4.1.jar dependency-jars/noggit-0.6.jar dependency-
+ jars/jcl-over-slf4j-1.7.25.jar dependency-jars/spring-data-solr-2.1.7
+ .RELEASE.jar dependency-jars/spring-tx-4.3.11.RELEASE.jar dependency-
+ jars/spring-data-commons-1.13.7.RELEASE.jar dependency-jars/commons-l
+ ang3-3.1.jar dependency-jars/httpmime-4.5.3.jar
+Build-Jdk: 1.8.0_144
+Implementation-URL: http://projects.spring.io/spring-boot/Grouper-Serv
+ er/
+Created-By: Maven Integration for Eclipse
+Implementation-Vendor: Pivotal Software, Inc.
+Main-Class: com.simpleaesthetics.application
+
