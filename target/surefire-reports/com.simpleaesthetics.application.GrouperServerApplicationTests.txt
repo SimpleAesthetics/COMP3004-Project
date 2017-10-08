@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.simpleaesthetics.application.GrouperServerApplicationTests
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.874 sec - in com.simpleaesthetics.application.GrouperServerApplicationTests
