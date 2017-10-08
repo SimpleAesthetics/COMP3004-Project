@@ -1,4 +1,4 @@
-package com.simpleaesthetics.application;
+package com.simpleaesthetics.application.model;
 
 public class UserInformation {
 	private String firstName;
