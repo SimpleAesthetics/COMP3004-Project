@@ -1,16 +1,27 @@
 package com.simpleaesthetics.application.model;
 
 import java.util.List;
+import java.util.Map;
 
 public class Environment {
 	
+	private User owner;
 	private String name;
-	private boolean privateEnv;
+	private Boolean privateEnv;
 	private String password;
 	private List<Group> groups;
+	private List<User> users;
+	private Map<String, List<String>> questionnaire = null;
+	
+	public Environment() {
+		this.name = null;
+		this.privateEnv = null;
+		this.password = null;
+		this.groups = null;
+		this.users = null;
+	}
 	
 	public Environment(String name, boolean privateEnv, String password, List<Group> groups) {
-		super();
 		this.name = name;
 		this.privateEnv = privateEnv;
 		this.password = password;

@@ -1,17 +1,22 @@
 package com.simpleaesthetics.application.model;
 
-import java.util.List;
+import java.util.Set;
 
 public class Group {
 	
 	private String name;
 	private String meetingLocation;
-	private List<String> groupMembers;
+	private Set<User> groupMembers;
 	
-	public Group(String name, String meetingLocation, List<String> groupMembers) {
-		super();
+	public Group(String name, String meetingLocation, Set<User> groupMembers) {
 		this.name = name;
 		this.meetingLocation = meetingLocation;
+		this.groupMembers = groupMembers;
+	}
+	
+	public Group(Set<User> groupMembers) {
+		this.name = null;
+		this.meetingLocation = null;
 		this.groupMembers = groupMembers;
 	}
 
@@ -31,11 +36,11 @@ public class Group {
 		this.meetingLocation = meetingLocation;
 	}
 
-	public List<String> getGroupMembers() {
+	public Set<User> getGroupMembers() {
 		return groupMembers;
 	}
 
-	public void setGroupMembers(List<String> groupMembers) {
+	public void setGroupMembers(Set<User> groupMembers) {
 		this.groupMembers = groupMembers;
 	}
 
@@ -80,6 +85,8 @@ public class Group {
 	public String toString() {
 		return "Group [name=" + name + ", meetingLocation=" + meetingLocation + ", groupMembers=" + groupMembers + "]";
 	}
+
+	
 	
 	
 }
