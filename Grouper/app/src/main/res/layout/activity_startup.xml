@@ -4,6 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     tools:context="com.aesthetics.simple.grouper.Startup">
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="214dp"
+        android:layout_height="199dp"
+        app:srcCompat="@drawable/ic_action_name"
+        tools:layout_editor_absoluteX="85dp"
+        tools:layout_editor_absoluteY="184dp" />
 </android.support.constraint.ConstraintLayout>
