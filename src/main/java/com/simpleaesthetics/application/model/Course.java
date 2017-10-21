@@ -1,11 +1,11 @@
 package com.simpleaesthetics.application.model;
 
-public class UniClass {
+public class Course {
 
 	String name;
 	String courseCode;
 	
-	public UniClass(String name, String courseCode) {
+	public Course(String name, String courseCode) {
 		this.name = name;
 		this.courseCode = courseCode;
 	}
@@ -40,7 +40,7 @@ public class UniClass {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		UniClass other = (UniClass) obj;
+		Course other = (Course) obj;
 		if (courseCode == null) {
 			if (other.courseCode != null)
 				return false;

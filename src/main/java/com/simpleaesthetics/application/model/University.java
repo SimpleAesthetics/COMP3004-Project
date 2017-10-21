@@ -7,7 +7,7 @@ public class University {
 	private String name;
 	
 	// TODO Make a values for this var
-	private List<UniClass> classesList;
+	private List<Course> classesList;
 	
 	public University(String name) {
 		this.name = name;

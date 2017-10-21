@@ -7,7 +7,7 @@ import java.util.List;
 public class User implements Comparable<User> {
 	
 	private String nickname;
-	private List<Integer> questionAnswers = new ArrayList();
+	private List<Integer> questionAnswers = new ArrayList<>();
 
 	public User(String nickname, List<Integer> questionAnswers) {
 		this.nickname = nickname;

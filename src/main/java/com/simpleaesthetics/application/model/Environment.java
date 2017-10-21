@@ -2,6 +2,7 @@ package com.simpleaesthetics.application.model;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Environment {
 	
@@ -9,23 +10,16 @@ public class Environment {
 	private String name;
 	private Boolean privateEnv;
 	private String password;
-	private List<Group> groups;
-	private List<User> users;
+	private Set<Group> groups;
+	private Set<User> users;
 	private Map<String, List<String>> questionnaire = null;
 	
-	public Environment() {
-		this.name = null;
-		this.privateEnv = null;
-		this.password = null;
-		this.groups = null;
-		this.users = null;
-	}
-	
-	public Environment(String name, boolean privateEnv, String password, List<Group> groups) {
+	public Environment(String name, boolean privateEnv, String password, Set<Group> groups, Set<User> users) {
 		this.name = name;
 		this.privateEnv = privateEnv;
 		this.password = password;
 		this.groups = groups;
+		this.users = users;
 	}
 
 	public String getName() {
@@ -46,21 +40,31 @@ public class Environment {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public List<Group> getGroups() {
+
+	public Set<Group> getGroups() {
 		return groups;
 	}
-	public void setGroups(List<Group> groups) {
+
+	public void setGroups(Set<Group> groups) {
 		this.groups = groups;
 	}
+
+	public Set<User> getUsers() {
+		return users;
+	}
+
+	public void setUsers(Set<User> users) {
+		this.users = users;
+	}
+
+	
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((groups == null) ? 0 : groups.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((password == null) ? 0 : password.hashCode());
-		result = prime * result + (privateEnv ? 1231 : 1237);
+		result = prime * result + ((owner == null) ? 0 : owner.hashCode());
 		return result;
 	}
 
@@ -73,22 +77,15 @@ public class Environment {
 		if (getClass() != obj.getClass())
 			return false;
 		Environment other = (Environment) obj;
-		if (groups == null) {
-			if (other.groups != null)
-				return false;
-		} else if (!groups.equals(other.groups))
-			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
-		if (password == null) {
-			if (other.password != null)
+		if (owner == null) {
+			if (other.owner != null)
 				return false;
-		} else if (!password.equals(other.password))
-			return false;
-		if (privateEnv != other.privateEnv)
+		} else if (!owner.equals(other.owner))
 			return false;
 		return true;
 	}
