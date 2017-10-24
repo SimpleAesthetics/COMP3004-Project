@@ -271,6 +271,7 @@ public class GrouperDB {
 	
 	//Helper function for getting the university ID
 	//This is only useful for obtaining the last added university
+	/* Not real sure this should be public */
 	public int getUniversityID(String name) {
 		if(opened != false && dbconn != null) {
 			//Write SQL
@@ -702,9 +703,9 @@ public class GrouperDB {
 	}
 	
 	//Function for getting list of courses associated with a university
-	public ArrayList<String> getCourses(int uid) {
+	public ArrayList<ArrayList<String>> getCourses(int uid) {
 		//Make list
-		ArrayList<String> courses = new ArrayList<String>();
+		ArrayList<ArrayList<String>> courses = new ArrayList<ArrayList<String>>();
 		if(opened != false && dbconn != null) {
 			//Write SQL
 			String sql = "SELECT ID,Name,Instructor,Environments FROM Courses WHERE university = ?";
@@ -715,15 +716,18 @@ public class GrouperDB {
 				psql.setInt(1,uid);
 				//Execute statement
 				ResultSet results = psql.executeQuery();
+				ArrayList<String> result;
 				
 				while(results.next()) {
+					//Get results
+					result = new ArrayList<String>();
 					//Add results to course
-					courses.add(new Integer(results.getInt("ID")).toString());
-					courses.add(results.getString("Name"));
-					courses.add(new Integer(results.getInt("Instructor")).toString());
-					courses.add(results.getString("Environments"));
-					//Since that should be the only result, it is safe to exit
-					break;
+					result.add(new Integer(results.getInt("ID")).toString());
+					result.add(results.getString("Name"));
+					result.add(new Integer(results.getInt("Instructor")).toString());
+					result.add(results.getString("Environments"));
+					//Add course to list
+					courses.add(result);
 				}
 			}
 			catch(SQLException e) {
@@ -731,7 +735,7 @@ public class GrouperDB {
 				return courses;
 			}
 		}
-		//Return course information
+		//Return list of courses
 		return courses;
 	}
 	
@@ -1412,9 +1416,312 @@ public class GrouperDB {
 			}
 		}
 	}
+
+	//Function for inserting a group into the database
+	//Input: environment ID, whether it is finalized or not (0 or 1), TA ID, list of students
+	//Output: ID of the newly added group, or -1 on failure
+	public int insertGroup(int env, int finalized, int ta, String students) {
+		//Basic sanity check
+		if(this.queryUser(ta).isEmpty() == true || this.queryEnvironment(env).isEmpty() == true || finalized < 0 || finalized > 1) {
+			return -1;
+		}
+		//Set base ID number
+		int id = -1;
+		if(opened != false && dbconn != null) {
+			//Database is opened, can insert into DB now
+			String sql = "INSERT INTO Groups(finalized,ta,students,environmentid) VALUES (?,?,?,?)";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,finalized);
+				psql.setInt(2,ta);
+				psql.setString(3,students);
+				psql.setInt(4,env);
+				//Execute statement
+				psql.executeUpdate();
+				//Get ID
+				id = this.getGroupID(env);
+				//Get the containing environment
+				ArrayList<String> envs = this.queryEnvironment(env);
+				//Update the group list in the environment
+				if(envs.get(7) != "") {
+					envs.set(7,envs.get(7) + ", ");
+				}
+				envs.set(7,envs.get(3) + new Integer(id).toString());
+				this.updateEnvironment(env,envs.get(6),envs.get(7));
+				
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return -1;
+			}
+		}
+		//Return the ID of the new group
+		return id;
+	}
 	
-	public int insertGroup() {
+	//Helper function for getting the ID of the most recently added group
+	private int getGroupID(int env) {
+		if(opened != false && dbconn != null) {
+			//Write SQL
+			String sql = "SELECT ID FROM Groups WHERE environmentid = ? ORDER BY id DESC LIMIT 1";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,env);
+				//Execute statement
+				ResultSet results = psql.executeQuery();
+				
+				while(results.next()) {
+					//Since we are limiting to 1 entry, it is safe to assume the one entry is the one that we want
+					return results.getInt("id");
+				}
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return -1;
+			}
+		}
+		//Assume ID was not found
 		return -1;
+	}
+	
+	//Function for changing the associated teaching assistant in a group
+	public boolean updateGroup(int id, int ta) {
+		if(opened == false || dbconn == null || this.queryUser(ta).isEmpty() == true) {
+			//DB not open, or the TA doesn't exist in the DB
+			return false;
+		}
+		else {
+			//Write SQL
+			String sql = "UPDATE Groups SET ta = ? where id = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Assign variables
+				psql.setInt(1,ta);
+				psql.setInt(2,id);
+				//Execute update
+				psql.executeUpdate();
+				//No way of checking if update went through, so assume it did
+				return true;
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return false;
+			}
+		}
+	}
+	//Function for updating the list of students in a group
+	public boolean updateGroup(int id, String students) {
+		if(opened == false || dbconn == null || students == "") {
+			//DB not open, or list of students empty
+			return false;
+		}
+		else {
+			//Get current list of students
+			ArrayList<String> group = this.queryGroup(id);
+			String current = group.get(3);
+			//Update list of students
+			if(current == "") {
+				current += ", ";
+			}
+			current += students;
+			//Write SQL
+			String sql = "UPDATE Groups SET students = ? where id = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Assign variables
+				psql.setString(1,current);
+				psql.setInt(2,id);
+				//Execute update
+				psql.executeUpdate();
+				//No way of checking if update went through, so assume it did
+				return true;
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return false;
+			}
+		}
+	}
+	public boolean finalize(int id) {
+		if(opened == false || dbconn == null) {
+			//DB not open
+			return false;
+		}
+		else {
+			//Get current group
+			ArrayList<String> group = this.queryGroup(id);
+			//If group is already finalized, ignore it without proceeding further
+			if(group.get(1) == "1") {
+				return true;
+			}
+			//Write SQL
+			String sql = "UPDATE Groups SET finalized = 1 where id = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Assign variables
+				psql.setInt(1,id);
+				//Execute update
+				psql.executeUpdate();
+				//No way of checking if update went through, so assume it did
+				return true;
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return false;
+			}
+		}
+	}
+	
+	//Function for getting list of all groups contained within an environment
+	public ArrayList<ArrayList<String>> getGroups(int env) {
+		//Make list
+		ArrayList<ArrayList<String>> groups = new ArrayList<ArrayList<String>>();
+		if(opened != false && dbconn != null) {
+			//Write SQL
+			String sql = "SELECT id,finalized,ta,students FROM Groups WHERE environmentid = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,env);
+				//Execute statement
+				ResultSet results = psql.executeQuery();
+				//Make list for results
+				ArrayList<String> result;
+				
+				while(results.next()) {
+					//Get results
+					result = new ArrayList<String>();
+					result.add(new Integer(results.getInt("id")).toString());
+					result.add(new Integer(results.getInt("finalized")).toString());
+					result.add(new Integer(results.getInt("ta")).toString());
+					result.add(results.getString("students"));
+					//Add results to list
+					groups.add(result);
+				}
+			}
+			catch(SQLException e) {
+				//Some error occurred, return the current list of groups
+				return groups;
+			}
+		}
+		//Return list of groups
+		return groups;
+	}
+	//Function for getting the information about a group
+	public ArrayList<String> queryGroup(int id) {
+		//Make list
+		ArrayList<String> group = new ArrayList<String>();
+		if(opened != false && dbconn != null) {
+			//Write SQL
+			String sql = "SELECT environmentid,finalized,ta,students FROM Groups WHERE id = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,id);
+				//Execute statement
+				ResultSet results = psql.executeQuery();
+				
+				while(results.next()) {
+					//Get results
+					group.add(new Integer(results.getInt("environmentid")).toString());
+					group.add(new Integer(results.getInt("finalized")).toString());
+					group.add(new Integer(results.getInt("ta")).toString());
+					group.add(results.getString("students"));
+					//Since ID should be unique, it is safe to exit the loop
+					break;
+				}
+			}
+			catch(SQLException e) {
+				//Some error occurred, return empty group
+				return new ArrayList<String>();
+			}
+		}
+		//Return list of groups
+		return group;
+	}
+	//Function for getting information about all groups in the database
+	public ArrayList<ArrayList<String>> queryAllGroups() {
+		//Make list
+		ArrayList<ArrayList<String>> groups = new ArrayList<ArrayList<String>>();
+		if(opened != false && dbconn != null) {
+			//Write SQL
+			String sql = "SELECT id,environmentid,finalized,ta,students FROM Groups";
+			try {
+				//Create statement
+				Statement query = dbconn.createStatement();
+				//Execute statements
+				ResultSet results = query.executeQuery(sql);
+				//Make list for results
+				ArrayList<String> result;
+				
+				while(results.next()) {
+					//Get results
+					result = new ArrayList<String>();
+					result.add(new Integer(results.getInt("id")).toString());
+					result.add(new Integer(results.getInt("environmentid")).toString());
+					result.add(new Integer(results.getInt("finalized")).toString());
+					result.add(new Integer(results.getInt("ta")).toString());
+					result.add(results.getString("students"));
+					//Add results to list
+					groups.add(result);
+				}
+			}
+			catch(SQLException e) {
+				//Some error occurred, return the current list of groups
+				return groups;
+			}
+		}
+		//Return list of groups
+		return groups;
+	}
+	
+	//Function for removing a group from the database
+	public boolean deleteGroup(int id) {
+		//Get list of environments
+		ArrayList<ArrayList<String>> envs = this.queryAllEnvironments();
+		for(ArrayList<String> x : envs) {
+			//Get list of groups
+			ArrayList<String> y = new ArrayList<String>(Arrays.asList(x.get(7).split(", ")));
+			//Remove group ID
+			y.remove(Integer.toString(id));
+			//Convert list back into a string
+			String z = y.toString();
+			z = z.replace("[","");
+			z = z.replace("]","");
+			//Update environment
+			this.updateEnvironment(Integer.parseInt(x.get(0)),x.get(6),z);
+		}
+		if(opened == false || dbconn == null) {
+			//DB isn't open
+			return false;
+		}
+		else {
+			//Write SQL
+			String sql = "DELETE FROM Groups WHERE id = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,id);
+				//Execute statement
+				psql.executeUpdate();
+				//Verify that item was deleted
+				return this.queryGroup(id).isEmpty();
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return false;
+			}
+		}
 	}
 	
 	public static void deleteCrap(GrouperDB db, boolean oc, int qid, int eid, int cid, int uid, int uid2, int uid3) {
