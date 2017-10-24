@@ -1,26 +1,51 @@
 package com.simpleaesthetics.application.model;
 
+import java.util.Set;
+
 public class Course {
 
 	String name;
 	String courseCode;
+	String instructor;
+	Set<String> envList;
 	
-	public Course(String name, String courseCode) {
+	public Course(String name, String courseCode, String instructor) {
 		this.name = name;
 		this.courseCode = courseCode;
+		this.instructor = instructor;
+		this.envList = null;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
+
 	public String getCourseCode() {
 		return courseCode;
 	}
+
 	public void setCourseCode(String courseCode) {
 		this.courseCode = courseCode;
+	}
+
+	public String getInstructor() {
+		return instructor;
+	}
+
+	public void setInstructor(String instructor) {
+		this.instructor = instructor;
+	}
+
+	public Set<String> getEnvList() {
+		return envList;
+	}
+
+	public void setEnvList(Set<String> envList) {
+		this.envList = envList;
 	}
 
 	@Override
@@ -28,6 +53,8 @@ public class Course {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((courseCode == null) ? 0 : courseCode.hashCode());
+		result = prime * result + ((envList == null) ? 0 : envList.hashCode());
+		result = prime * result + ((instructor == null) ? 0 : instructor.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -46,6 +73,16 @@ public class Course {
 				return false;
 		} else if (!courseCode.equals(other.courseCode))
 			return false;
+		if (envList == null) {
+			if (other.envList != null)
+				return false;
+		} else if (!envList.equals(other.envList))
+			return false;
+		if (instructor == null) {
+			if (other.instructor != null)
+				return false;
+		} else if (!instructor.equals(other.instructor))
+			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
@@ -56,7 +93,8 @@ public class Course {
 
 	@Override
 	public String toString() {
-		return "UniClass [name=" + name + ", courseCode=" + courseCode + "]";
+		return "Course [name=" + name + ", courseCode=" + courseCode + ", instructor=" + instructor + ", envList="
+				+ envList + "]";
 	}
 	
 	

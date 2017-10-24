@@ -1,4 +1,4 @@
-package com.simpleaesthetics.application.model;
+package com.simpleaesthetics.application.rest.db;
 /* Grouper database connector class
  * Used to create an interface between the Grouper application and the underlying database
  * At present, Grouper uses SQLite as its DB engine
@@ -9,20 +9,45 @@ package com.simpleaesthetics.application.model;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
+
+@Component
 public class GrouperDB {
+	
+	static Logger logger = Logger.getLogger(GrouperDB.class.getName());
 	
 	//Declaration of stuff related to DB
 	private String dburl;
 	private Connection dbconn;
 	private boolean opened;
+	
+	@PostConstruct
+	public void postConstruct() {
+		logger.info("Creating DB instance");
+		if (!openDB()) {
+			throw new DatabaseException("Failed to OPEN the database");
+		}
+	}
+	
+	@PreDestroy
+	public void preDestroy() {
+		logger.info("Destroying DB instance");
+		if (!closeDB()) {
+			throw new DatabaseException("Failed to CLOSE the database");
+		}
+	}
 	
 	//Base constructor, takes no input, assumes DB located where the application is
 	public GrouperDB() {
@@ -113,6 +138,7 @@ public class GrouperDB {
 			}
 			catch(SQLException e) {
 				//Some kind of error, assume university was not added
+				logger.error("Failed to insert a University", e);
 				return -1;
 			}
 		}
@@ -207,9 +233,45 @@ public class GrouperDB {
 		return courses;
 	}
 	
+	/**
+	 * Alternate version of the queryUniversity from above.
+	 * This is very similar to the function below. 
+	 */
+	public ArrayList<ArrayList<String>> queryUniversity(String name) {
+		//Make list that stores data
+		ArrayList<ArrayList<String>> courses = new ArrayList<ArrayList<String>>();
+		if(opened != false && dbconn != null) {
+			//Write SQL
+			String sql = "SELECT Name,Courses FROM Universities WHERE Name = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Assign variables
+				psql.setString(1, name);
+				//Execute statement
+				ResultSet result = psql.executeQuery();
+				
+				// Obtain the matching query
+				// Assumes that University names are unique
+				ArrayList<String> currCourse = new ArrayList<String>(); 
+				currCourse.add(result.getString("Name"));
+				currCourse.add(result.getString("Courses"));
+				
+				// Add the course to the courses list for consistency
+				courses.add(currCourse);
+				
+			}
+			catch(SQLException e) {
+				//Didn't work
+				return courses;
+			}
+		}
+		return courses;
+	}
+	
 	//Helper function for getting the university ID
 	//This is only useful for obtaining the last added university
-	private int getUniversityID(String name) {
+	public int getUniversityID(String name) {
 		if(opened != false && dbconn != null) {
 			//Write SQL
 			String sql = "SELECT id FROM Universities WHERE name = ? ORDER BY id DESC LIMIT 1";
@@ -427,7 +489,7 @@ public class GrouperDB {
 	}
 	
 	//Helper function for obtaining the ID of the most recently added user
-	private int getUserID(String name) {
+	public int getUserID(String name) {
 		if(opened != false && dbconn != null) {
 			//Write SQL
 			String sql = "SELECT ID FROM Users WHERE nickname = ? ORDER BY id DESC LIMIT 1";
@@ -708,7 +770,7 @@ public class GrouperDB {
 	}
 	
 	//Helper function for getting the ID of the most recently added course
-	private int getCourseID(String name, int uid) {
+	public int getCourseID(String name, int uid) {
 		if(opened != false && dbconn != null) {
 			//Write SQL
 			String sql = "SELECT ID FROM Courses WHERE name = ? AND university = ? ORDER BY id DESC LIMIT 1";
@@ -879,7 +941,7 @@ public class GrouperDB {
 	//Helper function for retrieving the ID of an environment
 	//Input: env name and ID of course it belongs to
 	//Output: environment ID
-	private int getEnvironmentID(String name, int courseID) {
+	public int getEnvironmentID(String name, int courseID) {
 		ArrayList<Integer> envs = new ArrayList<Integer>();
 		if(opened != false && dbconn != null) {
 			String sql = "SELECT ID FROM Environments WHERE name = ? AND course = ?";
@@ -1120,6 +1182,7 @@ public class GrouperDB {
 			return envs.get(0);
 		}
 	}
+	
 	public ArrayList<ArrayList<String>> queryAllEnvironments() {
 		ArrayList<ArrayList<String>> envs = new ArrayList<ArrayList<String>>();
 		if(opened != false && dbconn != null) {
@@ -1154,6 +1217,7 @@ public class GrouperDB {
 		}
 		return envs;
 	}
+	
 	public boolean deleteEnvironment(int id) {
 		//Get list of all courses
 		ArrayList<ArrayList<String>> courses = this.queryAllCourses();
@@ -1233,7 +1297,7 @@ public class GrouperDB {
 		return id;
 	}
 	
-	private int getQuestionnaire(int eid) {
+	public int getQuestionnaire(int eid) {
 		ArrayList<Integer> qs = new ArrayList<Integer>();
 		if(opened != false && dbconn != null) {
 			String sql = "SELECT ID FROM Questionnaires WHERE environment = ?";

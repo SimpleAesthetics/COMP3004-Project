@@ -8,5 +8,7 @@ public class GrouperServerApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(GrouperServerApplication.class, args);
+		
 	}
+	
 }
