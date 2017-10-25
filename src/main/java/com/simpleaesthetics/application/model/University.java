@@ -1,5 +1,6 @@
 package com.simpleaesthetics.application.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class University {
@@ -7,10 +8,11 @@ public class University {
 	private String name;
 	
 	// TODO Make a values for this var
-	private List<Course> classesList;
+	private List<Course> coursesList;
 	
 	public University(String name) {
 		this.name = name;
+		this.coursesList = new ArrayList<>();
 	}
 
 	public String getName() {

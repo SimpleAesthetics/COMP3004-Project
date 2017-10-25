@@ -1,5 +1,11 @@
 package com.simpleaesthetics.application.model;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,16 +16,47 @@ public class Environment {
 	private String name;
 	private Boolean privateEnv;
 	private String password;
+	private Integer maxGroupSize;
+	private Date deadline;
+	private SimpleDateFormat dateFormat;
 	private Set<Group> groups;
 	private Set<User> users;
-	private Map<String, List<String>> questionnaire = null;
+	private Map<String, List<String>> questionnaire;
 	
-	public Environment(String name, boolean privateEnv, String password, Set<Group> groups, Set<User> users) {
+	public Environment() {
+		this.name = null;
+		this.privateEnv = null;
+		this.password = null;
+		this.maxGroupSize = null;
+		this.groups = new HashSet<Group>();
+		this.users = new HashSet<User>();
+		this.questionnaire = new HashMap<>();
+		this.deadline = null;
+		this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+	}
+	
+	public Environment(String name, boolean privateEnv, String password, Integer maxGroupSize) {
 		this.name = name;
 		this.privateEnv = privateEnv;
 		this.password = password;
+		this.maxGroupSize = maxGroupSize;
+		this.groups = new HashSet<Group>();
+		this.users = new HashSet<User>();
+		this.questionnaire = new HashMap<>();
+		this.deadline = null;
+		this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+	}
+	
+	public Environment(String name, boolean privateEnv, String password, Integer maxGroupSize, Set<Group> groups, Set<User> users) {
+		this.name = name;
+		this.privateEnv = privateEnv;
+		this.password = password;
+		this.maxGroupSize = maxGroupSize;
 		this.groups = groups;
 		this.users = users;
+		this.questionnaire = new HashMap<>();
+		this.deadline = null;
+		this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	}
 
 	public String getName() {
@@ -56,8 +93,64 @@ public class Environment {
 	public void setUsers(Set<User> users) {
 		this.users = users;
 	}
-
 	
+	public boolean addQuestionAndAnswers(String question, String[] answers) {
+		if (answers.length < 4) {
+			questionnaire.put(question, createQuestionArray(answers));
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private ArrayList<String> createQuestionArray(String[] answers) {
+		ArrayList<String> ansArray = new ArrayList<>();
+		for (String answer : answers) {
+			ansArray.add(answer);
+		}
+		
+		return ansArray;
+	}
+	
+	public Map<String, List<String>> getQuestionnaire() {
+		return this.questionnaire;
+	}
+	
+	public boolean setDate(String day, String month, String year) {
+		try {
+			this.deadline = dateFormat.parse(day+"/"+month+"/"+year);
+			
+		} catch (ParseException e) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean afterDate(String day, String month, String year) {
+		boolean isAfterDate = false;
+		try {
+			Date currDate = dateFormat.parse(day+"/"+month+"/"+year);
+			isAfterDate = this.deadline.after(currDate);
+			
+		} catch (ParseException e) {
+			return false;
+		}
+		
+		return isAfterDate;
+	}
+	
+	public Date getDeadline() {
+		return this.deadline;
+	}
+
+	public Integer getMaxGroupSize() {
+		return maxGroupSize;
+	}
+
+	public void setMaxGroupSize(Integer maxGroupSize) {
+		this.maxGroupSize = maxGroupSize;
+	}
 
 	@Override
 	public int hashCode() {
@@ -65,6 +158,9 @@ public class Environment {
 		int result = 1;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((owner == null) ? 0 : owner.hashCode());
+		result = prime * result + ((privateEnv == null) ? 0 : privateEnv.hashCode());
+		result = prime * result + ((questionnaire == null) ? 0 : questionnaire.hashCode());
+		result = prime * result + ((users == null) ? 0 : users.hashCode());
 		return result;
 	}
 
@@ -87,13 +183,27 @@ public class Environment {
 				return false;
 		} else if (!owner.equals(other.owner))
 			return false;
+		if (privateEnv == null) {
+			if (other.privateEnv != null)
+				return false;
+		} else if (!privateEnv.equals(other.privateEnv))
+			return false;
+		if (questionnaire == null) {
+			if (other.questionnaire != null)
+				return false;
+		} else if (!questionnaire.equals(other.questionnaire))
+			return false;
+		if (users == null) {
+			if (other.users != null)
+				return false;
+		} else if (!users.equals(other.users))
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "Environment [name=" + name + ", privateEnv=" + privateEnv + ", groups="
-				+ groups + "]";
+		return "Environment [owner=" + owner + ", name=" + name + "]";
 	}
 	
 	

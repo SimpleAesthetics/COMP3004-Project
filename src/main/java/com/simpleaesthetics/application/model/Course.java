@@ -1,19 +1,26 @@
 package com.simpleaesthetics.application.model;
 
-import java.util.Set;
+import java.util.ArrayList;
 
 public class Course {
 
 	String name;
 	String courseCode;
 	String instructor;
-	Set<String> envList;
+	ArrayList<String> envList;
 	
-	public Course(String name, String courseCode, String instructor) {
+	public Course() {
+		this.name = null;
+		this.courseCode = null;
+		this.instructor = null;
+		this.envList = null;
+	}
+	
+	public Course(String name, String courseCode, String instructor, ArrayList<String> envList) {
 		this.name = name;
 		this.courseCode = courseCode;
 		this.instructor = instructor;
-		this.envList = null;
+		this.envList = envList;
 	}
 
 	public String getName() {
@@ -40,11 +47,11 @@ public class Course {
 		this.instructor = instructor;
 	}
 
-	public Set<String> getEnvList() {
+	public ArrayList<String> getEnvList() {
 		return envList;
 	}
 
-	public void setEnvList(Set<String> envList) {
+	public void setEnvList(ArrayList<String> envList) {
 		this.envList = envList;
 	}
 

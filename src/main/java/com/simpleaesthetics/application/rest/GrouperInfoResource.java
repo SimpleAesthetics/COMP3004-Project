@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.simpleaesthetics.application.model.Environment;
-import com.simpleaesthetics.application.model.Group;
 import com.simpleaesthetics.application.rest.db.GrouperDB;
 import com.simpleaesthetics.application.model.Course;
 import com.simpleaesthetics.application.model.University;
@@ -37,8 +36,8 @@ public class GrouperInfoResource {
 	@Autowired
 	private GrouperDB db;
 	
-	private Environment env = new Environment(
-			"TestEnv", true, "blastoise", new HashSet<Group>(), createTestUserSet());
+//	private Environment env = new Environment(
+//			"TestEnv", true, "blastoise", new HashSet<Group>(), createTestUserSet());
 	
 	@RequestMapping(value="/universities", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<ArrayList<ArrayList<String>>> getUniversities() {
@@ -46,7 +45,7 @@ public class GrouperInfoResource {
 		HttpStatus status = HttpStatus.OK;
 		ArrayList<ArrayList<String>> universities = db.queryAllUniversities();
 		
-		if (universities.size() == 0) {
+		if (universities.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
 			logger.info("No universities were returned");
 		}
@@ -61,12 +60,14 @@ public class GrouperInfoResource {
 			@PathVariable(value="uniName",required=true) String uniName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		ArrayList<String> university = null;
-
-		university = getUniversityInfo(uniName);
+		ArrayList<String> universityInfo = getUniversityInfo(uniName);
+		
+		if (universityInfo.isEmpty()) {
+			status = HttpStatus.NO_CONTENT;
+		}
 
 		return new ResponseEntity<ArrayList<String>>(
-				university,
+				universityInfo,
 				status);
 	}
 	
@@ -93,8 +94,8 @@ public class GrouperInfoResource {
 	public @ResponseBody ResponseEntity<List<String>> getCourses(
 			@PathVariable(value="uniName",required=true) String uniName) {
 		
-		// TODO add a query for classes
 		// TODO get all the classes
+		// TODO implement a get all courses function
 		
 		return null;
 	}
@@ -105,10 +106,9 @@ public class GrouperInfoResource {
 			@PathVariable(value="courseName",required=true) String courseName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		List<String> course = db.getCourses(db.getCourseID(courseName, db.getUniversityID(uniName)));
+		List<String> course = getCourseInfo(courseName, uniName);
 		
-		if (course.size() == 0) {
-			logger.info("A course was not returned");
+		if (course.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
 		}
 		
@@ -122,85 +122,178 @@ public class GrouperInfoResource {
 			@PathVariable(value="uniName",required=true) String uniName,
 			@RequestBody(required=true) Course course) {
 		
-		HttpStatus status = HttpStatus.OK;
+		logger.info(course.getInstructor());
 		
-		if (-1 == db.insertCourse(
-					course.getName(), 
-					Integer.parseInt(db.queryUser(course.getInstructor()).get(0)), 
-					db.getUniversityID(uniName))) {
-			
+		HttpStatus status = HttpStatus.OK;
+		int insertedCourse = db.insertCourse(
+								course.getName(), 
+								Integer.parseInt(db.queryUser(course.getInstructor()).get(0)), 
+								getUniversityId(uniName));
+		
+		if (-1 == insertedCourse) {
 			logger.error("Could not add new course ["+ course +"]");
 			status = HttpStatus.BAD_REQUEST;
 			
-		} else {
-			logger.info("Successfully added new course ["+ course +"]");
 		}
 		
 		return new ResponseEntity<String>(status);
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<List<Environment>> getEnvironments(
-			@PathVariable("uniName") String uniName,
-			@PathVariable("courseName") String courseName) {
+	public @ResponseBody ResponseEntity<ArrayList<ArrayList<String>>> getEnvironments(
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		List<Environment> envList = null;
+		ArrayList<ArrayList<String>> envList = getEnvironmentsHelper(uniName, courseName);
 		
-		return new ResponseEntity<List<Environment>>(
+		if (envList.isEmpty()) {
+			status = HttpStatus.NO_CONTENT;
+		}
+		
+		return new ResponseEntity<ArrayList<ArrayList<String>>>(
 				envList,
 				status);
 	}
 	
-	@RequestMapping(value="/universities/{uniName}/class/{className}/environments/{environmentName}", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<Environment> getSpecificEnvironment(
-			@RequestHeader(value="sort", defaultValue="false", required=true) boolean toSort,
-			@PathVariable("uniName") String uniName,
-			@PathVariable("className") String className,
-			@PathVariable("environmentName") String environmentName) {
+	@RequestMapping(value="/universities/{uniName}/course/{courseName}/environments/{environmentName}", method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<ArrayList<String>> getSpecificEnvironment(
+			@RequestHeader(value="sort", defaultValue="false") boolean toSort,
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName,
+			@PathVariable(value="environmentName",required=true) String environmentName) {
 		
-		if (toSort) {
-			env.setGroups(grouper.findAllGroups(env.getUsers(), 4));
-		}
+		ArrayList<String> envInfo = getEnvironmentInfoHelper(environmentName, courseName, uniName);
+		System.out.println(envInfo);
 		
-		return new ResponseEntity<Environment>(
-				env,
+//		if (toSort) {
+//			env.setGroups(grouper.findAllGroups(env.getUsers(), 4));
+//			
+//		} else {
+//			
+//		}
+		
+		return new ResponseEntity<ArrayList<String>>(
+				envInfo,
 				HttpStatus.OK);
 	}
 	
-	@RequestMapping(value="/universities/{uniName}/class/{className}/environments", 
-					method=RequestMethod.POST)
+	@RequestMapping(value="/universities/{uniName}/class/{courseName}/environments", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<Environment> addEnvironment(
-			@PathVariable("uniName") String uniName,
-			@PathVariable("className") String className,
-			@PathVariable("environmentName") String environmentName) {
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName,
+			@RequestBody(required=true) Environment env) {
+		
+//		int[] userIds = 
+//		
+//		db.insertEnvironment(
+//				env.getName(), 
+//				getCourseId(courseName,uniName), 
+//				env.isPrivateEnv(), 
+//				env.getPassword(),
+//				env.getMaxGroupSize().intValue(), 
+//				env.getDeadline().toString(), 
+//				getUserIdsFromNicknames(env.getUsers()), 
+//				env.getGroups());
 		
 		return null;
 	}
 	
-	private ArrayList<String> getUniversityInfo(String uniName) {
-		System.out.println(uniName);
+	
+	/*
+	 *  THE HELPER FUNTIONS
+	 */
+	
+	private int getUniversityId(String universityName) {
+		int universityId = db.getUniversityID(universityName);
 		
-		int uniId = db.getUniversityID(uniName);
-		ArrayList<String> university = null;
-		
-		logger.info(uniId);
-		
-		if (uniId != -1) {
-			university = db.queryUniversity(uniId);
-			
-			if (university != null && university.size() == 0) {
-				logger.info("A university was not returned");
-				
-			} else if (university == null) {
-				throw new DatabaseException("Something went wrong when trying to find a university");
-			}
-			
-		} else {
-			logger.warn("Could not find university id for ["+ uniName + "]");
+		if (universityId == -1) {
+			logger.warn("Failed to get university id for ["+ universityName +"]");
+			throw new DatabaseException("Failed to get university id for ["+ universityName +"]");
 		}
 		
-		return university;
+		return universityId;
+	}
+	
+	private ArrayList<String> getUniversityInfo(String universityName) {
+		ArrayList<String> universityInfo = db.queryUniversity(getUniversityId(universityName));
+		
+		if (universityInfo.size() == 0) {
+			logger.warn("No university was returned for ["+ universityName +"]");
+		}
+		
+		return universityInfo;
+	}
+	
+	private int getCourseId(String courseName, String universityName) {
+		int courseId = db.getCourseID(courseName, getUniversityId(universityName));
+		
+		if (courseId == -1) {
+			logger.warn("Failed to get course id for ["+ courseName +"]");
+			throw new DatabaseException("Failed to get course id for ["+ courseName +"]");
+		}
+		
+		return courseId;
+	}
+	
+	private ArrayList<String> getCourseInfo(String courseName, String unviersityName) {
+		ArrayList<String> courseInfo = db.queryCourse(getCourseId(courseName, unviersityName));
+		
+		if (courseInfo.size() == 0) {
+			logger.warn("No courses were returned for ["+ courseName +"]");
+		}
+		
+		return courseInfo;
+	}
+	
+	private ArrayList<ArrayList<String>> getEnvironmentsHelper(String universityName, String courseName) {
+		ArrayList<ArrayList<String>> envs = db.getEnvironments(getCourseId(courseName, universityName));
+		
+		if (envs.size() == 0) {
+			logger.warn("No environments were returned for ["+ courseName +"]");
+		}
+		
+		return envs;
+	}
+	
+	private int getEnvironmentId(
+			String environmentName, 
+			String courseName, 
+			String universityName) {
+		
+		int envId = db.getEnvironmentID(environmentName, getCourseId(courseName, universityName));
+		
+		if (envId == -1) {
+			logger.warn("Failed to get environment id for ["+ environmentName +"]");
+			throw new DatabaseException("Failed to get environment id for ["+ environmentName +"]");
+		}
+		
+		return envId;
+	}
+	
+	private ArrayList<String> getEnvironmentInfoHelper( 
+			String environmentName,
+			String courseName,
+			String universityName) {
+		
+		int envId = getEnvironmentId(environmentName, courseName, universityName);
+		ArrayList<String> envInfo = db.queryEnvironment(envId);
+		
+		if (envInfo.isEmpty()) {
+			logger.warn("No environments were returned for ["+ environmentName +"]");
+		}
+		
+		return envInfo;
+	}
+	
+	private Integer[] getUserIdsFromNicknames(Set<User> users) {
+		ArrayList<Integer> idList = new ArrayList<>();
+		for (User user : users) {
+			idList.add(Integer.valueOf(
+						db.queryUser(user.getNickname()).get(0)));
+		}
+		
+		return idList.toArray(new Integer[idList.size()]);
 	}
 	
 	private Set<University> createTestUniList() {
