@@ -16,7 +16,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.TreeMap;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -363,9 +362,7 @@ public class GrouperDB {
 	//Function for inserting a user
 	//Input: first name, last name, email address
 	//Output: ID of added user
-	public int insertUser(int id, String firstName, String lastName, String email) {
-		//For now, assume the nickname is the email address
-		String nickname = email;
+	public int insertUser(int id, String firstName, String lastName, String nickname, String email) {
 		//Convert to all lowercase letters
 		nickname = nickname.toLowerCase();
 		if(opened != false && dbconn != null) {
@@ -393,6 +390,16 @@ public class GrouperDB {
 		}
 		//DB isn't open
 		return -1;
+	}
+	
+	//Function for inserting a user
+	//OVERLOAD: assumes nickname is first part of email
+	public int insertUser(int id, String firstName, String lastName, String email) {
+		if(email == "") {
+			return -1;
+		}
+		String nickname = email.substring(0,email.indexOf("@"));
+		return this.insertUser(id,firstName,lastName,nickname,email);
 	}
 	
 	//Function for updating a user's email address
@@ -901,13 +908,13 @@ public class GrouperDB {
 	}
 
 	//Function to insert environment to the database
-	/*Input: name, course ID, instructor ID, private?, password (if applicable),
+	/*Input: name, course ID, owner ID, private?, password (if applicable),
 	 * maximum group size, closing date, list of students, list of groups
 	 * reference to associated questionnaire */
 	//Output: the ID of the created environment
-	public int insertEnvironment(String name, int cid, boolean priv, String password, int mgs, String close, String students, String groups, int questionnaire) {
+	public int insertEnvironment(String name, int owner, int cid, boolean priv, String password, int mgs, String close, String students, String groups, int questionnaire) {
 		//Basic sanity check
-		if(this.queryCourse(cid).isEmpty() || name == "" || (priv == true && password == "") || mgs < 2 || close == "") {
+		if(this.queryCourse(cid).isEmpty() || this.queryUser(owner).isEmpty() || name == "" || (priv == true && password == "") || mgs < 2 || close == "") {
 			return -1;
 		}
 		int pvt = 0;
@@ -944,6 +951,16 @@ public class GrouperDB {
 			}
 		}
 		return id;
+	}
+
+	//Function to insert environment to the database
+	//OVERLOAD: assumes owner is course instructor
+	public int insertEnvironment(String name, int cid, boolean priv, String password, int mgs, String close, String students, String groups, int questionnaire) {
+		ArrayList<String> course = this.queryCourse(cid);
+		if(course.isEmpty() || course.size() < 1) {
+			return -1;
+		}
+		return this.insertEnvironment(name, Integer.parseInt(course.get(1)), cid, priv, password, mgs, close, students, groups, questionnaire);
 	}
 	
 	//Helper function for retrieving the ID of an environment
