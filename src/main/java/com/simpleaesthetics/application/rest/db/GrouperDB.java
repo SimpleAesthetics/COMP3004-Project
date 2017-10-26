@@ -924,18 +924,19 @@ public class GrouperDB {
 		int id = -1;
 		if(opened != false && dbconn != null) {
 			//Database is opened, can insert into DB now
-			String sql = "INSERT INTO Environments(name,course,private,password,maxgroupsize,closedate,students,groups,questionnaire) VALUES (?,?,?,?,?,?,?,?,?)";
+			String sql = "INSERT INTO Environments(name,owner,course,private,password,maxgroupsize,closedate,students,groups,questionnaire) VALUES (?,?,?,?,?,?,?,?,?,?)";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
 				psql.setString(1,name);
-				psql.setInt(2,cid);
-				psql.setInt(3,pvt);
-				psql.setString(4,password);
-				psql.setInt(5,mgs);
-				psql.setString(6,close);
-				psql.setString(7,students);
-				psql.setString(8,groups);
-				psql.setInt(9,questionnaire);
+				psql.setInt(2,owner);
+				psql.setInt(3,cid);
+				psql.setInt(4,pvt);
+				psql.setString(5,password);
+				psql.setInt(6,mgs);
+				psql.setString(7,close);
+				psql.setString(8,students);
+				psql.setString(9,groups);
+				psql.setInt(10,questionnaire);
 				psql.executeUpdate();
 				id = this.getEnvironmentID(name,cid);
 				ArrayList<String> courses = this.queryCourse(cid);
@@ -1012,6 +1013,27 @@ public class GrouperDB {
 			}
 		}
 	}
+	//Function for changing the owner of an environment
+	//Input: environment ID, owner ID
+	//Output: true on success, false otherwise
+	public boolean changeOwner(int eid, int no) {
+		if(opened == false || dbconn == null || this.queryEnvironment(eid).isEmpty() || this.queryUser(no).isEmpty()) {
+			return false;
+		}
+		else {
+			String sql = "UPDATE Environments SET owner = ? where id = ?";
+			try {
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				psql.setInt(1,no);
+				psql.setInt(2,eid);
+				psql.executeUpdate();
+				return true;
+			}
+			catch(SQLException e) {
+				return false;
+			}
+		}
+	}
 	//Function to update environment details
 	//Input: env ID, list of students, list of groups
 	//Output: true on success, false otherwise
@@ -1032,8 +1054,8 @@ public class GrouperDB {
 			String sql = "UPDATE Environments SET students = ? and groups = ? where id = ?";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
-				psql.setString(1,env.get(6));
-				psql.setString(2,env.get(7));
+				psql.setString(1,env.get(7));
+				psql.setString(2,env.get(8));
 				psql.setInt(3,id);
 				psql.executeUpdate();
 				return true;
@@ -1138,7 +1160,7 @@ public class GrouperDB {
 	public ArrayList<ArrayList<String>> getEnvironments(int cid) {
 		ArrayList<ArrayList<String>> envs = new ArrayList<ArrayList<String>>();
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT id,name,private,password,maxgroupsize,closedate,students,groups,questionnaire FROM Environments WHERE course = ?";
+			String sql = "SELECT id,name,owner,private,password,maxgroupsize,closedate,students,groups,questionnaire FROM Environments WHERE course = ?";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
 				psql.setInt(1,cid);
@@ -1149,6 +1171,7 @@ public class GrouperDB {
 					result = new ArrayList<String>();
 					result.add(new Integer(results.getInt("id")).toString());
 					result.add(results.getString("name"));
+					result.add(Integer.toString(results.getInt("owner")));
 					result.add(new Integer(results.getInt("private")).toString());
 					result.add(results.getString("password"));
 					result.add(new Integer(results.getInt("maxgroupsize")).toString());
@@ -1160,7 +1183,7 @@ public class GrouperDB {
 				}
 			}
 			catch(SQLException e) {
-				envs.add(new ArrayList<String>(9));
+				return envs;
 			}
 		}
 		return envs;
@@ -1171,7 +1194,7 @@ public class GrouperDB {
 	public ArrayList<String> queryEnvironment(int id) {
 		ArrayList<ArrayList<String>> envs = new ArrayList<ArrayList<String>>();
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT name,course,private,password,maxgroupsize,closedate,students,groups,questionnaire FROM Environments WHERE id = ?";
+			String sql = "SELECT name,course,owner,private,password,maxgroupsize,closedate,students,groups,questionnaire FROM Environments WHERE id = ?";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
 				psql.setInt(1,id);
@@ -1182,6 +1205,7 @@ public class GrouperDB {
 					result = new ArrayList<String>();
 					result.add(results.getString("name"));
 					result.add(new Integer(results.getInt("course")).toString());
+					result.add(Integer.toString(results.getInt("owner")));
 					result.add(new Integer(results.getInt("private")).toString());
 					result.add(results.getString("password"));
 					result.add(new Integer(results.getInt("maxgroupsize")).toString());
@@ -1193,11 +1217,7 @@ public class GrouperDB {
 				}
 			}
 			catch(SQLException e) {
-				ArrayList<String> errorlist = new ArrayList<String>();
-				for(int i = 0; i < 9; i++) {
-					errorlist.add("");
-				}
-				envs.add(errorlist);
+				return new ArrayList<String>();
 			}
 		}
 		if(envs.isEmpty() == true) {
@@ -1211,7 +1231,7 @@ public class GrouperDB {
 	public ArrayList<ArrayList<String>> queryAllEnvironments() {
 		ArrayList<ArrayList<String>> envs = new ArrayList<ArrayList<String>>();
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT id,name,course,private,password,maxgroupsize,closedate,students,groups,questionnaire FROM Environments";
+			String sql = "SELECT id,name,course,owner,private,password,maxgroupsize,closedate,students,groups,questionnaire FROM Environments";
 			try {
 				Statement query = dbconn.createStatement();
 				ResultSet results = query.executeQuery(sql);
@@ -1222,6 +1242,7 @@ public class GrouperDB {
 					result.add(new Integer(results.getInt("id")).toString());
 					result.add(results.getString("name"));
 					result.add(new Integer(results.getInt("course")).toString());
+					result.add(Integer.toString(results.getInt("owner")));
 					result.add(new Integer(results.getInt("private")).toString());
 					result.add(results.getString("password"));
 					result.add(new Integer(results.getInt("maxgroupsize")).toString());
