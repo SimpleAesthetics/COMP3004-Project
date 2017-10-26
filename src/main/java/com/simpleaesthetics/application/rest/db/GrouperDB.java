@@ -16,6 +16,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.TreeMap;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -427,7 +428,7 @@ public class GrouperDB {
 		ArrayList<String> users = new ArrayList<String>();
 		if(opened != false && dbconn != null) {
 			//Write SQL
-			String sql = "SELECT id,firstname,lastname,email FROM Users WHERE nickname = ?";
+			String sql = "SELECT id,firstname,lastname,email,answers FROM Users WHERE nickname = ?";
 			try {
 				//Prepare statement
 				PreparedStatement psql = dbconn.prepareStatement(sql);
@@ -442,6 +443,7 @@ public class GrouperDB {
 					users.add(results.getString("firstname"));
 					users.add(results.getString("lastname"));
 					users.add(results.getString("email"));
+					users.add(results.getString("answers"));
 					//Assume the first value is the only value and exit
 					break;
 				}
@@ -461,7 +463,7 @@ public class GrouperDB {
 		ArrayList<String> users = new ArrayList<String>();
 		if(opened != false && dbconn != null) {
 			//Write SQL
-			String sql = "SELECT firstname,lastname,nickname,email FROM Users WHERE id = ?";
+			String sql = "SELECT firstname,lastname,nickname,email,answers FROM Users WHERE id = ?";
 			try {
 				//Prepare statement
 				PreparedStatement psql = dbconn.prepareStatement(sql);
@@ -476,6 +478,7 @@ public class GrouperDB {
 					users.add(results.getString("lastname"));
 					users.add(results.getString("nickname"));
 					users.add(results.getString("email"));
+					users.add(results.getString("answers"));
 					//Assume the first value is the only value and exit
 					break;
 				}
@@ -522,7 +525,7 @@ public class GrouperDB {
 		ArrayList<ArrayList<String>> users = new ArrayList<ArrayList<String>>();
 		if(opened != false && dbconn != null) {
 			//Write SQL
-			String sql = "SELECT id,firstname,lastname,nickname,email FROM Users";
+			String sql = "SELECT id,firstname,lastname,nickname,email,answers FROM Users";
 			try {
 				//Create statement
 				Statement query = dbconn.createStatement();
@@ -539,6 +542,7 @@ public class GrouperDB {
 					result.add(results.getString("nickname"));
 					//Add results to list of users
 					result.add(results.getString("email"));
+					result.add(results.getString("answers"));
 					users.add(result);
 				}
 			}
@@ -1358,15 +1362,16 @@ public class GrouperDB {
 		String qs = "";
 		String as = "";
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT questions,answers FROM Questionnaires WHERE id = ?";
+			String sql = "SELECT questions,answers FROM Questionnaires WHERE id = ? LIMIT 1";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
 				psql.setInt(1, id);
 				ResultSet results = psql.executeQuery();
 				
 				while(results.next()) {
-					qs += results.getString("questions");
-					as += results.getString("answers");
+					qs = results.getString("questions");
+					as = results.getString("answers");
+					break;
 				}
 			}
 			catch(SQLException e) {
@@ -1384,7 +1389,7 @@ public class GrouperDB {
 			}
 			String[] as2 = as.split(", ");
 			for(String x : as2) {
-				aset.add(x.split("|"));
+				aset.add(x.split("/[\\|]/"));
 			}
 			
 			for(int i = 0; i < Math.min(qset.size(),aset.size()); i++) {
@@ -1415,6 +1420,136 @@ public class GrouperDB {
 				return false;
 			}
 		}
+	}
+	
+	public boolean answerQuestionnaire(int uid,HashMap<String,String> ans) {
+		//Basic sanity check
+		if(this.queryUser(uid).isEmpty() || ans.isEmpty()) {
+			return false;
+		}
+		String q = "";
+		String a = "";
+		q = Arrays.toString(ans.keySet().toArray());
+		q = q.replace("[","");
+		q = q.replace("]","");
+		ArrayList<String> answers = new ArrayList<String>();
+		answers.addAll(ans.values());
+		a = answers.toArray().toString();
+		a = a.replace("[","");
+		a = a.replace("]","");
+		if(opened != false && dbconn != null) {
+			//Database is opened, can insert into DB now
+			String sql = "INSERT INTO Answers(student,questions,answers) VALUES (?,?,?)";
+			try {
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				psql.setInt(1,uid);
+				psql.setString(2,q);
+				psql.setString(3,a);
+				psql.executeUpdate();
+				int aid = this.getAnswerID(uid,q,a);
+				this.userAnswer(uid,aid);
+				
+			}
+			catch(SQLException e) {
+				return false;
+			}
+		}
+		return true;
+	}
+	public boolean userAnswer(int user,int answer) {
+		if(opened == false || dbconn == null) {
+			//DB isn't open
+			return false;
+		}
+		else {
+			//Get user info
+			ArrayList<String> userinfo = this.queryUser(user);
+			String ans = userinfo.get(4);
+			if(ans != "") {
+				ans += ", ";
+			}
+			ans += Integer.toString(answer);
+			//Write SQL
+			String sql = "UPDATE Users SET answers = ? where id = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setString(1,ans);
+				psql.setInt(2,user);
+				//Execute statement
+				psql.executeUpdate();
+				//No way to check for success, so assume it did
+				return true;
+			}
+			catch(SQLException e) {
+				//Some kind of error, assume it didn't succeed
+				return false;
+			}
+		}
+	}
+	public int getAnswerID(int user, String q, String a) {
+		if(opened != false && dbconn != null) {
+			String sql = "SELECT ID FROM Answers WHERE student = ? AND questions = ? AND answers = ?";
+			try {
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				psql.setInt(1,user);
+				psql.setString(2,q);
+				psql.setString(3,a);
+				ResultSet results = psql.executeQuery();
+				
+				while(results.next()) {
+					return results.getInt("ID");
+				}
+			}
+			catch(SQLException e) {
+				return -1;
+			}
+		}
+		return -1;
+	}
+	public HashMap<String,String> getAnswers(int id) {
+		HashMap<String,String> qamap = new HashMap<String,String>();
+		ArrayList<String> qset = new ArrayList<String>();
+		ArrayList<String> aset = new ArrayList<String>();
+		String qs = "";
+		String as = "";
+		if(opened != false && dbconn != null) {
+			String sql = "SELECT questions,answers FROM Questionnaires WHERE id = ? LIMIT 1";
+			try {
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				psql.setInt(1, id);
+				ResultSet results = psql.executeQuery();
+				
+				while(results.next()) {
+					qs = results.getString("questions");
+					as = results.getString("answers");
+					break;
+				}
+			}
+			catch(SQLException e) {
+				return qamap;
+			}
+			
+			qs = qs.replace("[","");
+			qs = qs.replace("]","");
+			as = as.replace("[","");
+			as = as.replace("]","");
+			
+			String[] qs2 = qs.split(", ");
+			for(String x : qs2) {
+				qset.add(x);
+			}
+			String[] as2 = as.split(", ");
+			for(String x : as2) {
+				aset.add(x);
+			}
+			
+			for(int i = 0; i < Math.min(qset.size(),aset.size()); i++) {
+				qamap.put(qset.get(i),aset.get(i));
+			}
+		}
+		return qamap;
 	}
 
 	//Function for inserting a group into the database
@@ -1865,10 +2000,10 @@ public class GrouperDB {
 			}
 			
 			HashMap<String,String[]> qset = new HashMap<String,String[]>();
-			String[] a1 = {"a","b","c"};
-			String[] a2 = {"d","e"};
-			qset.put("Test question 1",a1);
-			qset.put("Test question 2",a2);
+			String[] a1 = {"yes","no","sure"};
+			String[] a2 = {"go away","broken application"};
+			qset.put("Is this application broken?",a1);
+			qset.put("What?",a2);
 			
 			qid = db.insertQuestionnaire(eid,qset);
 			if(qid > -1) {
@@ -1877,6 +2012,8 @@ public class GrouperDB {
 			else {
 				System.out.println("Failed to add questionnaire to the database");
 			}
+			
+			db.getQuestions(qid);
 			
 			/*System.out.println("");
 			System.out.println("DISPLAYING DATA");			
@@ -1912,7 +2049,7 @@ public class GrouperDB {
 			System.out.println(qset.toString());
 			System.out.println("");*/
 			
-			//deleteCrap(db,oc,qid,eid,cid,uid,uid2,uid3);
+			deleteCrap(db,oc,qid,eid,cid,uid,uid2,uid3);
 		}
 	}
 
