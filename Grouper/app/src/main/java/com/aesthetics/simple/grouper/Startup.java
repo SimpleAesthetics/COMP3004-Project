@@ -11,7 +11,7 @@ public class Startup extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_startup);
 
-        Intent intent = new Intent(this, NewEnvironment.class);
+        Intent intent = new Intent(this, MainLists.class);
         startActivity(intent);
 
         finish();
