@@ -1,8 +1,11 @@
  package com.simpleaesthetics.application.rest;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -18,7 +21,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.simpleaesthetics.application.model.Environment;
+import com.simpleaesthetics.application.model.Group;
 import com.simpleaesthetics.application.rest.db.GrouperDB;
+import com.simpleaesthetics.application.rest.transformer.EnvironmentTransformer;
+import com.simpleaesthetics.application.rest.transformer.QuestionnaireTransformer;
 import com.simpleaesthetics.application.model.Course;
 import com.simpleaesthetics.application.model.University;
 import com.simpleaesthetics.application.model.User;
@@ -35,6 +41,12 @@ public class GrouperInfoResource {
 	
 	@Autowired
 	private GrouperDB db;
+	
+	@Autowired
+	private EnvironmentTransformer envTransformer;
+	
+	@Autowired
+	private QuestionnaireTransformer questionnaireTransformer;
 	
 //	private Environment env = new Environment(
 //			"TestEnv", true, "blastoise", new HashSet<Group>(), createTestUserSet());
@@ -73,9 +85,10 @@ public class GrouperInfoResource {
 	
 	@RequestMapping(value="/universities", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addUniversity(
-			@RequestBody(required=true) String name) {
+			@RequestBody(required=true) University university) {
 		
 		HttpStatus status = HttpStatus.NO_CONTENT;
+		String name = university.getName();
 		
 		if (db.insertUniversity(name) == -1) {
 			logger.warn("Could not insert [" + name +"]");
@@ -91,13 +104,20 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<List<String>> getCourses(
+	public @ResponseBody ResponseEntity<ArrayList<ArrayList<String>>> getCourses(
 			@PathVariable(value="uniName",required=true) String uniName) {
 		
-		// TODO get all the classes
-		// TODO implement a get all courses function
+		HttpStatus status = HttpStatus.OK;
+		ArrayList<ArrayList<String>> courses = db.getCourses(getUniversityId(uniName));
 		
-		return null;
+		if (courses.isEmpty()) {
+			status = HttpStatus.NO_CONTENT;
+			logger.info("No courses were returned for ["+ uniName +"]");
+		}
+		
+		return new ResponseEntity<ArrayList<ArrayList<String>>>(
+				courses,
+				status);
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}", method=RequestMethod.GET)
@@ -131,9 +151,8 @@ public class GrouperInfoResource {
 								getUniversityId(uniName));
 		
 		if (-1 == insertedCourse) {
-			logger.error("Could not add new course ["+ course +"]");
+			logger.error("Could not add new course ["+ course.getName() +"]");
 			status = HttpStatus.BAD_REQUEST;
-			
 		}
 		
 		return new ResponseEntity<String>(status);
@@ -156,52 +175,145 @@ public class GrouperInfoResource {
 				status);
 	}
 	
-	@RequestMapping(value="/universities/{uniName}/course/{courseName}/environments/{environmentName}", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<ArrayList<String>> getSpecificEnvironment(
-			@RequestHeader(value="sort", defaultValue="false") boolean toSort,
+	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}", method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<Environment> getSpecificEnvironment(
+			@RequestHeader(value="sortGroups", defaultValue="false") boolean toSort,
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
-			@PathVariable(value="environmentName",required=true) String environmentName) {
+			@PathVariable(value="envName",required=true) String envName) {
 		
-		ArrayList<String> envInfo = getEnvironmentInfoHelper(environmentName, courseName, uniName);
-		System.out.println(envInfo);
+		Environment env = envTransformer.transform(
+				getEnvironmentInfoHelper(envName, courseName, uniName),
+				getQuestionnaireHelper(envName, courseName, uniName));
 		
-//		if (toSort) {
-//			env.setGroups(grouper.findAllGroups(env.getUsers(), 4));
-//			
-//		} else {
-//			
-//		}
+		if (toSort) {
+			env.setGroups(grouper.findAllGroups(env.getUsers(), 4));
+			
+		} else {
+			
+		}
 		
-		return new ResponseEntity<ArrayList<String>>(
-				envInfo,
+		return new ResponseEntity<Environment>(
+				env,
 				HttpStatus.OK);
 	}
 	
-	@RequestMapping(value="/universities/{uniName}/class/{courseName}/environments", method=RequestMethod.POST)
-	public @ResponseBody ResponseEntity<Environment> addEnvironment(
+	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments", method=RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> addEnvironment(
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@RequestBody(required=true) Environment env) {
 		
-//		int[] userIds = 
-//		
-//		db.insertEnvironment(
-//				env.getName(), 
-//				getCourseId(courseName,uniName), 
-//				env.isPrivateEnv(), 
-//				env.getPassword(),
-//				env.getMaxGroupSize().intValue(), 
-//				env.getDeadline().toString(), 
-//				getUserIdsFromNicknames(env.getUsers()), 
-//				env.getGroups());
+		HttpStatus status = HttpStatus.OK;
+		String errorStr = "";
 		
-		return null;
+		int insertedEnv = db.insertEnvironment(
+				env.getName(), 
+				getCourseId(courseName,uniName), 
+				env.isPrivateEnv(), 
+				env.getPassword(),
+				env.getMaxGroupSize().intValue(), 
+				env.getDeadline(), 
+				new int[0], 
+				new int[0],
+				-1);
+		
+		if (insertedEnv == -1) {
+			logger.error("Could not add new environment ["+ env.getName() +"]");
+			status = HttpStatus.BAD_REQUEST;
+			errorStr += "Inserting environment failed";
+			
+		} else {
+			int envId = getEnvironmentId(env.getName(), courseName, uniName);
+			int insertedQuestionnnaire = db.insertQuestionnaire(
+					envId, 
+					questionnaireTransformer.transformForDb(env.getQuestionnaire()));
+			
+			System.out.println(questionnaireTransformer.transformForDb(env.getQuestionnaire()).toString());
+			
+			if (insertedQuestionnnaire == -1) {
+				logger.error("Could not add new questionnaire to env ["+ env.getName() +"]");
+				status = HttpStatus.BAD_REQUEST;
+				errorStr += "Inserting questionnaire failed";
+				
+			} else {
+				boolean successfulUpdate = db.changeQuestionnaire(
+						envId, 
+						insertedQuestionnnaire);
+				
+				if (!successfulUpdate) {
+					logger.error("Could not update questionnaire id for env ["+ env.getName() +"]");
+					status = HttpStatus.BAD_REQUEST;
+					errorStr += "Updating questionnaire ID to environment failed";
+				}
+			}
+		}
+		
+		return new ResponseEntity<String>(errorStr, status);
+	}
+	
+	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> addGroup(
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName,
+			@PathVariable(value="envName",required=true) String envName,
+			@RequestBody(required=true) Group group) {
+		
+		HttpStatus status = HttpStatus.OK;
+		int envId = getEnvironmentId(envName, courseName, uniName);
+		
+		int insertedGroup = db.insertGroup(
+				envId, 
+				0, 
+				Integer.valueOf(db.queryUser(group.getTaName()).get(0)),
+				getCsvFromUserSet(group.getGroupMembers()));
+		
+		if (insertedGroup == -1) {
+			logger.error("Could not add new group ["+ group.getName() +"]");
+			status = HttpStatus.BAD_REQUEST;
+			
+		} else {
+			boolean isSuccessfulUpdate = db.updateEnvironment(
+					envId, 
+					"", 
+					group.getName());
+			
+			if (!isSuccessfulUpdate) {
+				logger.error("Could not successfully add group to update environment ["+ envName +"]");
+				status = HttpStatus.BAD_REQUEST;
+			}
+		}
+		
+		return new ResponseEntity<>(status);
+	}
+	
+	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/users", method=RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> addGroup(
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName,
+			@PathVariable(value="envName",required=true) String envName,
+			@RequestBody(required=true) User users) {
+		
+		HttpStatus status = HttpStatus.OK;
+		int envId = getEnvironmentId(envName, courseName, uniName);
+		
+		boolean isUpdateSuccessful = db.updateEnvironment(
+				envId,
+				users.getNickname(),
+				"");
+		
+		if (!isUpdateSuccessful) {
+			logger.error("Could not update user for environment ["+ envName +"]");
+			status = HttpStatus.BAD_REQUEST;
+		}
+		
+		return new ResponseEntity<>(status);
 	}
 	
 	
+	
 	/*
-	 *  THE HELPER FUNTIONS
+	 *  THE HELPER FUNCTIONS (OH YEAH!!!)
 	 */
 	
 	private int getUniversityId(String universityName) {
@@ -256,10 +368,7 @@ public class GrouperInfoResource {
 		return envs;
 	}
 	
-	private int getEnvironmentId(
-			String environmentName, 
-			String courseName, 
-			String universityName) {
+	private int getEnvironmentId(String environmentName, String courseName, String universityName) {
 		
 		int envId = db.getEnvironmentID(environmentName, getCourseId(courseName, universityName));
 		
@@ -286,14 +395,70 @@ public class GrouperInfoResource {
 		return envInfo;
 	}
 	
-	private Integer[] getUserIdsFromNicknames(Set<User> users) {
-		ArrayList<Integer> idList = new ArrayList<>();
-		for (User user : users) {
-			idList.add(Integer.valueOf(
-						db.queryUser(user.getNickname()).get(0)));
+	private int getQuestionnaireIdHelper(
+			String envName,
+			String courseName,
+			String universityName) {
+		
+		int questId = db.getQuestionnaire(
+				getEnvironmentId(envName, courseName, universityName));
+		
+		if (questId == -1) {
+			logger.warn("Failed to get questionnaire id for ["+ envName +"]");
+			throw new DatabaseException("Failed to get questionnaire id for ["+ envName +"]");
 		}
 		
-		return idList.toArray(new Integer[idList.size()]);
+		return questId;
+	}
+	
+	private HashMap<String,String[]> getQuestionnaireHelper(
+			String envName,
+			String courseName,
+			String universityName) {
+		
+		HashMap<String,String[]> questionnaire = 
+				db.getQuestions(
+						getQuestionnaireIdHelper(
+								envName, 
+								courseName, 
+								universityName));
+		
+		System.out.println(Arrays.toString(questionnaire.get("Is this ok?")));
+		
+		if (questionnaire.isEmpty()) {
+			logger.warn("No questionnaire items were returned for ["+ envName +"]");
+		}
+		
+		return questionnaire;
+	}
+	
+	private int[] getUserIdsFromNicknames(Set<User> users) {
+		int[] idList = new int[users.size()];
+		int i = 0;
+		for (User user : users) {
+			idList[i] = (Integer.valueOf(db.getUserID(user.getNickname())));
+			i++;
+		}
+		
+		return idList;
+	}
+	
+	private String getCsvFromUserSet(Set<User> users) {
+		String userStr = "";
+		for (User user : users) {
+			userStr += (user.getNickname().equals("") ? "" : ",") + user.getNickname();
+		}
+		
+		return userStr;
+	}
+	
+	private String getCsvFromUserList(List<User> users) {
+		String userStr = "";
+		for (User user : users) {
+			userStr += (user.getNickname().equals("") ? "" : ",") + user.getNickname();
+		}
+		
+		return userStr;
 	}
 	
 	private Set<University> createTestUniList() {

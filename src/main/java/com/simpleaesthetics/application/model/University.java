@@ -6,9 +6,13 @@ import java.util.List;
 public class University {
 	
 	private String name;
-	
 	// TODO Make a values for this var
 	private List<Course> coursesList;
+	
+	public University() {
+		this.name = null;
+		this.coursesList = new ArrayList<>();
+	}
 	
 	public University(String name) {
 		this.name = name;
