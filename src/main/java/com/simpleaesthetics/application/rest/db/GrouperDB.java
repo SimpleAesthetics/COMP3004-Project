@@ -84,6 +84,7 @@ public class GrouperDB {
 		}
 		catch(SQLException e) {
 			//Database has not been opened
+			logger.error("Exception found when OPENING the Database "+ dburl, e);
 			return false;
 		}
 	}
@@ -100,6 +101,7 @@ public class GrouperDB {
 			}
 			catch(SQLException e) {
 				//Did not close DB
+				logger.error("Exception found when CLOSING the Database "+ dburl, e);
 				return false;
 			}
 		}
