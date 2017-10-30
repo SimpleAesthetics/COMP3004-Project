@@ -48,9 +48,6 @@ public class GrouperInfoResource {
 	@Autowired
 	private QuestionnaireTransformer questionnaireTransformer;
 	
-//	private Environment env = new Environment(
-//			"TestEnv", true, "blastoise", new HashSet<Group>(), createTestUserSet());
-	
 	@RequestMapping(value="/universities", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<ArrayList<ArrayList<String>>> getUniversities() {
 		
@@ -147,7 +144,8 @@ public class GrouperInfoResource {
 		HttpStatus status = HttpStatus.OK;
 		int insertedCourse = db.insertCourse(
 								course.getName(), 
-								Integer.parseInt(db.queryUser(course.getInstructor()).get(0)), 
+//								Integer.parseInt(db.queryUser(course.getInstructor()).get(0)),
+								-1,
 								getUniversityId(uniName));
 		
 		if (-1 == insertedCourse) {
