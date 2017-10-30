@@ -1,5 +1,6 @@
 package com.aesthetics.simple.grouper;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
@@ -17,40 +18,36 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MainLists extends AppCompatActivity {
-    private ImageButton btn_Back,btn_Menu,btn_search;
+    private ImageButton btn_Back;
     private TextView txt_Title;
     private SimpleAdapter adapter;
-    private String title;
     private ListView lst_Main;
     private PopupMenu popup;
     private int state = 0;
-    String univ,cour,envi,grou;
+    String univ,cour,envi;
 
     //Lists;
     private List<Map<String, String>> lst_Universities;
     private List<Map<String, String>> lst_Courses;
     private List<Map<String, String>> lst_Environments;
-    private List<Map<String, String>> lst_Inner;
 
     private List<String> lst_ID_Universities;
     private List<String> lst_ID_Courses;
     private List<String> lst_ID_Environments;
-    private List<String> lst_ID_Inner;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ImageButton btn_Menu,btn_search;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_lists);
 
@@ -103,15 +100,15 @@ public class MainLists extends AppCompatActivity {
     private void set_List(List<Map<String, String>> lst_cur, boolean lst_type){
         int layout = lst_type?android.R.layout.simple_list_item_2:android.R.layout.simple_list_item_1;
         adapter = new SimpleAdapter(this, lst_cur,
-                android.R.layout.simple_list_item_2,
+                layout,
                 new String[]{"H1","Sub"},
                 new int[] {android.R.id.text1, android.R.id.text2});
-        ;
         lst_Main.setAdapter(adapter);
 
 
     }
 
+    /*
     private String newUniversityListItem(String Name, int num){
         String out = Name + "\n" + num + " available course";
         if (num!=1) out=out+"s";
@@ -146,6 +143,8 @@ public class MainLists extends AppCompatActivity {
         return out;
     }
 
+    */
+
     private void backAStep(){
         if(state==0)
             finish();
@@ -159,12 +158,13 @@ public class MainLists extends AppCompatActivity {
     }
 
     private Map<String, String> newListItem(String H1, String Sub){
-        Map<String, String> data = new HashMap<String, String>(2);
+        Map<String, String> data = new HashMap<>(2);
         data.put("H1",H1);
         data.put("Sub",Sub);
         return data;
     }
 
+    @SuppressLint("SetTextI18n")
     public void view_Universities(boolean reload){
         state=0;
         txt_Title.setText("    Universities");
@@ -174,8 +174,8 @@ public class MainLists extends AppCompatActivity {
             JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, vClient.I(this).getAddress()+"universities", null, new Response.Listener<JSONArray>() {
                 @Override
                 public void onResponse(JSONArray response) {
-                    lst_Universities    = new ArrayList<Map<String, String>>();
-                    lst_ID_Universities = new ArrayList<String>();
+                    lst_Universities    = new ArrayList<>();
+                    lst_ID_Universities = new ArrayList<>();
                    // Toast.makeText(getApplicationContext(), response.toString(), Toast.LENGTH_LONG).show();
                     for(int i=0; i<response.length();i++){
                         try {
@@ -194,7 +194,6 @@ public class MainLists extends AppCompatActivity {
 
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    // TODO Auto-generated method stub
                     Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
                 }
             });
@@ -207,51 +206,109 @@ public class MainLists extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Get Courses from here; using on click id.
-                univ = lst_ID_Universities.get((int)position);
+                univ = lst_ID_Universities.get(position);
                 view_Courses(true);
             }
         });
     }
 
+    @SuppressLint("SetTextI18n")
     public void view_Courses(boolean reload){
         state=1;
         txt_Title.setText("Courses");
         btn_Back.setVisibility(View.VISIBLE);
         if(reload) {
-            lst_Courses     = new ArrayList<Map<String, String>>();
-            lst_ID_Courses  = new ArrayList<String>();
-        }
-        set_List(lst_Courses,true);
+            //Get universities;
+            JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, vClient.I(this).getAddress()+"universities/"+univ+"/courses", null, new Response.Listener<JSONArray>() {
+                @Override
+                public void onResponse(JSONArray response) {
+                    lst_Courses    = new ArrayList<>();
+                    lst_ID_Courses = new ArrayList<>();
+                    // Toast.makeText(getApplicationContext(), response.toString(), Toast.LENGTH_LONG).show();
+                    for(int i=0; i<response.length();i++){
+                        try {
+                            String uni = response.getJSONArray(i).getString(1);
+                            lst_ID_Courses.add(uni);
+                            lst_Courses.add(newListItem(uni,""));
+                            //Toast.makeText(getApplicationContext(), uni, Toast.LENGTH_LONG).show();
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                    set_List(lst_Courses,false);
+                }
+            }, new Response.ErrorListener() {
 
-        lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
+                }
+            });
+
+            vClient.I(this).addtoReqQueue(req);
+        }
+        else
+            set_List(lst_Courses,false);
+            lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Get Courses from here; using on click id.
-                cour=lst_ID_Courses.get((int)position);
+                cour = lst_ID_Courses.get(position);
                 view_Environments(true);
             }
         });
     }
 
+    @SuppressLint("SetTextI18n")
     public void view_Environments(boolean reload){
         state=2;
         txt_Title.setText("Environments");
         btn_Back.setVisibility(View.VISIBLE);
+
         if(reload) {
-            lst_ID_Environments = new ArrayList<String>();
-            lst_Environments    = new ArrayList<Map<String, String>>();
+            //Get universities;
+            JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, vClient.I(this).getAddress()+"universities/"+univ+"/courses/"+cour+"/environments", null, new Response.Listener<JSONArray>() {
+                @Override
+                public void onResponse(JSONArray response) {
+                    lst_Environments    = new ArrayList<>();
+                    lst_ID_Environments = new ArrayList<>();
+                    // Toast.makeText(getApplicationContext(), response.toString(), Toast.LENGTH_LONG).show();
+                    for(int i=0; i<response.length();i++){
+                        try {
+                            String uni = response.getJSONArray(i).getString(1);
+                            lst_ID_Environments.add(uni);
+                            lst_Environments.add(newListItem(uni,""));
+                            //Toast.makeText(getApplicationContext(), uni, Toast.LENGTH_LONG).show();
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                    set_List(lst_Environments,false);
+                }
+            }, new Response.ErrorListener() {
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
+                }
+            });
+
+            vClient.I(this).addtoReqQueue(req);
         }
-        set_List(lst_Environments,true);
+        else set_List(lst_Environments,false);
         lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Get Courses from here; using on click id.
-                envi=lst_ID_Environments.get((int)position);
-                view_People();
+                envi = lst_ID_Environments.get(position);
+                //view_People(); Left out for now
             }
         });
     }
 
+    /*
     public void view_People(){
         state=3;
         txt_Title.setText("People");
@@ -267,11 +324,10 @@ public class MainLists extends AppCompatActivity {
             }
         });
     }
+    */
 
     @Override
     public void onBackPressed() {
-        //Include the code here
         backAStep();
-        return;
     }
 }
