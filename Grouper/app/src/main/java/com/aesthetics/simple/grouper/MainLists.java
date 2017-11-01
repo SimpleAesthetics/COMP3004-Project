@@ -281,6 +281,12 @@ public class MainLists extends AppCompatActivity {
             lst_People.add(newListItem(M.getNickname(),""));
         }
         set_List(lst_People,false);
+        lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
         btn_Maps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

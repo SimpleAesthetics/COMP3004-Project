@@ -48,9 +48,15 @@ public class VirtualServer {
         e1.get(0).getUsers().add(d);
         e1.get(0).getGroups().add(gr);
 
+        Set<User> fluff = new HashSet<>();
+
+
         e1.add(new Environment("Winter Project",false,"",64));
+        for(int i = 0; i < 30;i++){
+            e1.get(1).getUsers().add(new User(i+"",null));
+        }
         e1.get(1).setDate("14","01","2018");
         Universities.get(0).coursesList.add(new Course("Object Oriented Programming","COMP3004","Dr. Olga Baysal", e1));
-        Universities.get(0).coursesList.add(new Course("Sinple other course","SIMP1000","Prof. Someone", null));
+        Universities.get(0).coursesList.add(new Course("Simple other course","SIMP1000","Prof. Someone", new ArrayList<Environment>()));
     }
 }
