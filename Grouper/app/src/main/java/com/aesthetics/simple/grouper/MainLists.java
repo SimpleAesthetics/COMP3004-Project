@@ -1,7 +1,10 @@
 package com.aesthetics.simple.grouper;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.view.MenuItem;
@@ -16,6 +19,7 @@ import android.widget.Toast;
 
 import com.aesthetics.simple.grouper.com.simpleaesthetics.application.Model.Course;
 import com.aesthetics.simple.grouper.com.simpleaesthetics.application.Model.Environment;
+import com.aesthetics.simple.grouper.com.simpleaesthetics.application.Model.Group;
 import com.aesthetics.simple.grouper.com.simpleaesthetics.application.Model.University;
 import com.aesthetics.simple.grouper.com.simpleaesthetics.application.Model.User;
 import com.android.volley.Request;
@@ -32,8 +36,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MainLists extends AppCompatActivity {
+    private FloatingActionButton btn_Maps,btn_Chat;
     private ImageButton btn_Back;
     private TextView txt_Title;
     private SimpleAdapter adapter;
@@ -53,6 +59,7 @@ public class MainLists extends AppCompatActivity {
     private List<Integer> lst_ID_Environments;
     private List<Integer> lst_ID_People;
     private VirtualServer VS;
+    private Group g;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -63,6 +70,8 @@ public class MainLists extends AppCompatActivity {
         setContentView(R.layout.activity_main_lists);
 
         //Initialize buttons;
+        btn_Maps = (FloatingActionButton)(findViewById(R.id.btn_Map)) ;
+        btn_Chat = (FloatingActionButton)(findViewById(R.id.btn_Chat)) ;
         btn_Back = (ImageButton) findViewById(R.id.btn_Back);
         btn_Back.setImageResource(R.drawable.ic_back);
         btn_Menu = (ImageButton) findViewById(R.id.btn_menu);
@@ -168,7 +177,6 @@ public class MainLists extends AppCompatActivity {
             view_Courses(false);
         if (state==3)
             view_Environments(false);
-
     }
 
     private Map<String, String> newListItem(String H1, String Sub){
@@ -182,6 +190,8 @@ public class MainLists extends AppCompatActivity {
     public void view_Universities(boolean reload){
         state=0;
         txt_Title.setText("    Universities");
+        btn_Maps.setVisibility(View.GONE);
+        btn_Chat.setVisibility(View.GONE);
         btn_Back.setVisibility(View.GONE);
         lst_Universities    = new ArrayList<>();
         lst_ID_Universities = new ArrayList<>();
@@ -203,6 +213,8 @@ public class MainLists extends AppCompatActivity {
     public void view_Courses(boolean reload){
         state=1;
         txt_Title.setText("Courses");
+        btn_Maps.setVisibility(View.GONE);
+        btn_Chat.setVisibility(View.GONE);
         btn_Back.setVisibility(View.VISIBLE);
         lst_Courses    = new ArrayList<>();
         lst_ID_Courses = new ArrayList<>();
@@ -227,6 +239,8 @@ public class MainLists extends AppCompatActivity {
         state=2;
         txt_Title.setText("Environments");
         btn_Back.setVisibility(View.VISIBLE);
+        btn_Maps.setVisibility(View.GONE);
+        btn_Chat.setVisibility(View.GONE);
 
         lst_Environments    = new ArrayList<>();
         lst_ID_Environments = new ArrayList<>();
@@ -240,8 +254,50 @@ public class MainLists extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Get Courses from here; using on click id.
                 envi = position;
+                Date timeStamp = Calendar.getInstance().getTime();
+                Date duedate = VS.Universities.get(univ).coursesList.get(cour).envList.get(envi).getDeadline();
+                if(timeStamp.after(duedate)){
+                    viewGroup();
+                }
+                else view_Environments(true);
+            }
+        });
+    }
 
-                view_Environments(true);
+    public void viewGroup(){
+        state=3;
+        btn_Maps.setVisibility(View.VISIBLE);
+        btn_Chat.setVisibility(View.VISIBLE);
+        g = null;
+        Set<Group> gSet = VS.Universities.get(univ).coursesList.get(cour).envList.get(envi).getGroups();
+        for(Group G : gSet){
+            if(G.getName().equals(CurrentUser.currentGroup))
+                g=G;
+        }
+        //Get Group;
+        txt_Title.setText(g.getName());
+        lst_People = new ArrayList<>();
+        for(User M : g.getGroupMembers()){
+            lst_People.add(newListItem(M.getNickname(),""));
+        }
+        set_List(lst_People,false);
+        btn_Maps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String[] addr = g.getMeetingLocation().split(":");
+                Uri gmmIntentUri = Uri.parse("geo:"+addr[0]+","+addr[1]+addr[2]);
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(mapIntent);
+                }
+            }
+        });
+
+        btn_Chat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Todo add chat view;
             }
         });
     }

@@ -6,6 +6,32 @@
     android:layout_height="match_parent"
     tools:context="com.aesthetics.simple.grouper.MainLists">
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn_Map"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginBottom="84dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
+        app:backgroundTint="@color/colorPrimaryDark"
+        app:layout_anchor="@id/btn_Chat"
+
+        app:srcCompat="@drawable/ic_map" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn_Chat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        app:backgroundTint="@color/colorPrimary"
+        app:srcCompat="@drawable/ic_chat" />
+
+
     <include
         android:id="@+id/include"
         layout="@layout/content_main_lists" />

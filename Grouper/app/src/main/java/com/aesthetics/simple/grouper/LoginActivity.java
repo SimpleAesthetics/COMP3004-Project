@@ -3,6 +3,7 @@ package com.aesthetics.simple.grouper;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -38,7 +39,7 @@ import static android.Manifest.permission.READ_CONTACTS;
  * A login screen that offers login via email/password.
  */
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
-
+    Intent intent;
     /**
      * Id to identity READ_CONTACTS permission request.
      */
@@ -64,6 +65,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        intent = new Intent(this, MainLists.class);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         // Set up the login form.
@@ -295,7 +297,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * the user.
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
+        VirtualServer VS = new VirtualServer();
         private final String mEmail;
         private final String mPassword;
 
@@ -315,16 +317,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
 
-            for (String credential : DUMMY_CREDENTIALS) {
+            for (String credential : VS.UserList) {
                 String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
+                if (pieces[0].toLowerCase().equals(mEmail.toLowerCase())) {
                     // Account exists, return true if the password matches.
                     return pieces[1].equals(mPassword);
                 }
             }
 
             // TODO: register the new account here.
-            return true;
+            return false;
         }
 
         @Override
@@ -333,6 +335,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
 
             if (success) {
+                startActivity(intent);
                 finish();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
