@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.aesthetics.simple.grouper.MainLists">
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn_Map"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginBottom="84dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
+        app:backgroundTint="@color/colorPrimaryDark"
+        app:layout_anchor="@id/btn_Chat"
+
+        app:srcCompat="@drawable/ic_map" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn_Chat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        app:backgroundTint="@color/colorPrimary"
+        app:srcCompat="@drawable/ic_chat" />
+
+
+    <include
+        android:id="@+id/include"
+        layout="@layout/content_main_lists" />
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="59dp"
+            android:layout_weight="1">
+
+            <ImageButton
+                android:id="@+id/btn_Back"
+                android:layout_width="59dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@mipmap/ic_launcher"
+                android:text="Button"
+                android:visibility="visible"
+                app:srcCompat="@drawable/ic_back" />
+
+            <ImageButton
+                android:id="@+id/btn_search"
+                android:layout_width="59dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_toLeftOf="@+id/btn_menu"
+                android:layout_toStartOf="@+id/btn_menu"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@mipmap/ic_launcher"
+                android:text="Button"
+                android:visibility="visible"
+                app:srcCompat="@drawable/ic_search" />
+
+            <ImageButton
+                android:id="@+id/btn_menu"
+                android:layout_width="59dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:src="@mipmap/ic_launcher"
+                android:text="Button"
+                android:visibility="visible"
+                app:srcCompat="@drawable/ic_menu" />
+
+            <TextView
+                android:id="@+id/txt_Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toEndOf="@+id/btn_Back"
+                android:layout_toRightOf="@+id/btn_Back"
+                android:text="TextView"
+                android:textSize="24sp" />
+
+        </RelativeLayout>
+
+
+    </android.support.design.widget.AppBarLayout>
+
+</android.support.design.widget.CoordinatorLayout>
