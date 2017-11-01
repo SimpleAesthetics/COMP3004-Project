@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Grouper.iml" filepath="$PROJECT_DIR$/Grouper.iml" />
+      <module fileurl="file://C:\Users\Osakhan\Documents\comp 3004 project\COMP3004-Project-Demo-1\Grouper\Grouper.iml" filepath="C:\Users\Osakhan\Documents\comp 3004 project\COMP3004-Project-Demo-1\Grouper\Grouper.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://C:\Users\Osakhan\Documents\comp 3004 project\COMP3004-Project-Demo-1\Grouper\app\app.iml" filepath="C:\Users\Osakhan\Documents\comp 3004 project\COMP3004-Project-Demo-1\Grouper\app\app.iml" />
     </modules>
   </component>
 </project>
