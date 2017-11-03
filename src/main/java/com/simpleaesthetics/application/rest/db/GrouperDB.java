@@ -36,6 +36,7 @@ public class GrouperDB {
 	@PostConstruct
 	public void postConstruct() {
 		logger.info("Creating DB instance");
+		ClassLoader loader = this.getClass().getClassLoader();
 		if (!openDB()) {
 			throw new DatabaseException("Failed to OPEN the database");
 		}
@@ -73,6 +74,47 @@ public class GrouperDB {
 		return opened;
 	}
 	
+	public boolean checkIfTableExists(String tableName) {
+		Statement stmt = null;
+		String sqlTableCheckStr = "SELECT name FROM sqlite_master WHERE type='table' AND name='"+ tableName +"';";
+		
+		try {
+			stmt = dbconn.createStatement();
+			ResultSet result = stmt.executeQuery(sqlTableCheckStr);
+			return (result.next());
+		
+		} catch (SQLException ex) {
+			logger.error("Failed to check if table exits, CAUSE: "+ ex.getMessage());
+			throw new DatabaseException("Failed to check if table exits");
+		}
+		
+	}
+	
+	public void insertUniversityTable() {
+		
+		if (checkIfTableExists("Universities")) {
+			logger.info("Universities not created; Already exists");
+			return;
+		}
+		
+		Statement stmt = null;
+		String createUniTable = "CREATE TABLE \"Universities\" ("
+				+ "`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
+				+ "`Name`	TEXT NOT NULL UNIQUE,"
+				+ "`Courses` TEXT );";
+		
+		
+		try {
+			stmt = dbconn.createStatement();
+			stmt.executeUpdate(createUniTable);
+			
+		} catch (SQLException ex) {
+			logger.error("Failed to add the universities table", ex);
+			throw new DatabaseException("Failed to insert new University into the table");
+		}
+			
+	}
+	
 	//Function for opening the database
 	public boolean openDB() {
 		try {
@@ -80,13 +122,15 @@ public class GrouperDB {
 			dbconn = DriverManager.getConnection(dburl);
 			//If we get to here, it is safe to assume the database has been opened
 			opened = true;
-			return true;
 		}
 		catch(SQLException e) {
 			//Database has not been opened
 			logger.error("Exception found when OPENING the Database "+ dburl, e);
 			return false;
 		}
+		
+		insertUniversityTable();
+		return true;
 	}
 	
 	//Function for closing the database
