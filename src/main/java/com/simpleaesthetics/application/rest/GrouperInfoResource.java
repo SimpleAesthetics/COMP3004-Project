@@ -29,6 +29,7 @@ import com.simpleaesthetics.application.model.Course;
 import com.simpleaesthetics.application.model.University;
 import com.simpleaesthetics.application.model.User;
 import com.simpleaesthetics.application.rest.db.DatabaseException;
+import com.simpleaesthetics.application.rest.db.DatabaseHelper;
 
 @Controller
 @RequestMapping
@@ -47,6 +48,21 @@ public class GrouperInfoResource {
 	
 	@Autowired
 	private QuestionnaireTransformer questionnaireTransformer;
+	
+	@Autowired
+	private DatabaseHelper dbHelper;
+	
+	Boolean createdTestData = false;
+	
+	@RequestMapping(value="/createTestData", method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> createTestData() {
+		if (/*!createdTestData &&*/ dbHelper.createTestData()) {
+			createdTestData = true;
+			return new ResponseEntity<String>("Test data SUCCESSFULLY created", HttpStatus.OK);
+		}
+		
+		return new ResponseEntity<String>("Test data FAILED to create", HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 	
 	@RequestMapping(value="/universities", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<ArrayList<ArrayList<String>>> getUniversities() {
@@ -144,7 +160,6 @@ public class GrouperInfoResource {
 		HttpStatus status = HttpStatus.OK;
 		int insertedCourse = db.insertCourse(
 								course.getName(), 
-//								Integer.parseInt(db.queryUser(course.getInstructor()).get(0)),
 								-1,
 								getUniversityId(uniName));
 		
@@ -207,13 +222,14 @@ public class GrouperInfoResource {
 		
 		int insertedEnv = db.insertEnvironment(
 				env.getName(), 
+				db.getUserID(env.getOwner()),
 				getCourseId(courseName,uniName), 
 				env.isPrivateEnv(), 
 				env.getPassword(),
 				env.getMaxGroupSize().intValue(), 
 				env.getDeadline(), 
-				new int[0], 
-				new int[0],
+				"", 
+				"",
 				-1);
 		
 		if (insertedEnv == -1) {
@@ -225,9 +241,9 @@ public class GrouperInfoResource {
 			int envId = getEnvironmentId(env.getName(), courseName, uniName);
 			int insertedQuestionnnaire = db.insertQuestionnaire(
 					envId, 
-					questionnaireTransformer.transformForDb(env.getQuestionnaire()));
+					questionnaireTransformer.transformForDbArray(env.getQuestionnaire()));
 			
-			System.out.println(questionnaireTransformer.transformForDb(env.getQuestionnaire()).toString());
+			System.out.println(questionnaireTransformer.transformForDbArray(env.getQuestionnaire()).toString());
 			
 			if (insertedQuestionnnaire == -1) {
 				logger.error("Could not add new questionnaire to env ["+ env.getName() +"]");
@@ -457,38 +473,6 @@ public class GrouperInfoResource {
 		}
 		
 		return userStr;
-	}
-	
-	private Set<University> createTestUniList() {
-		Set<University> uniList = new HashSet<>();
-		uniList.add(new University("Carleton University"));
-		return uniList;
-	}
-	
-	private Set<User> createTestUserSet() {
-		Set<User> users = new HashSet<>();
-		users.add(createUser("Jeb", 1, 2, 3, 4));
-		users.add(createUser("Simba", 4, 3, 2, 1));
-		users.add(createUser("Java", 1, 2, 4, 3));
-		users.add(createUser("Caltrone", 2, 1, 4, 3));
-		users.add(createUser("Father", 1, 2, 3, 4));
-		users.add(createUser("Mother", 3, 2, 4, 4));
-		
-		return users;
-	}
-	
-	private User createUser(String userNickname, Integer...answers) {
-		return new User(userNickname, createAnsList(answers));
-	}
-	
-	private List<Integer> createAnsList(Integer[] answers) {
-		List<Integer> ansList = new ArrayList<>();
-		
-		for (Integer answer : answers) {
-			ansList.add(answer);
-		}
-		
-		return ansList;
 	}
 	
 }

@@ -7,7 +7,7 @@ public class University {
 	
 	private String name;
 	// TODO Make a values for this var
-	private List<Course> coursesList;
+	private List<String> coursesList;
 	
 	public University() {
 		this.name = null;
@@ -16,7 +16,12 @@ public class University {
 	
 	public University(String name) {
 		this.name = name;
-		this.coursesList = new ArrayList<>();
+		this.coursesList = null;
+	}
+	
+	public University(String name, List<String> courses) {
+		this.name = name;
+		this.coursesList = courses;
 	}
 
 	public String getName() {
@@ -25,6 +30,14 @@ public class University {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public List<String> getCoursesList() {
+		return coursesList;
+	}
+
+	public void setCoursesList(List<String> coursesList) {
+		this.coursesList = coursesList;
 	}
 
 	@Override

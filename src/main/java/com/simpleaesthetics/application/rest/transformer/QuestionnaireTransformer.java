@@ -11,7 +11,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class QuestionnaireTransformer {
 
-	public HashMap<String, String[]> transformForDb(Map<String, List<String>> questionnaire) {
+	public HashMap<String, String> transformForDbString(Map<String, List<String>> questionnaire) {
+		
+		HashMap<String, String> transQuestionnaire = new HashMap<>();
+		for (String question : questionnaire.keySet()) {
+			List<String> answers = questionnaire.get(question);
+			transQuestionnaire.put(
+					question, 
+					answers.toArray(new String[answers.size()]).toString());
+		}
+		
+		return transQuestionnaire;
+	}
+	
+public HashMap<String, String[]> transformForDbArray(Map<String, List<String>> questionnaire) {
 		
 		HashMap<String, String[]> transQuestionnaire = new HashMap<>();
 		for (String question : questionnaire.keySet()) {

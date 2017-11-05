@@ -429,6 +429,7 @@ public class GrouperDB {
 			}
 			catch(SQLException e) {
 				//Some kind of error, assume user was not added
+				logger.error("Failed to insert user, ", e);
 				return -1;
 			}
 			//Return the ID of the newly-added user
@@ -961,6 +962,7 @@ public class GrouperDB {
 	public int insertEnvironment(String name, int owner, int cid, boolean priv, String password, int mgs, String close, String students, String groups, int questionnaire) {
 		//Basic sanity check
 		if(this.queryCourse(cid).isEmpty() || this.queryUser(owner).isEmpty() || name == "" || (priv == true && password == "") || mgs < 2 || close == "") {
+			logger.error("Failed to insert environment; Missing data");
 			return -1;
 		}
 		int pvt = 0;
@@ -994,9 +996,11 @@ public class GrouperDB {
 				
 			}
 			catch(SQLException e) {
+				logger.error(e);
 				return -1;
 			}
 		}
+		
 		return id;
 	}
 
@@ -1535,6 +1539,7 @@ public class GrouperDB {
 				
 			}
 			catch(SQLException e) {
+				logger.error("Failed to add question answers: "+ e.getMessage());
 				return false;
 			}
 		}
@@ -2133,7 +2138,7 @@ public class GrouperDB {
 			System.out.println(qset.toString());
 			System.out.println("");*/
 			
-			deleteCrap(db,oc,qid,eid,cid,uid,uid2,uid3);
+//			deleteCrap(db,oc,qid,eid,cid,uid,uid2,uid3);
 		}
 	}
 

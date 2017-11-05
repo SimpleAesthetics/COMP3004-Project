@@ -38,7 +38,12 @@ public class Environment {
 		this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	}
 	
-	public Environment(String name, boolean privateEnv, String password, Integer maxGroupSize) {
+	public Environment(
+			String name,
+			boolean privateEnv, 
+			String password, 
+			Integer maxGroupSize) {
+		
 		this.owner = null;
 		this.name = name;
 		this.privateEnv = privateEnv;
@@ -217,9 +222,11 @@ public class Environment {
 
 	@Override
 	public String toString() {
-		return "Environment [owner=" + owner + ", name=" + name + "]";
+		return "Environment [owner=" + owner + ", name=" + name + ", privateEnv=" + privateEnv + ", password="
+				+ password + ", maxGroupSize=" + maxGroupSize + ", deadlineStr=" + deadlineStr + ", deadlineDate="
+				+ deadlineDate + ", dateFormat=" + dateFormat + ", groups=" + groups + ", users=" + users
+				+ ", questionnaire=" + questionnaire + "]";
 	}
-	
 	
 	
 }

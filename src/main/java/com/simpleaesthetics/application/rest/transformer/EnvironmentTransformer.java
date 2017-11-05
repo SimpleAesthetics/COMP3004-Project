@@ -28,11 +28,11 @@ public class EnvironmentTransformer {
 		
 		Environment env = new Environment(
 				envInfo.get(0),
-				Boolean.valueOf(envInfo.get(2)),
-				envInfo.get(3),
-				Integer.valueOf(envInfo.get(4)));
+				Boolean.valueOf(envInfo.get(3)),
+				envInfo.get(4),
+				Integer.valueOf(envInfo.get(5)));
 		
-		env.setDeadlineStr(envInfo.get(5));
+		env.setDeadlineStr(envInfo.get(6));
 //		env.setUsers(getHashSetFromCSV(envInfo));
 //		env.setGroups(getHashSetFromCSV(envInfo));
 		env.setQuestionnaire(
