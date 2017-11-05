@@ -93,16 +93,16 @@ public class GrouperDB {
 	public void insertUniversityTable() {
 		
 		if (checkIfTableExists("Universities")) {
-			logger.info("Universities not created; Already exists");
+			logger.info("Universities table not created; Already exists");
 			return;
 		}
 		
 		Statement stmt = null;
-		String createUniTable = "CREATE TABLE \"Universities\" ("
+		String createUniTable = 
+				"CREATE TABLE \"Universities\" ("
 				+ "`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
 				+ "`Name`	TEXT NOT NULL UNIQUE,"
 				+ "`Courses` TEXT );";
-		
 		
 		try {
 			stmt = dbconn.createStatement();
@@ -110,7 +110,7 @@ public class GrouperDB {
 			
 		} catch (SQLException ex) {
 			logger.error("Failed to add the universities table", ex);
-			throw new DatabaseException("Failed to insert new University into the table");
+			throw new DatabaseException("Failed to insert new Universities table");
 		}
 			
 	}
