@@ -1,16 +1,28 @@
 package com.simpleaesthetics.application.rest.transformer;
 
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//import com.simpleaesthetics.application.model.University;;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import org.springframework.stereotype.Component;
+
+import com.simpleaesthetics.application.model.University;
+
+@Component
 public class UniversityTransformer {
 	
-//	public List<University> transform(
-//			ArrayList<ArrayList<String>> uniList) {
-//		
-//		return new University();
-//	}
+	public List<University> transform(
+			ArrayList<ArrayList<String>> toTransform) {
+		
+		List<University> transformed = new ArrayList<>(); 
+		
+		for (ArrayList<String> universityInfo : toTransform) {
+			transformed.add(new University(
+					universityInfo.get(1), 
+					Arrays.asList(universityInfo.get(2).split(","))));
+		}
+		
+		return transformed;
+	}
 	
 }

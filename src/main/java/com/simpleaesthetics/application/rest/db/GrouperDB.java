@@ -36,6 +36,7 @@ public class GrouperDB {
 	@PostConstruct
 	public void postConstruct() {
 		logger.info("Creating DB instance");
+		ClassLoader loader = this.getClass().getClassLoader();
 		if (!openDB()) {
 			throw new DatabaseException("Failed to OPEN the database");
 		}
@@ -73,6 +74,47 @@ public class GrouperDB {
 		return opened;
 	}
 	
+	public boolean checkIfTableExists(String tableName) {
+		Statement stmt = null;
+		String sqlTableCheckStr = "SELECT name FROM sqlite_master WHERE type='table' AND name='"+ tableName +"';";
+		
+		try {
+			stmt = dbconn.createStatement();
+			ResultSet result = stmt.executeQuery(sqlTableCheckStr);
+			return (result.next());
+		
+		} catch (SQLException ex) {
+			logger.error("Failed to check if table exits, CAUSE: "+ ex.getMessage());
+			throw new DatabaseException("Failed to check if table exits");
+		}
+		
+	}
+	
+	public void insertUniversityTable() {
+		
+		if (checkIfTableExists("Universities")) {
+			logger.info("Universities table not created; Already exists");
+			return;
+		}
+		
+		Statement stmt = null;
+		String createUniTable = 
+				"CREATE TABLE \"Universities\" ("
+				+ "`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
+				+ "`Name`	TEXT NOT NULL UNIQUE,"
+				+ "`Courses` TEXT );";
+		
+		try {
+			stmt = dbconn.createStatement();
+			stmt.executeUpdate(createUniTable);
+			
+		} catch (SQLException ex) {
+			logger.error("Failed to add the universities table", ex);
+			throw new DatabaseException("Failed to insert new Universities table");
+		}
+			
+	}
+	
 	//Function for opening the database
 	public boolean openDB() {
 		try {
@@ -80,12 +122,15 @@ public class GrouperDB {
 			dbconn = DriverManager.getConnection(dburl);
 			//If we get to here, it is safe to assume the database has been opened
 			opened = true;
-			return true;
 		}
 		catch(SQLException e) {
 			//Database has not been opened
+			logger.error("Exception found when OPENING the Database "+ dburl, e);
 			return false;
 		}
+		
+		insertUniversityTable();
+		return true;
 	}
 	
 	//Function for closing the database
@@ -100,6 +145,7 @@ public class GrouperDB {
 			}
 			catch(SQLException e) {
 				//Did not close DB
+				logger.error("Exception found when CLOSING the Database "+ dburl, e);
 				return false;
 			}
 		}
@@ -383,6 +429,7 @@ public class GrouperDB {
 			}
 			catch(SQLException e) {
 				//Some kind of error, assume user was not added
+				logger.error("Failed to insert user, ", e);
 				return -1;
 			}
 			//Return the ID of the newly-added user
@@ -915,6 +962,7 @@ public class GrouperDB {
 	public int insertEnvironment(String name, int owner, int cid, boolean priv, String password, int mgs, String close, String students, String groups, int questionnaire) {
 		//Basic sanity check
 		if(this.queryCourse(cid).isEmpty() || this.queryUser(owner).isEmpty() || name == "" || (priv == true && password == "") || mgs < 2 || close == "") {
+			logger.error("Failed to insert environment; Missing data");
 			return -1;
 		}
 		int pvt = 0;
@@ -948,9 +996,11 @@ public class GrouperDB {
 				
 			}
 			catch(SQLException e) {
+				logger.error(e);
 				return -1;
 			}
 		}
+		
 		return id;
 	}
 
@@ -1489,6 +1539,7 @@ public class GrouperDB {
 				
 			}
 			catch(SQLException e) {
+				logger.error("Failed to add question answers: "+ e.getMessage());
 				return false;
 			}
 		}
@@ -2087,7 +2138,7 @@ public class GrouperDB {
 			System.out.println(qset.toString());
 			System.out.println("");*/
 			
-			deleteCrap(db,oc,qid,eid,cid,uid,uid2,uid3);
+//			deleteCrap(db,oc,qid,eid,cid,uid,uid2,uid3);
 		}
 	}
 

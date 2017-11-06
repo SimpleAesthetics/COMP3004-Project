@@ -54,6 +54,7 @@ public class UserInfoResource {
 				userInfo.getStudentNumber(), 
 				userInfo.getFirstName(), 
 				userInfo.getLastName(), 
+				userInfo.getNickname(),
 				userInfo.getEmail());
 		
 		if (userId == -1) {

@@ -6,6 +6,7 @@ public class Group {
 	
 	private String name;
 	private String meetingLocation;
+	private String taName;
 	private Set<User> groupMembers;
 	
 	public Group(String name, String meetingLocation, Set<User> groupMembers) {
@@ -42,6 +43,14 @@ public class Group {
 
 	public void setGroupMembers(Set<User> groupMembers) {
 		this.groupMembers = groupMembers;
+	}
+
+	public String getTaName() {
+		return taName;
+	}
+
+	public void setTaName(String taName) {
+		this.taName = taName;
 	}
 
 	@Override

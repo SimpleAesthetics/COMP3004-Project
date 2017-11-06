@@ -21,6 +21,6 @@ public class ExceptionHandingController {
 	}
 	
 	private ResponseEntity<Object> buildResponseEntity(Exception ex) {
-	       return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+	       return new ResponseEntity<Object>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 	   }
 }
