@@ -1,6 +1,6 @@
-This folder will contain the dev logs for Jonathan Bimm.
+# This folder contains the dev logs for Jonathan Bimm. #
 
-# General Dev Logs Description: #
+## General Dev Logs Description: ##
 
 The dev logs are based on our weekly cycle of work, which starts on a Wednesday, and continues until the following Wednesday. At the start of each cycle, we have a team meeting, where we discuss how things are going in the development process, and what work should be expected the following week.
 
