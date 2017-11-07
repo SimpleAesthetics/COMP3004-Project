@@ -124,7 +124,7 @@ This week was better for the team and I, but we are generally still having diffi
   
 ### General description: ###
   
-My (and the teams) main goal for this week was to finish our individual development for each of our particular areas of development (UI, server, etc) and then combine our work during an extended weekly team meeting on the 25th of October. The server was also expected to be uploaded on the 25th. This week had a very demanding workload, which involved completing all the outstanding tasks I was expected to do throughout the development process until the week. The outstanding tasks include: implement the group sorting algorithm, complete functionality for automatic sorting based on a deadline and generally having all REST calls working that are needed for our prototype demo.
+My main goal (and the teams) for this week was to finish our individual development for each of our particular areas of development (UI, server, etc) and then combine our work during an extended weekly team meeting on the 25th of October. The server was also expected to be uploaded on the 25th. This week had a very demanding workload, which involved completing all the outstanding tasks I was expected to do throughout the development process until the week. The outstanding tasks include: implement the group sorting algorithm, complete functionality for automatic sorting based on a deadline and generally having all REST calls working that are needed for our prototype demo.
 
 ### What was completed? ###
 
