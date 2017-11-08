@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.aesthetics.simple.grouper.NewEnvironment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp"
+            tools:layout_editor_absoluteX="8dp"
+            tools:layout_editor_absoluteY="8dp">
+
+
+            <EditText
+                android:id="@+id/txt_Name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Name*"
+                android:inputType="textPersonName" />
+
+            <EditText
+                android:id="@+id/txt_Password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Access Password"
+                android:inputType="textPersonName" />
+
+            <EditText
+                android:id="@+id/txt_Max"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Max Group Size"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/txt_DueDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Due Date* (DD/MM/YYYY)"
+                android:inputType="date" />
+
+            <MultiAutoCompleteTextView
+                android:id="@+id/txt_Quiz"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:hint="Template:\n+[Insert Quiz Question]\n-[Response 1]\n-[Response 2]\n-[Response 3]\n-[Response 4]\n\n+eg. Do you prefer pencil or pen?\n-Pencil\n-Pen\netc" />
+
+            <Button
+                android:id="@+id/btn_Submit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Submit" />
+        </LinearLayout>
+
+    </ScrollView>
+
+</android.support.constraint.ConstraintLayout>

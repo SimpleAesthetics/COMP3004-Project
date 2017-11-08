@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/explore"
+            android:icon="@drawable/ic_explore"
+            android:title="Explore Groups" />
+        <item
+            android:id="@+id/jgroups"
+            android:icon="@drawable/ic_groups"
+            android:title="Joined Groups" />
+        <item
+            android:id="@+id/waiting"
+            android:icon="@drawable/ic_waiting"
+            android:title="Waiting List" />
+    </group>
+    <item
+        android:id="@+id/admin"
+        android:title="Administrative"
+        android:visible="true" >
+        <menu>
+            <item
+                android:id="@+id/addUniv"
+                android:icon="@drawable/ic_add"
+                android:title="Add University" />
+            <item
+                android:id="@+id/addCour"
+                android:icon="@drawable/ic_add"
+                android:title="Add Course" />
+            <item
+                android:id="@+id/addEnvi"
+                android:icon="@drawable/ic_add"
+                android:title="Add Environment" />
+            <item
+                android:id="@+id/editGroup"
+                android:icon="@drawable/ic_edit_group"
+                android:title="Edit Group" />
+            <item
+                android:id="@+id/leaveEnvir"
+                android:icon="@drawable/ic_leave_formation"
+                android:title="Leave Environment" />
+
+        </menu>
+    </item>
+    <item android:title="Configuration">
+        <menu>
+            <item
+                android:id="@+id/settings"
+                android:icon="@drawable/ic_settings"
+                android:title="Settings" />
+            <item
+                android:id="@+id/logout"
+                android:icon="@drawable/ic_logout"
+                android:title="Logout" />
+            <item
+                android:id="@+id/exit"
+                android:icon="@drawable/ic_exit"
+                android:title="Exit" />
+        </menu>
+    </item>
+
+</menu>
