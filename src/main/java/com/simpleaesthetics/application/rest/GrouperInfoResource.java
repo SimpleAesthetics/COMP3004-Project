@@ -72,7 +72,7 @@ public class GrouperInfoResource {
 	public @ResponseBody ResponseEntity<List<University>> getUniversities() {
 		
 		HttpStatus status = HttpStatus.OK;
-		List<University> universities = uniTransformer.transform(db.queryAllUniversities());
+		List<University> universities = uniTransformer.transform(dbHelper.getUniversities());
 		
 		for (University uni : universities) {
 			List<String> courses = uni.getCoursesList();
@@ -100,7 +100,7 @@ public class GrouperInfoResource {
 			@PathVariable(value="uniName",required=true) String uniName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		ArrayList<String> universityInfo = getUniversityInfo(uniName);
+		ArrayList<String> universityInfo = dbHelper.getUniversityInfo(uniName);
 		
 		if (universityInfo.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
@@ -136,7 +136,7 @@ public class GrouperInfoResource {
 			@PathVariable(value="uniName",required=true) String uniName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		ArrayList<ArrayList<String>> courses = db.getCourses(getUniversityId(uniName));
+		ArrayList<ArrayList<String>> courses = dbHelper.getCourses(uniName);
 		
 		if (courses.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
@@ -154,7 +154,7 @@ public class GrouperInfoResource {
 			@PathVariable(value="courseName",required=true) String courseName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		List<String> course = getCourseInfo(courseName, uniName);
+		List<String> course = dbHelper.getCourseInfo(courseName, uniName);
 		
 		if (course.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
@@ -170,15 +170,10 @@ public class GrouperInfoResource {
 			@PathVariable(value="uniName",required=true) String uniName,
 			@RequestBody(required=true) Course course) {
 		
-		logger.info(course.getInstructor());
-		
 		HttpStatus status = HttpStatus.OK;
-		int insertedCourse = db.insertCourse(
-								course.getName(), 
-								-1,
-								getUniversityId(uniName));
+		boolean isCourseInserted = dbHelper.addCourse(course.getName(), uniName);
 		
-		if (-1 == insertedCourse) {
+		if (!isCourseInserted) {
 			logger.error("Could not add new course ["+ course.getName() +"]");
 			status = HttpStatus.BAD_REQUEST;
 		}
@@ -192,7 +187,7 @@ public class GrouperInfoResource {
 			@PathVariable(value="courseName",required=true) String courseName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		ArrayList<ArrayList<String>> envList = getEnvironmentsHelper(uniName, courseName);
+		ArrayList<ArrayList<String>> envList = dbHelper.getEnvironments(uniName, courseName);
 		
 		if (envList.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
@@ -211,8 +206,8 @@ public class GrouperInfoResource {
 			@PathVariable(value="envName",required=true) String envName) {
 		
 		Environment env = envTransformer.transform(
-				getEnvironmentInfoHelper(envName, courseName, uniName),
-				getQuestionnaireHelper(envName, courseName, uniName));
+				dbHelper.getEnvironmentInfo(envName, courseName, uniName),
+				dbHelper.getQuestionnaire(envName, courseName, uniName));
 		
 		if (toSort) {
 			env.setGroups(grouper.findAllGroups(env.getUsers(), 4));
@@ -233,52 +228,14 @@ public class GrouperInfoResource {
 			@RequestBody(required=true) Environment env) {
 		
 		HttpStatus status = HttpStatus.OK;
-		String errorStr = "";
+		boolean isEnvInserted = dbHelper.addEnvironment(env, courseName, uniName);
 		
-		int insertedEnv = db.insertEnvironment(
-				env.getName(), 
-				db.getUserID(env.getOwner()),
-				getCourseId(courseName,uniName), 
-				env.isPrivateEnv(), 
-				env.getPassword(),
-				env.getMaxGroupSize().intValue(), 
-				env.getDeadline(), 
-				"", 
-				"",
-				-1);
-		
-		if (insertedEnv == -1) {
+		if (!isEnvInserted) {
 			logger.error("Could not add new environment ["+ env.getName() +"]");
 			status = HttpStatus.BAD_REQUEST;
-			errorStr += "Inserting environment failed";
-			
-		} else {
-			int envId = getEnvironmentId(env.getName(), courseName, uniName);
-			int insertedQuestionnnaire = db.insertQuestionnaire(
-					envId, 
-					questionnaireTransformer.transformForDbArray(env.getQuestionnaire()));
-			
-			System.out.println(questionnaireTransformer.transformForDbArray(env.getQuestionnaire()).toString());
-			
-			if (insertedQuestionnnaire == -1) {
-				logger.error("Could not add new questionnaire to env ["+ env.getName() +"]");
-				status = HttpStatus.BAD_REQUEST;
-				errorStr += "Inserting questionnaire failed";
-				
-			} else {
-				boolean successfulUpdate = db.changeQuestionnaire(
-						envId, 
-						insertedQuestionnnaire);
-				
-				if (!successfulUpdate) {
-					logger.error("Could not update questionnaire id for env ["+ env.getName() +"]");
-					status = HttpStatus.BAD_REQUEST;
-					errorStr += "Updating questionnaire ID to environment failed";
-				}
-			}
 		}
 		
-		return new ResponseEntity<String>(errorStr, status);
+		return new ResponseEntity<String>(status);
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
@@ -289,13 +246,13 @@ public class GrouperInfoResource {
 			@RequestBody(required=true) Group group) {
 		
 		HttpStatus status = HttpStatus.OK;
-		int envId = getEnvironmentId(envName, courseName, uniName);
+		int envId = dbHelper.getEnvironmentId(envName, courseName, uniName);
 		
 		int insertedGroup = db.insertGroup(
 				envId, 
 				0, 
 				Integer.valueOf(db.queryUser(group.getTaName()).get(0)),
-				getCsvFromUserSet(group.getGroupMembers()));
+				dbHelper.getCsvFromUserSet(group.getGroupMembers()));
 		
 		if (insertedGroup == -1) {
 			logger.error("Could not add new group ["+ group.getName() +"]");
@@ -324,7 +281,7 @@ public class GrouperInfoResource {
 			@RequestBody(required=true) User user) {
 		
 		HttpStatus status = HttpStatus.OK;
-		int envId = getEnvironmentId(envName, courseName, uniName);
+		int envId = dbHelper.getEnvironmentId(envName, courseName, uniName);
 		
 		boolean isSuccessful = db.updateEnvironment(
 				envId,
@@ -349,156 +306,6 @@ public class GrouperInfoResource {
 		
 		return new ResponseEntity<>(status);
 	}
+
 	
-	
-	
-	/*
-	 *  THE HELPER FUNCTIONS (OH YEAH!!!)
-	 */
-	
-	private int getUniversityId(String universityName) {
-		int universityId = db.getUniversityID(universityName);
-		
-		if (universityId == -1) {
-			logger.warn("Failed to get university id for ["+ universityName +"]");
-			throw new DatabaseException("Failed to get university id for ["+ universityName +"]");
-		}
-		
-		return universityId;
-	}
-	
-	private ArrayList<String> getUniversityInfo(String universityName) {
-		ArrayList<String> universityInfo = db.queryUniversity(getUniversityId(universityName));
-		
-		if (universityInfo.size() == 0) {
-			logger.warn("No university was returned for ["+ universityName +"]");
-		}
-		
-		return universityInfo;
-	}
-	
-	private int getCourseId(String courseName, String universityName) {
-		int courseId = db.getCourseID(courseName, getUniversityId(universityName));
-		
-		if (courseId == -1) {
-			logger.warn("Failed to get course id for ["+ courseName +"]");
-			throw new DatabaseException("Failed to get course id for ["+ courseName +"]");
-		}
-		
-		return courseId;
-	}
-	
-	private ArrayList<String> getCourseInfo(String courseName, String unviersityName) {
-		ArrayList<String> courseInfo = db.queryCourse(getCourseId(courseName, unviersityName));
-		
-		if (courseInfo.size() == 0) {
-			logger.warn("No courses were returned for ["+ courseName +"]");
-		}
-		
-		return courseInfo;
-	}
-	
-	private ArrayList<ArrayList<String>> getEnvironmentsHelper(String universityName, String courseName) {
-		ArrayList<ArrayList<String>> envs = db.getEnvironments(getCourseId(courseName, universityName));
-		
-		if (envs.size() == 0) {
-			logger.warn("No environments were returned for ["+ courseName +"]");
-		}
-		
-		return envs;
-	}
-	
-	private int getEnvironmentId(String environmentName, String courseName, String universityName) {
-		
-		int envId = db.getEnvironmentID(environmentName, getCourseId(courseName, universityName));
-		
-		if (envId == -1) {
-			logger.warn("Failed to get environment id for ["+ environmentName +"]");
-			throw new DatabaseException("Failed to get environment id for ["+ environmentName +"]");
-		}
-		
-		return envId;
-	}
-	
-	private ArrayList<String> getEnvironmentInfoHelper( 
-			String environmentName,
-			String courseName,
-			String universityName) {
-		
-		int envId = getEnvironmentId(environmentName, courseName, universityName);
-		ArrayList<String> envInfo = db.queryEnvironment(envId);
-		
-		if (envInfo.isEmpty()) {
-			logger.warn("No environments were returned for ["+ environmentName +"]");
-		}
-		
-		return envInfo;
-	}
-	
-	private int getQuestionnaireIdHelper(
-			String envName,
-			String courseName,
-			String universityName) {
-		
-		int questId = db.getQuestionnaire(
-				getEnvironmentId(envName, courseName, universityName));
-		
-		if (questId == -1) {
-			logger.warn("Failed to get questionnaire id for ["+ envName +"]");
-			throw new DatabaseException("Failed to get questionnaire id for ["+ envName +"]");
-		}
-		
-		return questId;
-	}
-	
-	private HashMap<String,String[]> getQuestionnaireHelper(
-			String envName,
-			String courseName,
-			String universityName) {
-		
-		HashMap<String,String[]> questionnaire = 
-				db.getQuestions(
-						getQuestionnaireIdHelper(
-								envName, 
-								courseName, 
-								universityName));
-		
-		System.out.println(Arrays.toString(questionnaire.get("Is this ok?")));
-		
-		if (questionnaire.isEmpty()) {
-			logger.warn("No questionnaire items were returned for ["+ envName +"]");
-		}
-		
-		return questionnaire;
-	}
-	
-	private int[] getUserIdsFromNicknames(Set<User> users) {
-		int[] idList = new int[users.size()];
-		int i = 0;
-		for (User user : users) {
-			idList[i] = (Integer.valueOf(db.getUserID(user.getNickname())));
-			i++;
-		}
-		
-		return idList;
-	}
-	
-	private String getCsvFromUserSet(Set<User> users) {
-		String userStr = "";
-		for (User user : users) {
-			userStr += (user.getNickname().equals("") ? "" : ",") + user.getNickname();
-		}
-		
-		return userStr;
-	}
-	
-	private String getCsvFromUserList(List<User> users) {
-		String userStr = "";
-		for (User user : users) {
-			userStr += (user.getNickname().equals("") ? "" : ",") + user.getNickname();
-		}
-		
-		return userStr;
-	}
-	
-}
+} // End of class

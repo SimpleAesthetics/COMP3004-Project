@@ -106,6 +106,10 @@ public class DatabaseHelper {
 		}
 	}
 	
+	public ArrayList<ArrayList<String>> getUniversities() {
+		return db.queryAllUniversities();
+	}
+	
 	public boolean addUniversity(String name) {
 		if (db.insertUniversity(name) == -1) {
 			logger.warn("Could not insert [" + name +"]");
@@ -116,10 +120,6 @@ public class DatabaseHelper {
 		}
 		
 		return true;
-	}
-	
-	public ArrayList<ArrayList<String>> getUniversities() {
-		return db.queryAllUniversities();
 	}
 	
 	public int getUniversityId(String universityName) {
@@ -144,7 +144,7 @@ public class DatabaseHelper {
 	}
 	
 	public boolean addCourse(String courseName, String universityName) {
-		return (db.insertCourse(courseName, -1,getUniversityId(universityName)) == -1) 
+		return (db.insertCourse(courseName, -1, getUniversityId(universityName)) == -1) 
 				? false 
 				: true;
 	}
@@ -195,7 +195,7 @@ public class DatabaseHelper {
 		logger.info("using unversity [" + uniName +"] and course ["+ courseName +"]");
 		
 		boolean isEnvAdded = true;
-		int insertedEnv = db.insertEnvironment(
+		int insertedEnvId = db.insertEnvironment(
 				env.getName(),
 				db.getUserID(env.getOwner().toLowerCase()),
 				getCourseId(courseName,uniName), 
@@ -207,14 +207,13 @@ public class DatabaseHelper {
 				"",
 				-1);
 		
-		if (insertedEnv == -1) {
+		if (insertedEnvId == -1) {
 			logger.error("Could not add new environment ["+ env.getName() +"]");
 			isEnvAdded = false;
 			
 		} else {
-			int envId = getEnvironmentId(env.getName(), courseName, uniName);
 			int insertedQuestionnnaire = db.insertQuestionnaire(
-					envId, 
+					insertedEnvId, 
 					questionnaireTransformer.transformForDbArray(env.getQuestionnaire()));
 			
 			System.out.println(questionnaireTransformer.transformForDbArray(env.getQuestionnaire()).toString());
@@ -225,7 +224,7 @@ public class DatabaseHelper {
 				
 			} else {
 				boolean successfulUpdate = db.changeQuestionnaire(
-						envId, 
+						insertedEnvId, 
 						insertedQuestionnnaire);
 				
 				if (!successfulUpdate) {
