@@ -25,6 +25,7 @@ import com.simpleaesthetics.application.model.Group;
 import com.simpleaesthetics.application.rest.db.GrouperDB;
 import com.simpleaesthetics.application.rest.transformer.EnvironmentTransformer;
 import com.simpleaesthetics.application.rest.transformer.QuestionnaireTransformer;
+import com.simpleaesthetics.application.rest.transformer.UniversityTransformer;
 import com.simpleaesthetics.application.model.Course;
 import com.simpleaesthetics.application.model.University;
 import com.simpleaesthetics.application.model.User;
@@ -50,6 +51,9 @@ public class GrouperInfoResource {
 	private QuestionnaireTransformer questionnaireTransformer;
 	
 	@Autowired
+	private UniversityTransformer uniTransformer;
+	
+	@Autowired
 	private DatabaseHelper dbHelper;
 	
 	Boolean createdTestData = false;
@@ -65,17 +69,28 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<ArrayList<ArrayList<String>>> getUniversities() {
+	public @ResponseBody ResponseEntity<List<University>> getUniversities() {
 		
 		HttpStatus status = HttpStatus.OK;
-		ArrayList<ArrayList<String>> universities = db.queryAllUniversities();
+		List<University> universities = uniTransformer.transform(db.queryAllUniversities());
+		
+		for (University uni : universities) {
+			List<String> courses = uni.getCoursesList();
+			System.out.println(courses);
+			for (int i = 0; i < courses.size(); i++) {
+				String trimmedCourse = courses.get(i).trim();
+				if (!trimmedCourse.isEmpty()) {
+					courses.set(i, dbHelper.getCourseName(trimmedCourse));
+				}
+			}
+		}
 		
 		if (universities.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
 			logger.info("No universities were returned");
 		}
 		
-		return new ResponseEntity<ArrayList<ArrayList<String>>>(
+		return new ResponseEntity<List<University>>(
 				universities,
 				status);
 	}
@@ -267,7 +282,7 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> addGroup(
+	public @ResponseBody ResponseEntity<String> addGroupToEnv(
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName,
@@ -302,23 +317,34 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/users", method=RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> addGroup(
+	public @ResponseBody ResponseEntity<String> addUserToEnv(
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName,
-			@RequestBody(required=true) User users) {
+			@RequestBody(required=true) User user) {
 		
 		HttpStatus status = HttpStatus.OK;
 		int envId = getEnvironmentId(envName, courseName, uniName);
 		
-		boolean isUpdateSuccessful = db.updateEnvironment(
+		boolean isSuccessful = db.updateEnvironment(
 				envId,
-				users.getNickname(),
+				user.getNickname(),
 				"");
 		
-		if (!isUpdateSuccessful) {
+		if (!isSuccessful) {
 			logger.error("Could not update user for environment ["+ envName +"]");
 			status = HttpStatus.BAD_REQUEST;
+			
+		} else {
+			isSuccessful = dbHelper.setQuestionnaireAnswers(
+					user.getNickname(), 
+					questionnaireTransformer.transformForDbStringUsingQuestionArray(
+							dbHelper.getQuestionnaire(envName, courseName, uniName)));
+			
+			if (!isSuccessful) {
+				logger.error("Could not update questionnaire for ["+ user.getNickname() +"]");
+				status = HttpStatus.BAD_REQUEST;
+			}
 		}
 		
 		return new ResponseEntity<>(status);

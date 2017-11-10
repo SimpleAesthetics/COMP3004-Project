@@ -68,25 +68,26 @@ public class DatabaseHelper {
 		for (String name: userNames) {
 			UserInformation user = 
 					new UserInformation(userId++,name,"lastName",name,name +".gmail.com");
-//			addUser(user);
+			addUser(user);
 			setQuestionnaireAnswers(
 					name.toLowerCase(), 
 					questionnaireTransformer.transformForDbString(env.getQuestionnaire()));
 		}
 		
-//		for (String universityName : uniNames) {
-//			testWorked = testWorked && addUniversity(universityName);
-//			for (String courseName : courseNames) {
-//				testWorked = testWorked && addCourse(courseName, universityName);
-//				for (String envName : envNames) {
-//					addEnvironment(
-//							env, 
-//							courseName, 
-//							universityName);
-//					
-//				}
-//			}
-//		}
+		for (String universityName : uniNames) {
+			testWorked = testWorked && addUniversity(universityName);
+			for (String courseName : courseNames) {
+				testWorked = testWorked && addCourse(courseName, universityName);
+				for (String envName : envNames) {
+					env.setName(envName);
+					addEnvironment(
+							env, 
+							courseName, 
+							universityName);
+					
+				}
+			}
+		}
 		
 		return testWorked;
 	}
@@ -101,7 +102,7 @@ public class DatabaseHelper {
 		
 		if (userId == -1) {
 			logger.error("Failed to insert user ["+ userInfo.toString() +"]");
-			throw new DatabaseException("Failed to insert user ["+ userInfo.toString() +"]");
+//			throw new DatabaseException("Failed to insert user ["+ userInfo.toString() +"]");
 		}
 	}
 	
@@ -126,7 +127,7 @@ public class DatabaseHelper {
 		
 		if (universityId == -1) {
 			logger.warn("Failed to get university id for ["+ universityName +"]");
-			throw new DatabaseException("Failed to get university id for ["+ universityName +"]");
+//			throw new DatabaseException("Failed to get university id for ["+ universityName +"]");
 		}
 		
 		return universityId;
@@ -148,6 +149,10 @@ public class DatabaseHelper {
 				: true;
 	}
 	
+	public String getCourseName(String courseId) {
+		return db.queryCourse(Integer.valueOf(courseId)).get(0);
+	}
+	
 	public ArrayList<ArrayList<String>> getCourses(String universityName) {
 		return db.getCourses(getUniversityId(universityName));
 	}
@@ -159,7 +164,7 @@ public class DatabaseHelper {
 		
 		if (courseId == -1) {
 			logger.warn("Failed to get course id for ["+ courseName +"]");
-			throw new DatabaseException("Failed to get course id for ["+ courseName +"]");
+//			throw new DatabaseException("Failed to get course id for ["+ courseName +"]");
 		}
 		
 		return courseId;
@@ -192,7 +197,7 @@ public class DatabaseHelper {
 		boolean isEnvAdded = true;
 		int insertedEnv = db.insertEnvironment(
 				env.getName(),
-				db.getUserID(env.getOwner()),
+				db.getUserID(env.getOwner().toLowerCase()),
 				getCourseId(courseName,uniName), 
 				env.isPrivateEnv(), 
 				env.getPassword(),
@@ -249,7 +254,7 @@ public class DatabaseHelper {
 		
 		if (envId == -1) {
 			logger.warn("Failed to get environment id for ["+ environmentName +"]");
-			throw new DatabaseException("Failed to get environment id for ["+ environmentName +"]");
+//			throw new DatabaseException("Failed to get environment id for ["+ environmentName +"]");
 		}
 		
 		return envId;
@@ -307,6 +312,21 @@ public class DatabaseHelper {
 		return false;
 	}
 	
+	public HashMap<String, String> getUserQuestionnaireAns(
+			String userNickname,
+			String questions, 
+			String answers) {
+		
+		int ansId = db.getAnswerID(Integer.valueOf(
+				db.queryUser(userNickname).get(0)), 
+				questions, 
+				answers);
+		
+		System.out.println(db.getAnswers(ansId));
+		
+		return null;
+	}
+	
 	public int getQuestionnaireId(
 			String envName,
 			String courseName,
@@ -317,7 +337,7 @@ public class DatabaseHelper {
 		
 		if (questId == -1) {
 			logger.warn("Failed to get questionnaire id for ["+ envName +"]");
-			throw new DatabaseException("Failed to get questionnaire id for ["+ envName +"]");
+//			throw new DatabaseException("Failed to get questionnaire id for ["+ envName +"]");
 		}
 		
 		return questId;

@@ -24,7 +24,16 @@ public class QuestionnaireTransformer {
 		return transQuestionnaire;
 	}
 	
-public HashMap<String, String[]> transformForDbArray(Map<String, List<String>> questionnaire) {
+	public HashMap<String, String> transformForDbStringUsingQuestionArray(Map<String, String[]> questionnaire) {
+		HashMap<String, String> transQuestionnaire = new HashMap<>();
+		for (String question : questionnaire.keySet()) {
+			transQuestionnaire.put(question, String.join(",", questionnaire.get(question)));
+		}
+	
+		return transQuestionnaire;
+	}
+	
+	public HashMap<String, String[]> transformForDbArray(Map<String, List<String>> questionnaire) {
 		
 		HashMap<String, String[]> transQuestionnaire = new HashMap<>();
 		for (String question : questionnaire.keySet()) {
