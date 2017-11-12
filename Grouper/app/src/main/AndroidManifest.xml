@@ -28,8 +28,6 @@
             android:label="@string/title_activity_lists"
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity android:name=".UI.NewEnvironment" />
-        <activity android:name=".UI.CreateUniversity" />
-        <activity android:name=".UI.CreateCourse"></activity>
 
     </application>
 

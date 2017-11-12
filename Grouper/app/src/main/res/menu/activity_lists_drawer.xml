@@ -7,15 +7,17 @@
         <item
             android:id="@+id/explore"
             android:icon="@drawable/ic_explore"
-            android:title="Explore Groups" />
+            android:title="Explore Grouper" />
         <item
             android:id="@+id/jgroups"
             android:icon="@drawable/ic_groups"
-            android:title="Joined Groups" />
+            android:title="Joined Groups"
+            android:visible="false"/>
         <item
             android:id="@+id/waiting"
             android:icon="@drawable/ic_waiting"
-            android:title="Waiting List" />
+            android:title="Waiting List"
+            android:visible="false"/>
     </group>
     <item
         android:id="@+id/admin"
@@ -50,15 +52,16 @@
             <item
                 android:id="@+id/settings"
                 android:icon="@drawable/ic_settings"
-                android:title="Settings" />
+                android:title="Settings"
+                android:visible="false"/>
             <item
                 android:id="@+id/logout"
                 android:icon="@drawable/ic_logout"
-                android:title="Logout" />
+                android:title="Logout"/>
             <item
                 android:id="@+id/exit"
                 android:icon="@drawable/ic_exit"
-                android:title="Exit" />
+                android:title="Exit"/>
         </menu>
     </item>
 

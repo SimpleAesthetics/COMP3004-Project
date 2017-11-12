@@ -1,5 +1,7 @@
 package reboot.grouper.Model;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,8 +69,18 @@ public class University {
 
 	@Override
 	public String toString() {
-		return "University [name=" + name + "]";
+		return "{\"name\" : \"" + name + "\"}";
 	}
-	
+
+	public JSONObject toJSON(){
+		JSONObject res = new JSONObject();
+		try {
+			res.put("name", name);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
 	
 }

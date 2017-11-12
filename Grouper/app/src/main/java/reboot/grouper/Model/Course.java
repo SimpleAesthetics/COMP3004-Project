@@ -100,8 +100,7 @@ public class Course {
 
 	@Override
 	public String toString() {
-		return "Course [name=" + name + ", courseCode=" + courseCode + ", instructor=" + instructor + ", envList="
-				+ envList + "]";
+		return "{\"name\":\"" + name + "\", \"courseCode\":\"" + courseCode + "\", \"instructor\":\"" + instructor +"\",\"envList\":[]}";
 	}
 	
 	

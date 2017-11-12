@@ -1,32 +1,34 @@
 package reboot.grouper.UI;
+
 import android.content.Intent;
-//import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.util.Map;
 
+import reboot.grouper.FrontEnd.Lists_Controller;
 import reboot.grouper.FrontEnd.Volley;
 import reboot.grouper.Model.Environment;
 import reboot.grouper.R;
 
+//import android.os.Environment;
+
 public class NewEnvironment extends AppCompatActivity {
     public static final String EXTRA_MESSAGE = "com.aesthetics.simple.grouper.MESSAGE";
+    private Lists_Controller controller;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +45,7 @@ public class NewEnvironment extends AppCompatActivity {
                 }
             }
         });
+        controller = Lists_Controller.getList();
     }
 
     private void Submit() throws JSONException {
@@ -55,8 +58,7 @@ public class NewEnvironment extends AppCompatActivity {
 
         boolean err = false;
         String errMSG="";
-        Environment env= new Environment(Name,false,Password,size);
-        addEnvironment(env);
+        Environment env= new Environment(Name,(Password.equals("")?false:true),Password,size);
         if(Name.equals("")||DueDate.equals("")){
             err=true;
             errMSG="ERROR: A name and a Due Date is required.";
@@ -89,36 +91,16 @@ public class NewEnvironment extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), errMSG, Toast.LENGTH_LONG).show();
             return;
         }
+
+        for(quizPart Part : Quiz){
+            env.getQuestionnaire().put(Part.Q,Part.A);
+        }
+
         //Intent intent = new Intent(NewEnvironment.this, MainLists.class);
         //startActivity(intent);
-        Toast.makeText(getApplicationContext(), "Request Parsed", Toast.LENGTH_LONG).show();
-    }
+        controller.Create_Environment(env);
+        finish();
 
-    private void addEnvironment(Environment env) throws JSONException {
-        /*
-        Intent intentCourse = getIntent();
-        String uni  = intentCourse.getStringExtra("uni");
-        String course  = intentCourse.getStringExtra("course");
-        Gson gson = new Gson();
-        String obj = gson.toJson(env);
-        JsonObjectRequest jsonobj = new JsonObjectRequest(Request.Method.POST, Volley.I(this).getAddress()+"universities/"+uni+"/courses/"+course+"/environments",new JSONObject(obj),
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d("Response", response.toString());
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("Response", error.getMessage());
-                    }
-                }
-        ){
-            //here I want to post data to sever
-        };
-        vClient.I(this).addtoReqQueue(jsonobj);
-    */
     }
 
 

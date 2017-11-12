@@ -1,5 +1,8 @@
 package reboot.grouper.Model;
 
+import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class Environment {
+public class Environment implements Serializable{
 	
 	private String owner;
 	private String name;
@@ -23,6 +26,7 @@ public class Environment {
 	private SimpleDateFormat dateFormat;
 	private Set<Group> groups;
 	private Set<User> users;
+    @SerializedName("questionnaire")
 	private Map<String, List<String>> questionnaire;
 	
 	public Environment() {
@@ -226,7 +230,11 @@ public class Environment {
 				+ password + ", maxGroupSize=" + maxGroupSize + ", deadlineStr=" + deadlineStr + ", deadlineDate="
 				+ deadlineDate + ", dateFormat=" + dateFormat + ", groups=" + groups + ", users=" + users
 				+ ", questionnaire=" + questionnaire + "]";
+
+
 	}
-	
+	public String toJSON(){
+
+    }
 	
 }

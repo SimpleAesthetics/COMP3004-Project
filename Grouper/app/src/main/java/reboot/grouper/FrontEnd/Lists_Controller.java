@@ -1,51 +1,73 @@
 package reboot.grouper.FrontEnd;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import reboot.grouper.Model.Course;
+import reboot.grouper.Model.Environment;
+import reboot.grouper.Model.University;
+import reboot.grouper.R;
 import reboot.grouper.UI.Lists;
 
 /**
  * Created by visha on 2017-11-07.
  */
 
-public class Lists_Controller {
+@SuppressWarnings("serial")
+public class Lists_Controller implements Serializable {
+    public static Lists_Controller inst;
     private Lists lists; //The lists activity;
 
-    private List<Map<String, String>> lst_Display;
-    private List<String> lst_ID;
+    private List<Map<String, String>>   lst_Display;
+    private List<String>                lst_ID;
+    private List<Boolean>               lst_Formed_List;
 
     private String univ,cour,envi,grou;
     private STATE state;
 
-    private Response.Listener<JSONArray>    LstResponse;
-    private Response.Listener<JSONObject>   ObjResponse;
+    private Response.Listener<JSONArray>    LstResponse_Single;
+    private Response.Listener<JSONArray>    LstResponse_Environment;
+    private Response.Listener<String>       StrResponse;
     private Response.ErrorListener          ErrResponse;
 
+    private DialogInterface.OnClickListener Create_University;
 
     private enum STATE{ UNIV, COURSES, ENVI, FORMATION, GROUPS, JOINED, WAITING }
 
     public Lists_Controller(Lists lst){
         lists = lst;
         state = STATE.UNIV;
-        init_Response_Listeners();
+        init_Function_Listeners();
+        inst = this;
     }
+
+    public static Lists_Controller getList(){ return inst; }
 
     public void updateView(){
         lists.set_Loading(true);
-        get_Menu_Selection();
+        //get_Menu_Selection();
         set_Title();
         switch (state){
             case UNIV       :lists.show_Admin(1); break;
@@ -56,15 +78,59 @@ public class Lists_Controller {
             case JOINED     :lists.show_Admin(0); break;
             case WAITING    :lists.show_Admin(6); break;
         }
-        JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, create_GET_URL(),null, LstResponse, ErrResponse);
+        JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, create_GET_URL(),null, LstResponse_Single, ErrResponse);
         Volley.I(lists).addtoReqQueue(req);
     }
 
+    public void progress_A_Step(int id){
+        /* Transition to next list */
+        switch (state){
+            case UNIV       :
+                univ = lst_ID.get(id);
+                state = STATE.COURSES;
+                break;
+            case COURSES    :
+                cour = lst_ID.get(id);
+                state = STATE.ENVI;
+                break;
+            case ENVI       :
+                envi = lst_ID.get(id);
+                /* Check for environment formation status */
+                break;
+            case FORMATION  :lists.show_Admin(4); break;
+            case GROUPS     :lists.show_Admin(5); break;
+            case JOINED     :lists.show_Admin(0); break;
+            case WAITING    :lists.show_Admin(6); break;
+
+        }
+        updateView();
+    }
+
+    public void back_A_Step(){
+        switch (state){
+            case UNIV       : lists.finish(); return;
+            case COURSES    :
+                cour = "";
+                state = STATE.UNIV;
+                break;
+            case ENVI       :
+                envi = "";
+                state = STATE.COURSES;
+                /* Check for environment formation status */
+                break;
+            case FORMATION  :lists.show_Admin(4); break;
+            case GROUPS     :lists.show_Admin(5); break;
+            case JOINED     :lists.show_Admin(0); break;
+            case WAITING    :lists.show_Admin(6); break;
+
+        }
+        updateView();
+    }
 
     private void set_Title(){
         switch (state){
             case UNIV       :lists.set_Title("Universities"     ); break;
-            case COURSES    :lists.set_Title("Courses     "     ); break;
+            case COURSES    :lists.set_Title("Courses"          ); break;
             case ENVI       :lists.set_Title("Environments"     ); break;
             case FORMATION  :lists.set_Title( envi              ); break;
             case GROUPS     :lists.set_Title( grou              ); break;
@@ -96,7 +162,7 @@ public class Lists_Controller {
         out = Volley.I(lists).getAddress() + out;
         return out;
     }
-
+    /*
     private Map<String, String> new_List_Item(String... args){
         Map<String, String> data = new HashMap<>(1);
         for(int i = 0; i < args.length; i++){
@@ -104,13 +170,62 @@ public class Lists_Controller {
         }
         return data;
     }
+    */
+    private Map<String, String> new_List_Item(String arg1, String arg2){
+        Map<String, String> data = new HashMap<>(1);
+        data.put("H1",arg1);
+        data.put("H2",arg2);
+        return data;
+    }
 
-    private void init_Response_Listeners(){
-        LstResponse = new Response.Listener<JSONArray>() {
+    public void create_University(){
+        lists.text_Input_Dialog(Create_University,"Add a University");
+    }
+
+    public void Create_Course(Course c){
+        final Course course = c;
+        String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses";
+        StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap();
+                headers.put("Content-Type", "application/json; charset=utf-8");
+                return headers;
+            }
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                return course.toString().getBytes();
+            }
+        };
+        Volley.I(lists).addtoReqQueue(req);
+    }
+    public void Create_Environment(Environment e){
+        final Environment environment = e;
+        String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses";
+        StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap();
+                headers.put("Content-Type", "application/json; charset=utf-8");
+                return headers;
+            }
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                Gson gson = new Gson();
+                return gson.toJson(environment).getBytes();
+            }
+        };
+        Volley.I(lists).addtoReqQueue(req);
+    }
+
+    private void init_Function_Listeners(){
+        LstResponse_Single = new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-                lst_Display = new ArrayList<>();
-                lst_ID      = new ArrayList<>();
+                lst_Display     = new ArrayList<>();
+                lst_ID          = new ArrayList<>();
+                lst_Formed_List = new ArrayList<>();
+
                 for(int i=0; i<response.length();i++){
                     try {
                         String elem = response.getJSONArray(i).getString(1);
@@ -118,18 +233,89 @@ public class Lists_Controller {
                         lst_Display.add(new_List_Item(elem,""));
                     } catch (Exception e){  e.printStackTrace(); }
                 }
-                lists.set_List(lst_Display,0);
+                lists.lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        progress_A_Step(i);
+                    }
+                });
+                lists.set_List(lst_Display,-1);
                 lists.set_Loading(false);
             }
         };
+
+        LstResponse_Environment = new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                /* todo Form Environment List */
+
+            }
+        };
+
 
         ErrResponse = new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(lists.getApplicationContext(), create_GET_URL() + " : " + error.toString(),
                         Toast.LENGTH_SHORT).show();
+                lst_Display     = new ArrayList<>();
+                lst_ID          = new ArrayList<>();
+                lst_Formed_List = new ArrayList<>();
+                lists.set_List(lst_Display,-1);
                 lists.set_Loading(false);
             }
         };
+
+        StrResponse = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Toast.makeText(lists.getApplicationContext(), "Success!",
+                        Toast.LENGTH_SHORT).show();
+                updateView();
+            }
+        };
+
+        Create_University = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                String URL = Volley.I(lists).getAddress() + "universities";
+                final University Uni = new University(lists.get_Text_Input());
+                StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        HashMap<String, String> headers = new HashMap();
+                        headers.put("Content-Type", "application/json; charset=utf-8");
+                        return headers;
+                    }
+                    @Override
+                    public byte[] getBody() throws AuthFailureError {
+                        return Uni.toString().getBytes();
+                    }
+                };
+                Volley.I(lists).addtoReqQueue(req);
+            }
+        };
+    /*
+        Create_Course = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses";
+                final Course Elem = new Course(lists.get_Text_Input());
+                StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        HashMap<String, String> headers = new HashMap();
+                        headers.put("Content-Type", "application/json; charset=utf-8");
+                        return headers;
+                    }
+                    @Override
+                    public byte[] getBody() throws AuthFailureError {
+                        return Elem.toString().getBytes();
+                    }
+                };
+                Volley.I(lists).addtoReqQueue(req);
+            }
+        };
+        */
     }
 }

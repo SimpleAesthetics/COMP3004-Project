@@ -1,8 +1,11 @@
 package reboot.grouper.UI;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,23 +15,28 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.util.List;
 import java.util.Map;
 
 import reboot.grouper.FrontEnd.Lists_Controller;
 import reboot.grouper.FrontEnd.UserSession;
+import reboot.grouper.Model.Course;
 import reboot.grouper.R;
 
 public class Lists extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private Lists_Controller        controller;
 
-    private ListView                lst_Main;
+    public  ListView                lst_Main;
     private SimpleAdapter           adapter;
     private Toolbar                 toolbar;
     private NavigationView          navigationView;
@@ -44,6 +52,7 @@ public class Lists extends AppCompatActivity
     private MenuItem                leaveEnvir;
     private TextView                fn;
     private TextView                un;
+    private EditText                Text_Input;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +100,12 @@ public class Lists extends AppCompatActivity
         controller = new Lists_Controller(this);
         controller.updateView();
         show_Username_In_Dash();
+        lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                controller.progress_A_Step(position);
+            }
+        });
     }
 
     public void show_Username_In_Dash(){
@@ -98,33 +113,78 @@ public class Lists extends AppCompatActivity
         fn.setText(UserSession.I().getUser().getFirstName() + " " + UserSession.I().getUser().getLastName());
     }
 
+    public void text_Input_Dialog(DialogInterface.OnClickListener listener, String title){
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        View promptView = layoutInflater.inflate(R.layout.input_dialog, null);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(promptView);
+        TextView txt_view = promptView.findViewById(R.id.lbl_Title);
+        txt_view.setText(title);
+        Text_Input = promptView.findViewById(R.id.txt_Input);
+        alertDialogBuilder.setCancelable(false)
+                .setPositiveButton("Submit", listener)
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int id) { dialog.cancel(); }});
+
+        // create an alert dialog
+        AlertDialog alert = alertDialogBuilder.create();
+        alert.show();
+    }
+
+    public void course_Create_Dialog(){
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        View promptView = layoutInflater.inflate(R.layout.course_input_dialog, null);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(promptView);
+        final TextView CourseName = promptView.findViewById(R.id.txt_Name);
+        final TextView CourseCode = promptView.findViewById(R.id.txt_Code);
+        final TextView Instructor = promptView.findViewById(R.id.txt_Instructor);
+
+
+        alertDialogBuilder.setCancelable(false)
+                .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Course c = new Course();
+                        c = new Course();
+                        c.setName(CourseName.getText().toString());
+                        c.setCourseCode(CourseCode.getText().toString());
+                        c.setInstructor(Instructor.getText().toString());
+                        controller.Create_Course(c);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int id) { dialog.cancel(); }});
+
+        // create an alert dialog
+        AlertDialog alert = alertDialogBuilder.create();
+        alert.show();
+    }
+
     public int get_Drawer_Select(){
         return list_Menu;
     }
 
     private void create_University(){
-        Intent intent = new Intent(this, CreateUniversity.class);
-        startActivity(intent);
-
+        controller.create_University();
     }
 
     public void set_List(List<Map<String, String>> lst_cur, int lst_type){
-        int layout = android.R.layout.simple_list_item_2;
         if(lst_type>0) {
             adapter = new SimpleAdapter(this, lst_cur,
-                    layout,
+                    android.R.layout.simple_list_item_2,
                     new String[]{"H1", "H2"},
                     new int[]{android.R.id.text1, android.R.id.text2});
             lst_Main.setAdapter(adapter);
         }
         else{
             adapter = new SimpleAdapter(this, lst_cur,
-                    layout,
+                    R.layout.simple_list_item,
                     new String[]{"H1"},
                     new int[]{android.R.id.text1});
             lst_Main.setAdapter(adapter);
         }
     }
+
+    public String get_Text_Input(){ return Text_Input.getText().toString(); }
 
     public void set_Floating_Buttons(Boolean visible){
         if(visible) {
@@ -148,7 +208,7 @@ public class Lists extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            controller.back_A_Step();
         }
     }
 
@@ -268,7 +328,11 @@ public class Lists extends AppCompatActivity
 
             }
             else if(id == R.id.addUniv) create_University();
-
+            else if(id == R.id.addCour) course_Create_Dialog();
+            else if(id == R.id.addEnvi) {
+                Intent I = new Intent(this,NewEnvironment.class);
+                startActivity(I);
+            }
 
             navigationView.getMenu().getItem(list_Menu).setChecked(true);
         }
