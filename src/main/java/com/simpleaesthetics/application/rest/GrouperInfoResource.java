@@ -80,18 +80,17 @@ public class GrouperInfoResource {
 	public @ResponseBody ResponseEntity<List<University>> getUniversities() {
 		
 		HttpStatus status = HttpStatus.OK;
-		List<University> universities = uniTransformer.transform(dbHelper.getUniversities());
+		List<University> universities = dbHelper.getUniversities();
 		
-		for (University uni : universities) {
-			List<String> courses = uni.getCoursesList();
-			System.out.println(courses);
-			for (int i = 0; i < courses.size(); i++) {
-				String trimmedCourse = courses.get(i).trim();
-				if (!trimmedCourse.isEmpty()) {
-					courses.set(i, dbHelper.getCourseName(trimmedCourse));
-				}
-			}
-		}
+//		for (University uni : universities) {
+//			List<String> courses = uni.getCoursesList();
+//			for (int i = 0; i < courses.size(); i++) {
+//				String trimmedCourse = courses.get(i).trim();
+//				if (!trimmedCourse.isEmpty()) {
+//					courses.set(i, dbHelper.getCourseName(trimmedCourse));
+//				}
+//			}
+//		}
 		
 		if (universities.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
@@ -104,18 +103,14 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<ArrayList<String>> getSpecificUniversity(
+	public @ResponseBody ResponseEntity<University> getSpecificUniversity(
 			@PathVariable(value="uniName",required=true) String uniName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		ArrayList<String> universityInfo = dbHelper.getUniversityInfo(uniName);
+		University university = dbHelper.getSpecificUniversity(uniName);
 		
-		if (universityInfo.isEmpty()) {
-			status = HttpStatus.NO_CONTENT;
-		}
-
-		return new ResponseEntity<ArrayList<String>>(
-				universityInfo,
+		return new ResponseEntity<University>(
+				university,
 				status);
 	}
 	

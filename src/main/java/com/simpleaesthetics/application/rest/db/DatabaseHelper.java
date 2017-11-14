@@ -14,9 +14,11 @@ import org.springframework.stereotype.Component;
 
 import com.simpleaesthetics.application.model.Environment;
 import com.simpleaesthetics.application.model.Group;
+import com.simpleaesthetics.application.model.University;
 import com.simpleaesthetics.application.model.User;
 import com.simpleaesthetics.application.model.UserInformation;
 import com.simpleaesthetics.application.rest.transformer.QuestionnaireTransformer;
+import com.simpleaesthetics.application.rest.transformer.UniversityTransformer;
 import com.simpleaesthetics.application.rest.transformer.UserTransformer;
 import com.simpleaesthetics.application.utility.Transformer;
 
@@ -37,6 +39,9 @@ public class DatabaseHelper {
 	
 	@Autowired
 	private UserTransformer userTransformer;
+	
+	@Autowired
+	private UniversityTransformer uniTransformer;
 	
 	public boolean createTestData() {
 		boolean testWorked = true;
@@ -150,8 +155,24 @@ public class DatabaseHelper {
 		return userTransformer.transformUsers(db.queryAllUsers());
 	}
 	
-	public ArrayList<ArrayList<String>> getUniversities() {
-		return db.queryAllUniversities();
+	public University getSpecificUniversity(String universityName) {
+		return uniTransformer.transformToUniversity(this.getUniversityInfo(universityName));
+	}
+	
+	public List<University> getUniversities() {
+		List<University> universities = uniTransformer.transformToUniversities(db.queryAllUniversities());
+		
+		for (University uni : universities) {
+			List<String> courses = uni.getCoursesList();
+			for (int i = 0; i < courses.size(); i++) {
+				String trimmedCourse = courses.get(i).trim();
+				if (!trimmedCourse.isEmpty()) {
+					courses.set(i, this.getCourseName(trimmedCourse));
+				}
+			}
+		}
+		
+		return universities;
 	}
 	
 	public boolean addUniversity(String name) {
@@ -425,17 +446,6 @@ public class DatabaseHelper {
 		}
 		
 		return questionnaire;
-	}
-	
-	public int[] getUserIdsFromNicknames(Set<User> users) {
-		int[] idList = new int[users.size()];
-		int i = 0;
-		for (User user : users) {
-			idList[i] = (Integer.valueOf(db.getUserID(user.getNickname())));
-			i++;
-		}
-		
-		return idList;
 	}
 	
 	public String getCsvFromUserSet(Set<User> users) {

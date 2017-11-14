@@ -265,6 +265,7 @@ public class GrouperDB {
 				
 				while(results.next()) {
 					//Add results to course list
+					courses.add(String.valueOf(id));
 					courses.add(results.getString("Name"));
 					courses.add(results.getString("Courses"));
 					//Exit, since we only want the first result; assume first result is the one we want

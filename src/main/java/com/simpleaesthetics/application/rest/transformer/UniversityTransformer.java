@@ -11,15 +11,21 @@ import com.simpleaesthetics.application.model.University;
 @Component
 public class UniversityTransformer {
 	
-	public List<University> transform(
+	public University transformToUniversity(ArrayList<String> universityInfo) {
+		System.out.println(universityInfo);
+		
+		return new University(
+				universityInfo.get(1), 
+				new ArrayList<String>(Arrays.asList(universityInfo.get(2).split(","))));
+	}
+	
+	public List<University> transformToUniversities(
 			ArrayList<ArrayList<String>> toTransform) {
 		
 		List<University> transformed = new ArrayList<>(); 
 		
 		for (ArrayList<String> universityInfo : toTransform) {
-			transformed.add(new University(
-					universityInfo.get(1), 
-					new ArrayList<String>(Arrays.asList(universityInfo.get(2).split(",")))));
+			transformed.add(transformToUniversity(universityInfo));
 		}
 		
 		return transformed;

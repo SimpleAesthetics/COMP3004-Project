@@ -40,48 +40,48 @@ public class Deadline {
 	public void checkAndExecuteDealines() {
 //		logger.info("RUNNING SCHEDULED TASK ["+ new Date().toString() +"]; Check and execute deadlines");
 		
-		if (success) {
-			return;
-		}
-		
-		List<University> universities = uniTransformer.transform(helper.getUniversities());
-		logger.info("Found "+ universities.size() +" universities to sort");
-		
-		for (University university : universities) {
-			logger.info("Attempting to sort university ["+ university.getName() +"]");
-			
-			for (String courseName : university.getCoursesList()) {	
-				String trimmedCourse = courseName.trim();
-				
-				if (trimmedCourse.isEmpty()) {
-					continue;
-				}
-				
-				logger.info("Attempting to sort course ["+ courseName +"]");
-				
-				ArrayList<ArrayList<String>> envInfos = 
-						helper.getEnvironments(
-								university.getName(), 
-								helper.getCourseInfo(Integer.valueOf(trimmedCourse)).get(0));
-				
-				for (ArrayList<String> envInfo : envInfos) {
-//					helper.setGroups(
-//							grouper.findAllGroups(getUserHashSetFromCSV(envInfo.get(6)), 4), 
-//							envInfo.get(1), 
-//							courseName, 
-//							university.getName());
-					logger.info("Returning sorted groups: \n"+
-							grouper.findAllGroups(
-									getUserHashSetFromCSV(
-											envInfo.get(7),
-											envInfo.get(0),
-											envInfo.get(2)), 
-									4));
-				}
-			}	
-		}
-		
-		success = true;
+//		if (success) {
+//			return;
+//		}
+//		
+//		List<University> universities = uniTransformer.transform(helper.getUniversities());
+//		logger.info("Found "+ universities.size() +" universities to sort");
+//		
+//		for (University university : universities) {
+//			logger.info("Attempting to sort university ["+ university.getName() +"]");
+//			
+//			for (String courseName : university.getCoursesList()) {	
+//				String trimmedCourse = courseName.trim();
+//				
+//				if (trimmedCourse.isEmpty()) {
+//					continue;
+//				}
+//				
+//				logger.info("Attempting to sort course ["+ courseName +"]");
+//				
+//				ArrayList<ArrayList<String>> envInfos = 
+//						helper.getEnvironments(
+//								university.getName(), 
+//								helper.getCourseInfo(Integer.valueOf(trimmedCourse)).get(0));
+//				
+//				for (ArrayList<String> envInfo : envInfos) {
+////					helper.setGroups(
+////							grouper.findAllGroups(getUserHashSetFromCSV(envInfo.get(6)), 4), 
+////							envInfo.get(1), 
+////							courseName, 
+////							university.getName());
+//					logger.info("Returning sorted groups: \n"+
+//							grouper.findAllGroups(
+//									getUserHashSetFromCSV(
+//											envInfo.get(7),
+//											envInfo.get(0),
+//											envInfo.get(2)), 
+//									4));
+//				}
+//			}	
+//		}
+//		
+//		success = true;
 	}
 	
 	private HashSet<User> getUserHashSetFromCSV(String usersCSV, String envName, String envOwner) {
