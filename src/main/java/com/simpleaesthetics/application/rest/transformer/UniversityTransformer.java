@@ -19,7 +19,7 @@ public class UniversityTransformer {
 		for (ArrayList<String> universityInfo : toTransform) {
 			transformed.add(new University(
 					universityInfo.get(1), 
-					Arrays.asList(universityInfo.get(2).split(","))));
+					new ArrayList<String>(Arrays.asList(universityInfo.get(2).split(",")))));
 		}
 		
 		return transformed;

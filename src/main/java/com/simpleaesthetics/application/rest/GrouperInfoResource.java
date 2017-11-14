@@ -26,6 +26,8 @@ import com.simpleaesthetics.application.rest.db.GrouperDB;
 import com.simpleaesthetics.application.rest.transformer.EnvironmentTransformer;
 import com.simpleaesthetics.application.rest.transformer.QuestionnaireTransformer;
 import com.simpleaesthetics.application.rest.transformer.UniversityTransformer;
+import com.simpleaesthetics.application.rest.transformer.UserTransformer;
+import com.simpleaesthetics.application.utility.Transformer;
 import com.simpleaesthetics.application.model.Course;
 import com.simpleaesthetics.application.model.University;
 import com.simpleaesthetics.application.model.User;
@@ -45,6 +47,9 @@ public class GrouperInfoResource {
 	private GrouperDB db;
 	
 	@Autowired
+	private Transformer utilsTransformer;
+	
+	@Autowired
 	private EnvironmentTransformer envTransformer;
 	
 	@Autowired
@@ -54,13 +59,16 @@ public class GrouperInfoResource {
 	private UniversityTransformer uniTransformer;
 	
 	@Autowired
+	private UserTransformer userTransformer;
+	
+	@Autowired
 	private DatabaseHelper dbHelper;
 	
 	Boolean createdTestData = false;
 	
 	@RequestMapping(value="/createTestData", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> createTestData() {
-		if (/*!createdTestData &&*/ dbHelper.createTestData()) {
+		if (!createdTestData && dbHelper.createTestData()) {
 			createdTestData = true;
 			return new ResponseEntity<String>("Test data SUCCESSFULLY created", HttpStatus.OK);
 		}
@@ -199,25 +207,50 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<Environment> getSpecificEnvironment(
+	public @ResponseBody ResponseEntity<ArrayList<String>> getSpecificEnvironment(
 			@RequestHeader(value="sortGroups", defaultValue="false") boolean toSort,
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName) {
 		
-		Environment env = envTransformer.transform(
-				dbHelper.getEnvironmentInfo(envName, courseName, uniName),
-				dbHelper.getQuestionnaire(envName, courseName, uniName));
+		ArrayList<String> envInfo = dbHelper.getEnvironmentInfo(envName, courseName, uniName);
+//		System.out.println("envInfo: "+ envInfo);
+//		Set<User> userSet = userTransformer.transformCsvToUserHashSet(envInfo.get(7));
+//		
+//		for (User user : userSet) {
+//			System.out.println(user);
+//			List<Integer> answersList = new ArrayList<Integer>();
+//			HashMap<String, List<String>> questionnaire = 
+//					dbHelper.getUserQuestionnaireAns(
+//						envName, 
+//						envInfo.get(2), 
+//						Integer.valueOf(user.getNickname()));
+//				
+//			user.setNickname(dbHelper.getUserNickname(Integer.valueOf(user.getNickname())));
+//			
+//			for (List<String> answers : questionnaire.values()) {
+//				answersList.addAll(utilsTransformer.tranformToIntegerList(answers));
+//			}
+//			
+//			user.setQuestionAnswers(answersList);
+//		}
+//		
+//		System.out.println(userSet);
+//		
+//		Environment env = envTransformer.transform(
+//				envInfo,
+//				dbHelper.getQuestionnaire(envName, courseName, uniName),
+//				userSet);
+//		
+//		if (toSort) {
+//			env.setGroups(grouper.findAllGroups(env.getUsers(), 4));
+//			
+//		} else {
+//			
+//		}
 		
-		if (toSort) {
-			env.setGroups(grouper.findAllGroups(env.getUsers(), 4));
-			
-		} else {
-			
-		}
-		
-		return new ResponseEntity<Environment>(
-				env,
+		return new ResponseEntity<ArrayList<String>>(
+				envInfo,
 				HttpStatus.OK);
 	}
 	
@@ -293,10 +326,26 @@ public class GrouperInfoResource {
 			status = HttpStatus.BAD_REQUEST;
 			
 		} else {
+			Set<String> questions = dbHelper.getQuestionnaire(envName, courseName, uniName).keySet();
+			List<String> answersStringList = utilsTransformer.tranformToStringList(user.getQuestionAnswers());
+			String[] ansStringArray = answersStringList.toArray(new String[answersStringList.size()]);
+			HashMap<String, String> transformedAns = new HashMap<String, String>();
+			String envOwner = dbHelper.getEnvironmentInfo(envName, courseName, uniName).get(2);
+			
+			int i = 0;
+			for (String question : questions) {
+				transformedAns.put(question, ansStringArray[i]);
+			}
+			
+			System.out.println(user);
+			System.out.println(transformedAns);
+			System.out.println(envOwner);
+			
 			isSuccessful = dbHelper.setQuestionnaireAnswers(
 					user.getNickname(), 
-					questionnaireTransformer.transformForDbStringUsingQuestionArray(
-							dbHelper.getQuestionnaire(envName, courseName, uniName)));
+					envName,
+					envOwner,
+					transformedAns);
 			
 			if (!isSuccessful) {
 				logger.error("Could not update questionnaire for ["+ user.getNickname() +"]");

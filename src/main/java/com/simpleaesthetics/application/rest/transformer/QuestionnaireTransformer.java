@@ -6,11 +6,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.simpleaesthetics.application.utility.Transformer;
 
 @Component
 public class QuestionnaireTransformer {
 
+	@Autowired
+	private Transformer utilTransformer;
+	
 	public HashMap<String, String> transformForDbString(Map<String, List<String>> questionnaire) {
 		
 		HashMap<String, String> transQuestionnaire = new HashMap<>();
@@ -53,6 +59,18 @@ public class QuestionnaireTransformer {
 			transQuestionnaire.put(
 					question, 
 					new ArrayList<String>(Arrays.asList(questionnaire.get(question))));
+		}
+		
+		return transQuestionnaire;
+	}
+	
+	public HashMap<String, List<String>> transformForModelFromAnswerString(Map<String, String> questionnaire) {
+		
+		HashMap<String, List<String>> transQuestionnaire = new HashMap<>();
+		for (String question : questionnaire.keySet()) {
+			transQuestionnaire.put(
+					question, 
+					utilTransformer.transformCsvToStringList(questionnaire.get(question)));
 		}
 		
 		return transQuestionnaire;

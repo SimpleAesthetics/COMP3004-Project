@@ -74,7 +74,7 @@ public class GrouperDB {
 		return opened;
 	}
 	
-	public boolean checkIfTableExists(String tableName) {
+	public boolean doesTableExists(String tableName) {
 		Statement stmt = null;
 		String sqlTableCheckStr = "SELECT name FROM sqlite_master WHERE type='table' AND name='"+ tableName +"';";
 		
@@ -92,7 +92,7 @@ public class GrouperDB {
 	
 	public void insertUniversityTable() {
 		
-		if (checkIfTableExists("Universities")) {
+		if (doesTableExists("Universities")) {
 			logger.info("Universities table not created; Already exists");
 			return;
 		}
@@ -571,6 +571,32 @@ public class GrouperDB {
 		}
 		//DB not open
 		return -1;
+	}
+	
+	public String getUserNickname(int userId) {
+		if(opened != false && dbconn != null) {
+			//Write SQL
+			String sql = "SELECT NICKNAME FROM Users WHERE id = ? ORDER BY id DESC LIMIT 1";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Assign variables
+				psql.setInt(1,userId);
+				//Execute statement
+				ResultSet results = psql.executeQuery();
+				
+				while(results.next()) {
+					//Since there is only one result, it is safe to return it
+					return results.getString("nickname");
+				}
+			}
+			catch(SQLException e) {
+				//Error occurred
+				return "";
+			}
+		}
+		//DB not open
+		return "";
 	}
 	
 	//Function for getting all users
@@ -1089,14 +1115,15 @@ public class GrouperDB {
 	//Output: true on success, false otherwise
 	public boolean updateEnvironment(int id, String students, String groups) {
 		ArrayList<String> env = this.queryEnvironment(id);
-		if(env.get(6).length() > 0) {
+		if(env.get(7).length() > 0) {
 			students = ", " + students;
 		}
-		if(env.get(7).length() > 0) {
+		if(env.get(8).length() > 0) {
 			groups = ", " + groups;
 		}
-		env.set(6,env.get(6) + students);
-		env.set(7,env.get(7) + groups);
+		env.set(7,env.get(7) + students);
+		System.out.println("In updateEnv: "+ env.get(7));
+		env.set(8,env.get(8) + groups);
 		if(opened == false || dbconn == null) {
 			return false;
 		}
@@ -1107,10 +1134,13 @@ public class GrouperDB {
 				psql.setString(1,env.get(7));
 				psql.setString(2,env.get(8));
 				psql.setInt(3,id);
+				System.out.println("id: "+ String.valueOf(id));
 				psql.executeUpdate();
+				System.out.println(this.queryEnvironment(id));
 				return true;
 			}
 			catch(SQLException e) {
+				logger.error("Failed to update env: "+ e.getMessage());
 				return false;
 			}
 		}
@@ -1248,6 +1278,7 @@ public class GrouperDB {
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
 				psql.setInt(1,id);
+				System.out.println("In queryEnv: "+ String.valueOf(id));
 				ResultSet results = psql.executeQuery();
 				ArrayList<String> result;
 				
@@ -1267,6 +1298,7 @@ public class GrouperDB {
 				}
 			}
 			catch(SQLException e) {
+				logger.error("Failed to query env: "+ e.getMessage());
 				return new ArrayList<String>();
 			}
 		}
@@ -1276,6 +1308,27 @@ public class GrouperDB {
 		else {
 			return envs.get(0);
 		}
+	}
+	
+	private int getQuestionnaireFromEnvironment(String name, String owner) {
+		int oid = this.getUserID(owner);
+		if(opened != false && dbconn != null) {
+			String sql = "SELECT questionnaire FROM Environments WHERE name = ? AND owner = ?";
+			try {
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				psql.setString(1,name);
+				psql.setInt(2,oid);
+				ResultSet results = psql.executeQuery();
+				
+				while(results.next()) {
+					return results.getInt("questionnaire");
+				}
+			}
+			catch(SQLException e) {
+				return -1;
+			}
+		}
+		return -1;
 	}
 	
 	public ArrayList<ArrayList<String>> queryAllEnvironments() {
@@ -1387,6 +1440,7 @@ public class GrouperDB {
 				
 			}
 			catch(SQLException e) {
+				logger.error(e.getMessage());
 				return -1;
 			}
 		}
@@ -1510,9 +1564,12 @@ public class GrouperDB {
 		}
 	}
 	
-	public boolean answerQuestionnaire(int uid,HashMap<String,String> ans) {
+	public boolean answerQuestionnaire(String env, String envowner, int uid, HashMap<String,String> ans) {
+		//Get the environment in question
+		int qid = this.getQuestionnaireFromEnvironment(env,envowner);
 		//Basic sanity check
-		if(this.queryUser(uid).isEmpty() || ans.isEmpty()) {
+		if(this.getQuestions(qid).isEmpty() || this.queryUser(uid).isEmpty() || ans.isEmpty()) {
+			logger.error("Failed validity checks when answering questionnaire");
 			return false;
 		}
 		String q = "";
@@ -1530,12 +1587,12 @@ public class GrouperDB {
 			String sql = "INSERT INTO Answers(student,questions,answers) VALUES (?,?,?)";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
+//				psql.setInt(1,qid);
 				psql.setInt(1,uid);
 				psql.setString(2,q);
 				psql.setString(3,a);
 				psql.executeUpdate();
-				int aid = this.getAnswerID(uid,q,a);
-				this.userAnswer(uid,aid);
+				this.userAnswer(uid,qid);
 				
 			}
 			catch(SQLException e) {
@@ -1545,6 +1602,7 @@ public class GrouperDB {
 		}
 		return true;
 	}
+	
 	public boolean userAnswer(int user,int answer) {
 		if(opened == false || dbconn == null) {
 			//DB isn't open
@@ -1577,6 +1635,10 @@ public class GrouperDB {
 			}
 		}
 	}
+	
+	/*If this function is used anywhere, let me know and I will update it.
+	 * Otherwise, I will remove it as it doesn't have a useful purpose that I can tell.
+	
 	public int getAnswerID(int user, String q, String a) {
 		if(opened != false && dbconn != null) {
 			String sql = "SELECT ID FROM Answers WHERE student = ? AND questions = ? AND answers = ?";
@@ -1596,18 +1658,21 @@ public class GrouperDB {
 			}
 		}
 		return -1;
-	}
-	public HashMap<String,String> getAnswers(int id) {
+	}*/
+	
+	public HashMap<String,String> getAnswers(String env, String envowner, int sid) {
+		int qid = this.getQuestionnaireFromEnvironment(env,envowner);
 		HashMap<String,String> qamap = new HashMap<String,String>();
 		ArrayList<String> qset = new ArrayList<String>();
 		ArrayList<String> aset = new ArrayList<String>();
 		String qs = "";
 		String as = "";
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT questions,answers FROM Questionnaires WHERE id = ? LIMIT 1";
+			String sql = "SELECT questions,answers FROM Questionnaires WHERE questionnaire = ? AND student = ? LIMIT 1";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
-				psql.setInt(1, id);
+				psql.setInt(1,qid);
+				psql.setInt(2,sid);
 				ResultSet results = psql.executeQuery();
 				
 				while(results.next()) {

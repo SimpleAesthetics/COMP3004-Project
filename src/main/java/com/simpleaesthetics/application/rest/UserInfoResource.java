@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.simpleaesthetics.application.model.User;
 import com.simpleaesthetics.application.model.UserInformation;
 import com.simpleaesthetics.application.rest.db.DatabaseException;
+import com.simpleaesthetics.application.rest.db.DatabaseHelper;
 import com.simpleaesthetics.application.rest.db.GrouperDB;
 
 @Controller
@@ -25,25 +27,27 @@ public class UserInfoResource {
 	static Logger logger = Logger.getLogger(GrouperInfoResource.class.getName());
 	
 	@Autowired
-	GrouperDB db;
+	private GrouperDB db;
+	
+	@Autowired
+	private DatabaseHelper dbHelper;
 	
 	@RequestMapping(value="/users", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<ArrayList<ArrayList<String>>> getUsers(
+	public @ResponseBody ResponseEntity<ArrayList<User>> getUsers(
 			@RequestParam(value="firstName", required=false) String userNameQuery) {
 		
-		ArrayList<ArrayList<String>> users = db.queryAllUsers();
-		
-		return new ResponseEntity<ArrayList<ArrayList<String>>>(
+		ArrayList<User> users = dbHelper.getUsers();
+		return new ResponseEntity<ArrayList<User>>(
 				users, 
 				HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="/users/{userNickname}", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<ArrayList<String>> getSpecificUser(
+	public @ResponseBody ResponseEntity<User> getSpecificUser(
 			@PathVariable("userNickname") String userNickname) {
 		
-		ArrayList<String> user = db.queryUser(userNickname);
-		return new ResponseEntity<ArrayList<String>>(user,HttpStatus.OK);
+		User user = dbHelper.getUser(userNickname);
+		return new ResponseEntity<User>(user, HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="/users", method=RequestMethod.POST)

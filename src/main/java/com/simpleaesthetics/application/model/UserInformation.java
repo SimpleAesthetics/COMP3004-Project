@@ -15,7 +15,8 @@ public class UserInformation {
 		this.email = null;
 	}
 	
-	public UserInformation(int studentNumber, 
+	public UserInformation(
+			int studentNumber, 
 			String firstName, 
 			String lastName, 
 			String nickname,  

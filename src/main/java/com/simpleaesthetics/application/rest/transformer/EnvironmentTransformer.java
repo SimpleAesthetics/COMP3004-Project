@@ -21,11 +21,14 @@ public class EnvironmentTransformer {
 	@Autowired
 	QuestionnaireTransformer questTransformer;
 	
+	@Autowired
+	UserTransformer userTransformer;
+	
 	public Environment transform(
 			ArrayList<String> envInfo,
-			Map<String, String[]> questionnaire) {
-		
-		System.out.println(envInfo);
+			Map<String, String[]> questionnaire,
+			Set<User> users
+			) {
 		
 		Environment env = new Environment(
 				envInfo.get(0),
@@ -35,7 +38,7 @@ public class EnvironmentTransformer {
 		
 		env.setOwner(envInfo.get(2));
 		env.setDeadlineStr(envInfo.get(6));
-		env.setUsers(getUserHashSetFromCSV(envInfo));
+		env.setUsers(users);
 //		env.setGroups(getHashSetFromCSV(envInfo));
 		env.setQuestionnaire(
 				questTransformer.transformForModel(questionnaire));
@@ -43,17 +46,9 @@ public class EnvironmentTransformer {
 		return env;
 	}
 	
+}
 	
-	private Set<User> getUserHashSetFromCSV(ArrayList<String> envInfo) {
-		StringTokenizer st = new StringTokenizer(envInfo.get(6), ",");
-		Set<User> userSet = new HashSet<>();
-		while(st.hasMoreTokens()) {
-			userSet.add(new User(st.nextToken()));
-		}
-		
-		return userSet;
-	}
-//	
+	
 //	private HashSet<String> getGroupHashSetFromCSV(ArrayList<String> envInfo) {
 //		StringTokenizer st = new StringTokenizer(envInfo.get(7), ",");
 //		HashSet<Group> groupSet = new HashSet<>();
@@ -64,4 +59,3 @@ public class EnvironmentTransformer {
 //		return set;
 //	}
 	
-}
