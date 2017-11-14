@@ -82,16 +82,6 @@ public class GrouperInfoResource {
 		HttpStatus status = HttpStatus.OK;
 		List<University> universities = dbHelper.getUniversities();
 		
-//		for (University uni : universities) {
-//			List<String> courses = uni.getCoursesList();
-//			for (int i = 0; i < courses.size(); i++) {
-//				String trimmedCourse = courses.get(i).trim();
-//				if (!trimmedCourse.isEmpty()) {
-//					courses.set(i, dbHelper.getCourseName(trimmedCourse));
-//				}
-//			}
-//		}
-		
 		if (universities.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
 			logger.info("No universities were returned");
@@ -135,18 +125,19 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<ArrayList<ArrayList<String>>> getCourses(
+	public @ResponseBody ResponseEntity<List<Course>> getCourses(
 			@PathVariable(value="uniName",required=true) String uniName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		ArrayList<ArrayList<String>> courses = dbHelper.getCourses(uniName);
+//		ArrayList<ArrayList<String>> courses = dbHelper.getCourses(uniName);
+		List<Course> courses = dbHelper.getCourses(uniName);
 		
 		if (courses.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
 			logger.info("No courses were returned for ["+ uniName +"]");
 		}
 		
-		return new ResponseEntity<ArrayList<ArrayList<String>>>(
+		return new ResponseEntity<List<Course>>(
 				courses,
 				status);
 	}

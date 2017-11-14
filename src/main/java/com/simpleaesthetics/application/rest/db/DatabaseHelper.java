@@ -12,11 +12,13 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.simpleaesthetics.application.model.Course;
 import com.simpleaesthetics.application.model.Environment;
 import com.simpleaesthetics.application.model.Group;
 import com.simpleaesthetics.application.model.University;
 import com.simpleaesthetics.application.model.User;
 import com.simpleaesthetics.application.model.UserInformation;
+import com.simpleaesthetics.application.rest.transformer.CourseTransformer;
 import com.simpleaesthetics.application.rest.transformer.QuestionnaireTransformer;
 import com.simpleaesthetics.application.rest.transformer.UniversityTransformer;
 import com.simpleaesthetics.application.rest.transformer.UserTransformer;
@@ -42,6 +44,9 @@ public class DatabaseHelper {
 	
 	@Autowired
 	private UniversityTransformer uniTransformer;
+	
+	@Autowired
+	private CourseTransformer courseTransformer;
 	
 	public boolean createTestData() {
 		boolean testWorked = true;
@@ -187,7 +192,7 @@ public class DatabaseHelper {
 		return true;
 	}
 	
-	public int getUniversityId(String universityName) {
+	private int getUniversityId(String universityName) {
 		int universityId = db.getUniversityID(universityName);
 		
 		if (universityId == -1) {
@@ -198,7 +203,7 @@ public class DatabaseHelper {
 		return universityId;
 	}
 	
-	public ArrayList<String> getUniversityInfo(String universityName) {
+	private ArrayList<String> getUniversityInfo(String universityName) {
 		ArrayList<String> universityInfo = db.queryUniversity(getUniversityId(universityName));
 		
 		if (universityInfo.size() == 0) {
@@ -214,12 +219,13 @@ public class DatabaseHelper {
 				: true;
 	}
 	
-	public String getCourseName(String courseId) {
+	private String getCourseName(String courseId) {
 		return db.queryCourse(Integer.valueOf(courseId)).get(0);
 	}
 	
-	public ArrayList<ArrayList<String>> getCourses(String universityName) {
-		return db.getCourses(getUniversityId(universityName));
+	public List<Course> getCourses(String universityName) {
+		return courseTransformer.transformToCourses(
+				db.getCourses(this.getUniversityId(universityName)));
 	}
 	
 	public int getCourseId(String courseName, String universityName) {

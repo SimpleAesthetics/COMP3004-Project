@@ -793,7 +793,7 @@ public class GrouperDB {
 		ArrayList<ArrayList<String>> courses = new ArrayList<ArrayList<String>>();
 		if(opened != false && dbconn != null) {
 			//Write SQL
-			String sql = "SELECT ID,Name,Instructor,Environments FROM Courses WHERE university = ?";
+			String sql = "SELECT ID,Name,Instructor,University,Environments FROM Courses WHERE university = ?";
 			try {
 				//Prepare statement
 				PreparedStatement psql = dbconn.prepareStatement(sql);
@@ -810,6 +810,7 @@ public class GrouperDB {
 					result.add(new Integer(results.getInt("ID")).toString());
 					result.add(results.getString("Name"));
 					result.add(new Integer(results.getInt("Instructor")).toString());
+					result.add(new Integer(results.getInt("University")).toString());
 					result.add(results.getString("Environments"));
 					//Add course to list
 					courses.add(result);
@@ -841,6 +842,7 @@ public class GrouperDB {
 				
 				while(results.next()) {
 					//Add results to course
+					courses.add(String.valueOf(id));
 					courses.add(results.getString("Name"));
 					courses.add(new Integer(results.getInt("Instructor")).toString());
 					courses.add(new Integer(results.getInt("University")).toString());
