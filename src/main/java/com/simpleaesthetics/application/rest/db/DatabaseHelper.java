@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -223,6 +222,11 @@ public class DatabaseHelper {
 		return db.queryCourse(Integer.valueOf(courseId)).get(0);
 	}
 	
+	public Course getSpecificCourse(String courseName, String universityName) {
+		return courseTransformer.transformToCourse(
+				this.getCourseInfo(courseName, universityName));
+	}
+	
 	public List<Course> getCourses(String universityName) {
 		return courseTransformer.transformToCourses(
 				db.getCourses(this.getUniversityId(universityName)));
@@ -346,28 +350,24 @@ public class DatabaseHelper {
 		return envInfo;
 	}
 	
-	public void setGroups(Set<Group> groups, String envName, String courseName, String uniName) {
-		for (Group group : groups) {
-			int envId = getEnvironmentId(envName, courseName, uniName);
-			int insertedGroup = db.insertGroup(
-					envId, 
+	public void addSpecificGroupToEnv(Group group, String envName, String courseName, String uniName) {
+		int insertedGroup = 
+				db.insertGroup(
+					this.getEnvironmentId(envName, courseName, uniName), 
 					0, 
 					Integer.valueOf(db.queryUser(group.getTaName()).get(0)),
-					getCsvFromUserSet(group.getGroupMembers()));
+					this.getCsvFromUserSet(group.getGroupMembers()));
+		
+		if (insertedGroup == -1) {
+			logger.error("Could not add new group ["+ group.getName() +"]");
+			throw new DatabaseException("Could not add new group ["+ group.getName() +"]");
 			
-			if (insertedGroup == -1) {
-				logger.error("Could not add new group ["+ group.getName() +"]");
-				
-			} else {
-				boolean isSuccessfulUpdate = db.updateEnvironment(
-						envId, 
-						"", 
-						group.getName());
-				
-				if (!isSuccessfulUpdate) {
-					logger.error("Could not successfully add group to update environment ["+ envName +"]");
-				}
-			}
+		}
+	}
+	
+	public void addGroupsToEnvironment(Set<Group> groups, String envName, String courseName, String uniName) {
+		for (Group group : groups) {
+			this.addSpecificGroupToEnv(group, envName, courseName, uniName);
 		}
 	}
 	
@@ -442,7 +442,7 @@ public class DatabaseHelper {
 		
 		HashMap<String,String[]> questionnaire = 
 				db.getQuestions(
-						getQuestionnaireId(
+						this.getQuestionnaireId(
 								envName, 
 								courseName, 
 								universityName));
@@ -452,6 +452,46 @@ public class DatabaseHelper {
 		}
 		
 		return questionnaire;
+	}
+	
+	public void addSpecificUserToGroup(User user, String envName, String courseName, String uniName) {
+		int envId = this.getEnvironmentId(envName, courseName, uniName);
+		boolean isSuccessful = db.updateEnvironment(
+				envId,
+				user.getNickname(),
+				"");
+		
+		if (!isSuccessful) {
+			logger.error("Could not update user for environment ["+ envName +"]");
+			throw new DatabaseException("Could not update user for environment ["+ envName +"]");
+			
+		} else {
+			Set<String> questions = this.getQuestionnaire(envName, courseName, uniName).keySet();
+			List<String> answersStringList = utilTransformer.tranformToStringList(user.getQuestionAnswers());
+			String[] ansStringArray = answersStringList.toArray(new String[answersStringList.size()]);
+			HashMap<String, String> transformedAns = new HashMap<String, String>();
+			String envOwner = this.getEnvironmentInfo(envName, courseName, uniName).get(2);
+			
+			int i = 0;
+			for (String question : questions) {
+				transformedAns.put(question, ansStringArray[i]);
+			}
+			
+			System.out.println(user);
+			System.out.println(transformedAns);
+			System.out.println(envOwner);
+			
+			isSuccessful = this.setQuestionnaireAnswers(
+					user.getNickname(), 
+					envName,
+					envOwner,
+					transformedAns);
+			
+			if (!isSuccessful) {
+				logger.error("Could not update questionnaire for ["+ user.getNickname() +"]");
+				throw new DatabaseException("Could not update questionnaire for ["+ user.getNickname() +"]");
+			}
+		}
 	}
 	
 	public String getCsvFromUserSet(Set<User> users) {

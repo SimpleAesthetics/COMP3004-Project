@@ -11,16 +11,16 @@ import com.simpleaesthetics.application.rest.db.DatabaseException;
 public class ExceptionHandingController {
 	
 	@ExceptionHandler(DatabaseException.class)
-	public ResponseEntity<Object> handleDatabaseException(DatabaseException ex) {
-		return buildResponseEntity(ex);
+	public ResponseEntity<String> handleDatabaseException(DatabaseException ex) {
+		return buildResponseEntity(ex, HttpStatus.BAD_REQUEST);
 	}
 	
 	@ExceptionHandler(Exception.class)
-	public ResponseEntity<Object> handleDatabaseException(Exception ex) {
-		return buildResponseEntity(ex);
+	public ResponseEntity<String> handleDatabaseException(Exception ex) {
+		return buildResponseEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
-	private ResponseEntity<Object> buildResponseEntity(Exception ex) {
-	       return new ResponseEntity<Object>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+	private ResponseEntity<String> buildResponseEntity(Exception ex, HttpStatus status) {
+	       return new ResponseEntity<String>(ex.getMessage(), status);
 	   }
 }

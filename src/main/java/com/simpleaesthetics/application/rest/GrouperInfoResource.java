@@ -1,12 +1,7 @@
  package com.simpleaesthetics.application.rest;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +17,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.simpleaesthetics.application.model.Environment;
 import com.simpleaesthetics.application.model.Group;
-import com.simpleaesthetics.application.rest.db.GrouperDB;
-import com.simpleaesthetics.application.rest.transformer.EnvironmentTransformer;
-import com.simpleaesthetics.application.rest.transformer.QuestionnaireTransformer;
-import com.simpleaesthetics.application.rest.transformer.UniversityTransformer;
-import com.simpleaesthetics.application.rest.transformer.UserTransformer;
-import com.simpleaesthetics.application.utility.Transformer;
 import com.simpleaesthetics.application.model.Course;
 import com.simpleaesthetics.application.model.University;
 import com.simpleaesthetics.application.model.User;
-import com.simpleaesthetics.application.rest.db.DatabaseException;
 import com.simpleaesthetics.application.rest.db.DatabaseHelper;
 
 @Controller
@@ -42,24 +30,6 @@ public class GrouperInfoResource {
 	
 	@Autowired
 	private Grouper grouper;
-	
-	@Autowired
-	private GrouperDB db;
-	
-	@Autowired
-	private Transformer utilsTransformer;
-	
-	@Autowired
-	private EnvironmentTransformer envTransformer;
-	
-	@Autowired
-	private QuestionnaireTransformer questionnaireTransformer;
-	
-	@Autowired
-	private UniversityTransformer uniTransformer;
-	
-	@Autowired
-	private UserTransformer userTransformer;
 	
 	@Autowired
 	private DatabaseHelper dbHelper;
@@ -96,32 +66,18 @@ public class GrouperInfoResource {
 	public @ResponseBody ResponseEntity<University> getSpecificUniversity(
 			@PathVariable(value="uniName",required=true) String uniName) {
 		
-		HttpStatus status = HttpStatus.OK;
 		University university = dbHelper.getSpecificUniversity(uniName);
-		
 		return new ResponseEntity<University>(
 				university,
-				status);
+				HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="/universities", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addUniversity(
 			@RequestBody(required=true) University university) {
 		
-		HttpStatus status = HttpStatus.NO_CONTENT;
-		String name = university.getName();
-		
-		if (db.insertUniversity(name) == -1) {
-			logger.warn("Could not insert [" + name +"]");
-			status = HttpStatus.BAD_REQUEST;
-			
-		} else {
-			logger.info("Successfully inserted ["+ name +"]");
-		}
-		
-		return new ResponseEntity<String>(
-				name, 
-				status);
+		dbHelper.addUniversity(university.getName());
+		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses", method=RequestMethod.GET)
@@ -129,7 +85,6 @@ public class GrouperInfoResource {
 			@PathVariable(value="uniName",required=true) String uniName) {
 		
 		HttpStatus status = HttpStatus.OK;
-//		ArrayList<ArrayList<String>> courses = dbHelper.getCourses(uniName);
 		List<Course> courses = dbHelper.getCourses(uniName);
 		
 		if (courses.isEmpty()) {
@@ -143,20 +98,14 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<List<String>> getSpecificCourse(
+	public @ResponseBody ResponseEntity<Course> getSpecificCourse(
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName) {
 		
-		HttpStatus status = HttpStatus.OK;
-		List<String> course = dbHelper.getCourseInfo(courseName, uniName);
-		
-		if (course.isEmpty()) {
-			status = HttpStatus.NO_CONTENT;
-		}
-		
-		return new ResponseEntity<List<String>>(
+		Course course = dbHelper.getSpecificCourse(courseName, uniName);
+		return new ResponseEntity<Course>(
 				course,
-				status);
+				HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses", method=RequestMethod.POST)
@@ -258,88 +207,25 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> addGroupToEnv(
+	public @ResponseBody ResponseEntity<String> addSpecificGroupToEnv(
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName,
 			@RequestBody(required=true) Group group) {
 		
-		HttpStatus status = HttpStatus.OK;
-		int envId = dbHelper.getEnvironmentId(envName, courseName, uniName);
-		
-		int insertedGroup = db.insertGroup(
-				envId, 
-				0, 
-				Integer.valueOf(db.queryUser(group.getTaName()).get(0)),
-				dbHelper.getCsvFromUserSet(group.getGroupMembers()));
-		
-		if (insertedGroup == -1) {
-			logger.error("Could not add new group ["+ group.getName() +"]");
-			status = HttpStatus.BAD_REQUEST;
-			
-		} else {
-			boolean isSuccessfulUpdate = db.updateEnvironment(
-					envId, 
-					"", 
-					group.getName());
-			
-			if (!isSuccessfulUpdate) {
-				logger.error("Could not successfully add group to update environment ["+ envName +"]");
-				status = HttpStatus.BAD_REQUEST;
-			}
-		}
-		
-		return new ResponseEntity<>(status);
+		dbHelper.addSpecificGroupToEnv(group, envName, courseName, uniName);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/users", method=RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> addUserToEnv(
+	public @ResponseBody ResponseEntity<String> addSpecificUserToGroup(
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName,
 			@RequestBody(required=true) User user) {
 		
-		HttpStatus status = HttpStatus.OK;
-		int envId = dbHelper.getEnvironmentId(envName, courseName, uniName);
-		
-		boolean isSuccessful = db.updateEnvironment(
-				envId,
-				user.getNickname(),
-				"");
-		
-		if (!isSuccessful) {
-			logger.error("Could not update user for environment ["+ envName +"]");
-			status = HttpStatus.BAD_REQUEST;
-			
-		} else {
-			Set<String> questions = dbHelper.getQuestionnaire(envName, courseName, uniName).keySet();
-			List<String> answersStringList = utilsTransformer.tranformToStringList(user.getQuestionAnswers());
-			String[] ansStringArray = answersStringList.toArray(new String[answersStringList.size()]);
-			HashMap<String, String> transformedAns = new HashMap<String, String>();
-			String envOwner = dbHelper.getEnvironmentInfo(envName, courseName, uniName).get(2);
-			
-			int i = 0;
-			for (String question : questions) {
-				transformedAns.put(question, ansStringArray[i]);
-			}
-			
-			System.out.println(user);
-			System.out.println(transformedAns);
-			System.out.println(envOwner);
-			
-			isSuccessful = dbHelper.setQuestionnaireAnswers(
-					user.getNickname(), 
-					envName,
-					envOwner,
-					transformedAns);
-			
-			if (!isSuccessful) {
-				logger.error("Could not update questionnaire for ["+ user.getNickname() +"]");
-				status = HttpStatus.BAD_REQUEST;
-			}
-		}
-		
-		return new ResponseEntity<>(status);
+		dbHelper.addSpecificUserToGroup(user, envName, courseName, uniName);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	
