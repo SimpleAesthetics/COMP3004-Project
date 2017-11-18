@@ -1,14 +1,21 @@
 package reboot.grouper.Model;
 
-import org.json.JSONObject;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class University {
-	
+
+
+	@SerializedName("name")
+	@Expose
 	private String name;
 	// TODO Make a values for this var
+
+	@SerializedName("coursesList")
+	@Expose
 	private List<String> coursesList;
 	
 	public University() {
@@ -69,18 +76,8 @@ public class University {
 
 	@Override
 	public String toString() {
-		return "{\"name\" : \"" + name + "\"}";
+		return "University [name=" + name + "]";
 	}
-
-	public JSONObject toJSON(){
-		JSONObject res = new JSONObject();
-		try {
-			res.put("name", name);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return res;
-	}
+	
 	
 }

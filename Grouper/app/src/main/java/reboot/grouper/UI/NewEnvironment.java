@@ -1,6 +1,5 @@
 package reboot.grouper.UI;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -8,19 +7,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.toolbox.StringRequest;
-
 import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import reboot.grouper.FrontEnd.Lists_Controller;
-import reboot.grouper.FrontEnd.Volley;
+import reboot.grouper.FrontEnd.Dispatcher;
 import reboot.grouper.Model.Environment;
 import reboot.grouper.R;
 
@@ -28,7 +20,7 @@ import reboot.grouper.R;
 
 public class NewEnvironment extends AppCompatActivity {
     public static final String EXTRA_MESSAGE = "com.aesthetics.simple.grouper.MESSAGE";
-    private Lists_Controller controller;
+    private Dispatcher controller;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +37,7 @@ public class NewEnvironment extends AppCompatActivity {
                 }
             }
         });
-        controller = Lists_Controller.getList();
+        controller = Dispatcher.getList();
     }
 
     private void Submit() throws JSONException {

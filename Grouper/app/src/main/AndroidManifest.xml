@@ -15,7 +15,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity android:name=".startup">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,9 +25,12 @@
         <activity
             android:name=".UI.Lists"
             android:label="@string/title_activity_lists"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
         <activity android:name=".UI.NewEnvironment" />
-
+        <activity android:name=".UI.GroupSettings"></activity>
     </application>
 
 </manifest>

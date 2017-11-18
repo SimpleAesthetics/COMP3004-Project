@@ -1,10 +1,29 @@
 package reboot.grouper.Model;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 public class UserInformation {
+
+
+	@SerializedName("studentNumber")
+	@Expose
 	private int studentNumber;
+
+	@SerializedName("firstName")
+	@Expose
 	private String firstName;
+
+	@SerializedName("lastName")
+	@Expose
 	private String lastName;
+
+	@SerializedName("nickname")
+	@Expose
 	private String nickname;
+
+	@SerializedName("email")
+	@Expose
 	private String email;
 	
 	public UserInformation() {
@@ -15,7 +34,8 @@ public class UserInformation {
 		this.email = null;
 	}
 	
-	public UserInformation(int studentNumber, 
+	public UserInformation(
+			int studentNumber, 
 			String firstName, 
 			String lastName, 
 			String nickname,  

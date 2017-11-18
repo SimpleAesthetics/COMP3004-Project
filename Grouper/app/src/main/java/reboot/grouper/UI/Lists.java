@@ -1,6 +1,8 @@
 package reboot.grouper.UI;
 
 import android.app.AlertDialog;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,22 +21,21 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.SearchView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.util.List;
 import java.util.Map;
 
-import reboot.grouper.FrontEnd.Lists_Controller;
+import reboot.grouper.FrontEnd.Dispatcher;
 import reboot.grouper.FrontEnd.UserSession;
 import reboot.grouper.Model.Course;
 import reboot.grouper.R;
 
 public class Lists extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    private Lists_Controller        controller;
+    private Dispatcher controller;
 
     public  ListView                lst_Main;
     private SimpleAdapter           adapter;
@@ -53,6 +54,8 @@ public class Lists extends AppCompatActivity
     private TextView                fn;
     private TextView                un;
     private EditText                Text_Input;
+    private SearchView              searchView;
+    private MenuItem                searchMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,13 +100,17 @@ public class Lists extends AppCompatActivity
         show_Admin(0);
         set_Floating_Buttons(false);
 
-        controller = new Lists_Controller(this);
+        controller = new Dispatcher(this);
         controller.updateView();
         show_Username_In_Dash();
         lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 controller.progress_A_Step(position);
+
+                searchMenu.collapseActionView();
+                searchView.setQuery("", false);
+                controller.clearSearch();
             }
         });
     }
@@ -148,7 +155,6 @@ public class Lists extends AppCompatActivity
                         c = new Course();
                         c.setName(CourseName.getText().toString());
                         c.setCourseCode(CourseCode.getText().toString());
-                        c.setInstructor(Instructor.getText().toString());
                         controller.Create_Course(c);
                     }
                 })
@@ -216,15 +222,47 @@ public class Lists extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.options_menu, menu);
-//        SearchManager searchManager =
-//                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-//        SearchView searchView =
-//                (SearchView) menu.findItem(R.id.search).getActionView();
-//        searchView.setSearchableInfo(
-//                searchManager.getSearchableInfo(getComponentName()));
+        searchMenu = menu.findItem(R.id.search);
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setSearchableInfo( searchManager.getSearchableInfo(getComponentName()));
+        searchView.setFocusable(false);
+        searchView.setIconified(false);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                controller.doSearch(s);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                controller.doSearch(s);
+                return false;
+            }
+        });
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.requestFocus();
+            }
+        });
+
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                searchMenu.collapseActionView();
+                searchView.setQuery("", false);
+                controller.clearSearch();
+                return false;
+            }
+        });
 
         return true;
     }
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -232,6 +270,10 @@ public class Lists extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
+        searchView.setFocusable(true);
+        searchView.requestFocus();
+        searchView.setIconified(false);
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {

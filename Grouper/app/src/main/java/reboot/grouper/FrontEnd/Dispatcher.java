@@ -1,11 +1,8 @@
 package reboot.grouper.FrontEnd;
 
-import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -17,7 +14,6 @@ import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,7 +24,6 @@ import java.util.Map;
 import reboot.grouper.Model.Course;
 import reboot.grouper.Model.Environment;
 import reboot.grouper.Model.University;
-import reboot.grouper.R;
 import reboot.grouper.UI.Lists;
 
 /**
@@ -36,13 +31,20 @@ import reboot.grouper.UI.Lists;
  */
 
 @SuppressWarnings("serial")
-public class Lists_Controller implements Serializable {
-    public static Lists_Controller inst;
+public class Dispatcher implements Serializable {
+    public static Dispatcher inst;
+
     private Lists lists; //The lists activity;
+    private Retrofit_API retrofit;
 
     private List<Map<String, String>>   lst_Display;
     private List<String>                lst_ID;
     private List<Boolean>               lst_Formed_List;
+
+    private List<Map<String, String>>   lst_Search_Display;
+    private List<String>                lst_Search_ID;
+    private List<Boolean>               lst_Search_Formed_List;
+    private Boolean                     isSearch;
 
     private String univ,cour,envi,grou;
     private STATE state;
@@ -52,18 +54,24 @@ public class Lists_Controller implements Serializable {
     private Response.Listener<String>       StrResponse;
     private Response.ErrorListener          ErrResponse;
 
+    private Response<List<University>>  UnivResponse;
+    private Response<List<Course>>      CourResponse;
+    private Response<List<Environment>> EnviResponse;
+
     private DialogInterface.OnClickListener Create_University;
 
     private enum STATE{ UNIV, COURSES, ENVI, FORMATION, GROUPS, JOINED, WAITING }
 
-    public Lists_Controller(Lists lst){
+    public Dispatcher(Lists lst){
         lists = lst;
         state = STATE.UNIV;
         init_Function_Listeners();
         inst = this;
+        retrofit = Retrofit_Client.getAPI();
+        isSearch = false;
     }
 
-    public static Lists_Controller getList(){ return inst; }
+    public static Dispatcher getList(){ return inst; }
 
     public void updateView(){
         lists.set_Loading(true);
@@ -78,23 +86,48 @@ public class Lists_Controller implements Serializable {
             case JOINED     :lists.show_Admin(0); break;
             case WAITING    :lists.show_Admin(6); break;
         }
+        isSearch = false;
+
         JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, create_GET_URL(),null, LstResponse_Single, ErrResponse);
         Volley.I(lists).addtoReqQueue(req);
+    }
+
+    public void doSearch(String Query){
+        lst_Search_Display      = new ArrayList<>();
+        lst_Search_ID           = new ArrayList<>();
+        lst_Search_Formed_List  = new ArrayList<>();
+        for(int i = 0; i < lst_Display.size(); i++){
+            if(lst_ID.get(i).toUpperCase().contains(Query.toUpperCase())){
+                lst_Search_ID.add(lst_ID.get(i));
+                lst_Search_Display.add(lst_Display.get(i));
+                if(lst_Formed_List.size()==lst_ID.size())
+                    lst_Search_Formed_List.add(lst_Formed_List.get(i));
+            }
+        }
+        lists.set_List(lst_Search_Display,-1);
+        isSearch = true;
+    }
+
+    public void clearSearch(){
+        lst_Search_Display      = new ArrayList<>();
+        lst_Search_ID           = new ArrayList<>();
+        lst_Search_Formed_List  = new ArrayList<>();
+        isSearch = false;
     }
 
     public void progress_A_Step(int id){
         /* Transition to next list */
         switch (state){
             case UNIV       :
-                univ = lst_ID.get(id);
+                univ = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
                 state = STATE.COURSES;
                 break;
             case COURSES    :
-                cour = lst_ID.get(id);
+                cour = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
                 state = STATE.ENVI;
                 break;
             case ENVI       :
-                envi = lst_ID.get(id);
+                envi = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
                 /* Check for environment formation status */
                 break;
             case FORMATION  :lists.show_Admin(4); break;
@@ -103,6 +136,7 @@ public class Lists_Controller implements Serializable {
             case WAITING    :lists.show_Admin(6); break;
 
         }
+        clearSearch();
         updateView();
     }
 
@@ -194,14 +228,15 @@ public class Lists_Controller implements Serializable {
             }
             @Override
             public byte[] getBody() throws AuthFailureError {
-                return course.toString().getBytes();
+                Gson gson = new Gson();
+                return gson.toJson(course).getBytes();
             }
         };
         Volley.I(lists).addtoReqQueue(req);
     }
     public void Create_Environment(Environment e){
         final Environment environment = e;
-        String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses";
+        String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses/"+cour+"/environments";
         StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
@@ -253,6 +288,8 @@ public class Lists_Controller implements Serializable {
         };
 
 
+
+
         ErrResponse = new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
@@ -289,7 +326,8 @@ public class Lists_Controller implements Serializable {
                     }
                     @Override
                     public byte[] getBody() throws AuthFailureError {
-                        return Uni.toString().getBytes();
+                        Gson gson = new Gson();
+                        return gson.toJson(Uni).getBytes();
                     }
                 };
                 Volley.I(lists).addtoReqQueue(req);

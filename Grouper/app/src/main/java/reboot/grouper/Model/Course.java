@@ -1,25 +1,37 @@
 package reboot.grouper.Model;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class Course {
-
+    @SerializedName("name")
+    @Expose
 	String name;
+
+    @SerializedName("courseCode")
+    @Expose
 	String courseCode;
-	String instructor;
-	ArrayList<String> envList;
+
+    @SerializedName("university")
+    @Expose
+	String university;
+
+    @SerializedName("envList")
+    @Expose
+	List<String> envList;
 	
 	public Course() {
 		this.name = null;
 		this.courseCode = null;
-		this.instructor = null;
 		this.envList = null;
 	}
 	
-	public Course(String name, String courseCode, String instructor, ArrayList<String> envList) {
+	public Course(String name, String university, List<String> envList) {
 		this.name = name;
-		this.courseCode = courseCode;
-		this.instructor = instructor;
+		this.university = university;
 		this.envList = envList;
 	}
 
@@ -39,20 +51,20 @@ public class Course {
 		this.courseCode = courseCode;
 	}
 
-	public String getInstructor() {
-		return instructor;
-	}
-
-	public void setInstructor(String instructor) {
-		this.instructor = instructor;
-	}
-
-	public ArrayList<String> getEnvList() {
+	public List<String> getEnvList() {
 		return envList;
 	}
 
 	public void setEnvList(ArrayList<String> envList) {
 		this.envList = envList;
+	}
+
+	public String getUniversity() {
+		return university;
+	}
+
+	public void setUniversity(String university) {
+		this.university = university;
 	}
 
 	@Override
@@ -61,8 +73,8 @@ public class Course {
 		int result = 1;
 		result = prime * result + ((courseCode == null) ? 0 : courseCode.hashCode());
 		result = prime * result + ((envList == null) ? 0 : envList.hashCode());
-		result = prime * result + ((instructor == null) ? 0 : instructor.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((university == null) ? 0 : university.hashCode());
 		return result;
 	}
 
@@ -85,22 +97,23 @@ public class Course {
 				return false;
 		} else if (!envList.equals(other.envList))
 			return false;
-		if (instructor == null) {
-			if (other.instructor != null)
-				return false;
-		} else if (!instructor.equals(other.instructor))
-			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
+			return false;
+		if (university == null) {
+			if (other.university != null)
+				return false;
+		} else if (!university.equals(other.university))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "{\"name\":\"" + name + "\", \"courseCode\":\"" + courseCode + "\", \"instructor\":\"" + instructor +"\",\"envList\":[]}";
+		return "Course [name=" + name + ", courseCode=" + courseCode + ", university=" + university + ", envList="
+				+ envList + "]";
 	}
 	
 	

@@ -1,14 +1,26 @@
 package reboot.grouper.Model;
 
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class User implements Comparable<User> {
-	
+public class User {
+	@SerializedName("nickname")
+	@Expose
 	private String nickname;
+
+	@SerializedName("questionAnswers")
+	@Expose
 	private List<Integer> questionAnswers;
 
+	public User() {
+		this.nickname = null;
+		this.questionAnswers = new ArrayList<Integer>();
+	}
+	
 	public User(String nickname) {
 		this.nickname = nickname;
 		this.questionAnswers = new ArrayList<>();
@@ -17,36 +29,6 @@ public class User implements Comparable<User> {
 	public User(String nickname, List<Integer> questionAnswers) {
 		this.nickname = nickname;
 		this.questionAnswers = questionAnswers;
-	}
-
-	@Override
-	public int compareTo(User otherUser) {
-		
-		List<Integer> oneQuestionAns = this.getQuestionAnswers();
-		List<Integer> twoQuestionAns = otherUser.getQuestionAnswers();
-		
-		if ((oneQuestionAns==null && twoQuestionAns==null) || 
-	        (oneQuestionAns.size() != twoQuestionAns.size())) {
-			
-			return 0;
-		}
-		
-		int score = 0; 
-			
-		System.out.println("User Comparison: " + this.getNickname() + " " + otherUser.getNickname());
-		
-		for (int i = 0; i < oneQuestionAns.size(); ++i) {
-			
-			if (oneQuestionAns.get(i).equals(twoQuestionAns.get(i))) {
-				score++;
-			} else {
-				score--;
-			}
-		}
-		
-		System.out.println("score: "+score);
-		
-		return score;
 	}
 
 	public String getNickname() {
