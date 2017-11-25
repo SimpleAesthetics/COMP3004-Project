@@ -204,6 +204,14 @@ public class UserInformation implements UserDetails {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "UserInformation [studentNumber=" + studentNumber + ", firstName=" + firstName + ", lastName=" + lastName
+				+ ", username=" + username + ", password=" + password + ", email=" + email + ", authorities="
+				+ authorities + ", accountNonExpired=" + accountNonExpired + ", accountNonLocked=" + accountNonLocked
+				+ ", credentialsNonExpired=" + credentialsNonExpired + ", enabled=" + enabled + "]";
+	}
 	
 	
 }

@@ -63,12 +63,16 @@ public class UserInfoResource {
 	public @ResponseBody ResponseEntity<UserInformation> getUsers(
 			@RequestBody(required=true) UserInformation userInfo) {
 		
+		System.out.println(userInfo);
+		System.out.println(userInfo.getEmail().replaceFirst("\\[at\\]", "@"));
+		
 		int userId = db.insertUser(
 				userInfo.getStudentNumber(), 
 				userInfo.getFirstName(), 
-				userInfo.getLastName(), 
+				userInfo.getLastName(),
 				userInfo.getUsername(),
-				userInfo.getEmail());
+				userInfo.getEmail().replaceFirst("\\[at\\]", "@"),
+				userInfo.getPassword());
 		
 		if (userId == -1) {
 			logger.error("Failed to insert user ["+ userInfo.toString() +"]");

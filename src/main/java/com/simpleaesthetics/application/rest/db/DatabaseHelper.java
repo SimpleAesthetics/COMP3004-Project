@@ -222,7 +222,11 @@ public class DatabaseHelper {
 	}
 	
 	public boolean addCourse(String courseName, String universityName) {
-		return (db.insertCourse(courseName, -1, getUniversityId(universityName)) == -1) 
+		System.out.println(courseName);
+		System.out.println(universityName);
+		System.out.println(this.getUniversityId(universityName));
+		
+		return (db.insertCourse(courseName, -1, this.getUniversityId(universityName)) == -1) 
 				? false 
 				: true;
 	}
@@ -321,6 +325,7 @@ public class DatabaseHelper {
 		if (insertedEnvId == -1) {
 			logger.error("Could not add new environment ["+ env.getName() +"]");
 			isEnvAdded = false;
+			throw new DatabaseException("Could not add new environment ["+ env.getName() +"]");
 			
 		} else {
 			int insertedQuestionnnaire = 
@@ -333,6 +338,7 @@ public class DatabaseHelper {
 			if (insertedQuestionnnaire == -1) {
 				logger.error("Could not add new questionnaire to env ["+ env.getName() +"]");
 				isEnvAdded = false;
+				throw new DatabaseException("Could not add new questionnaire to env ["+ env.getName() +"]");
 				
 			} else {
 				boolean successfulUpdate = db.changeQuestionnaire(
@@ -342,6 +348,7 @@ public class DatabaseHelper {
 				if (!successfulUpdate) {
 					logger.error("Could not update questionnaire id for env ["+ env.getName() +"]");
 					isEnvAdded = false;
+					throw new DatabaseException("Could not update questionnaire id for env ["+ env.getName() +"]");
 				}
 			}
 		}
@@ -568,11 +575,11 @@ public class DatabaseHelper {
 				"");
 		
 		if (!isSuccessful) {
-			logger.error("Could not update user for environment ["+ envName +"]");
 			throw new DatabaseException("Could not update user for environment ["+ envName +"]");
 			
 		} else {
 			Set<String> questions = this.getQuestionnaire(envName, courseName, uniName).keySet();
+			System.out.println("q: "+ questions);
 			List<String> answersStringList = utilTransformer.tranformToStringList(user.getQuestionAnswers());
 			String[] ansStringArray = answersStringList.toArray(new String[answersStringList.size()]);
 			HashMap<String, String> transformedAns = new HashMap<String, String>();
@@ -582,13 +589,10 @@ public class DatabaseHelper {
 			
 			int i = 0;
 			for (String question : questions) {
+				System.out.println(question);
 				transformedAns.put(question, ansStringArray[i]);
 				++i;
 			}
-			
-			System.out.println(user);
-			System.out.println(transformedAns);
-			System.out.println(envOwner);
 			
 			isSuccessful = this.setQuestionnaireAnswers(
 					user.getNickname(), 

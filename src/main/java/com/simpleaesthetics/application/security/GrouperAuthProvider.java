@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,8 +27,8 @@ public class GrouperAuthProvider implements AuthenticationProvider {
     	String username = authentication.getName();
         String password = (String) authentication.getCredentials();
         
-        UserInformation user = userService.loadUserByUsername(username);
- 
+        UserInformation user = userService.loadUserByUsername(username);;
+    	
         if (user == null || !user.getUsername().equalsIgnoreCase(username)) {
             throw new BadCredentialsException(ERROR_STRING);
         }
@@ -35,7 +36,7 @@ public class GrouperAuthProvider implements AuthenticationProvider {
         if (!password.equals("password")) {
             throw new BadCredentialsException(ERROR_STRING);
         }
- 
+        
         Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
  
         return new UsernamePasswordAuthenticationToken(user, password, authorities);

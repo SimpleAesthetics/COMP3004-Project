@@ -478,6 +478,7 @@ public class GrouperDB {
 	public int insertUser(int id, String firstName, String lastName, String nickname, String email, String password) {
 		//Convert to all lowercase letters
 		nickname = nickname.toLowerCase();
+		System.out.println("nickname: "+nickname);
 		if(opened != false && dbconn != null) {
 			//Write SQL
 			String sql = "INSERT INTO Users(id,firstname,lastname,nickname,email,password) VALUES (?,?,?,?,?,?)";
@@ -513,6 +514,7 @@ public class GrouperDB {
 		if(email == "") {
 			return -1;
 		}
+		
 		String nickname = email.substring(0,email.indexOf("@"));
 		return this.insertUser(id,firstName,lastName,nickname,email,password);
 	}
