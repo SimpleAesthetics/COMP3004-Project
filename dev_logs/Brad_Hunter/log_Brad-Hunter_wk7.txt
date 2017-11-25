@@ -1,0 +1,10 @@
+Dev log for week of October 31st
+
+Accomplished:
+-Prepared D2 demo and document
+
+Comments:
+-Didn't contribute much this week; busy with work outside of school...
+
+Goals for next week:
+-Finally finish the database interface

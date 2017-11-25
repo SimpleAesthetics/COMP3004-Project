@@ -1,0 +1,15 @@
+Dev log for week of November 14th
+
+Accomplished:
+-Discussed server security with Jon
+-Implemented stricter bounds checking for a few of the queries
+-Cleaned up code comments
+
+Comments:
+-At this point, the project is taking a back seat to the impressive amount of work that has built
+up in other courses
+
+Goals for next week:
+-Help with server security implementations
+-Add a few more useful helper functions to the database (stuff for obtaining info if you don't have
+all the details)

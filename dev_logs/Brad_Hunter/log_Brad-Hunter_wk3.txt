@@ -1,0 +1,13 @@
+Dev log for week of October 3rd
+
+Accomplished:
+-Chose to go with the SQLite database technology (minimal overhead, full SQL semantics)
+-Database interface framework created
+
+Comments:
+-The interface is going to be large...lots of function calls
+-Database design not necesarily the best, but it makes sense from an internet application standpoint
+
+Goals for next week:
+-Finalize DB schema
+-Download and test the REST server Jon created (and install the related frameworks)

@@ -1,0 +1,9 @@
+Dev log for week of October 17th
+
+Accomplished:
+-Finished the database interface, minus some fluff
+
+Comments:
+
+Goals for next week:
+-Get the prototype demo done (in consultation with the rest of the group)

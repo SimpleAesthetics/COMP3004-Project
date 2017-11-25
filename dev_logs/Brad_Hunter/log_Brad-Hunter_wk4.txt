@@ -1,0 +1,13 @@
+Dev log for week of October 10th
+
+Accomplished:
+-Modifications to the DB schema to fit the group's idea of the app
+-Thought about how to store environments, questionnaires and groups in the DB
+
+Comments:
+-My idea of the database and the rest of the groups' ideas clash
+--I'd much prefer to do stuff using numeric IDs that can be guaranteed to be unique
+-Installing Spring Tooling seems to have broken Eclipse...
+
+Goals for next week:
+-Get DB interface mostly finished in time for the project demo

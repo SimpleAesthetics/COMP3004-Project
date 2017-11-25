@@ -1,0 +1,12 @@
+Dev log for week of September 19th
+
+Accomplished:
+-Agreed on a general design for the application
+-Discussed frameworks to use for the app
+-Prepared D1 documentation
+
+Comments:
+
+Goals for next week:
+-Task assignment
+-More app design refinements

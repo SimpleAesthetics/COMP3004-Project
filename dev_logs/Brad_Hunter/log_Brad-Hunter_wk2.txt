@@ -1,0 +1,11 @@
+Dev log for week of September 26th
+
+Accomplished:
+-Task assignment (I will be working on the database component)
+-General roadmap outline developed
+
+Comments:
+
+Goals for next week:
+-Choose a database technology
+-Get a framework for the database planned

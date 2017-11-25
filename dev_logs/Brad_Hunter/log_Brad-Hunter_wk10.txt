@@ -1,0 +1,15 @@
+Dev log for week of November 21st
+
+Accomplished:
+-Finished the DB interface, finally!!! Hopefully.
+-Decided that the way I was storing questions and answers in the DB was stupid and changed the
+whole thing to be more concise and save on storage
+-Finally implemented match caching in the DB interface, whether we use it or not
+-Realized I needed to add password storage and retrieval to the database, so I did that
+
+Comments:
+-It's nice that the project is finally nearing completion, it just doesn't feel like it is
+anywhere near done yet though...
+
+Goals for next week:
+-Wrap up the database stuff in time for the final demo

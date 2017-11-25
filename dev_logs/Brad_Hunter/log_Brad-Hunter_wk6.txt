@@ -1,0 +1,18 @@
+Dev log for week of October 24th
+
+Accomplished:
+-Project prototype completed
+-Continued discussion about what to do about the server issues...
+-More refinement to DB interface (function overloading)
+-Designed a method to create database tables on the off chance the DB isn't uploaded
+-Planned to add a match caching functionality to lessen the need to constantly run the sorting algorithm
+-Realized I forgot to add functionality for storing user answers
+-Looked into why DB driver for JDBC was not being recognized by the server
+-Helped diagnose server issues
+
+Comments:
+-DB interface is starting to become a cluttered mess
+-Balancing workload is becoming a problem for me at this point
+
+Goals for next week:
+-Think about security for the application

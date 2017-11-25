@@ -1,0 +1,15 @@
+Dev log for week of November 7th
+
+Accomplished:
+-Added to the DB schema a match cache table
+-Discussed further the group sorting algorithm with Jon
+-Finalized the table auto-generation code
+
+Comments:
+-Our continued differences on how stuff should be stored in the DB and displayed to the user
+is playing a huge role in some major understanding difficulties
+
+Goals for next week:
+-Figure out a good way to test for missing tables
+-Implement logging in the database interface
+-Further input sanitization
