@@ -462,7 +462,8 @@ public class DatabaseHelper {
 		
 		try {
 			if (db.answerQuestionnaire(
-					Integer.valueOf(db.queryUser(userNickname.toLowerCase()).get(0)),
+					db.getEnvID(envName,db.getUserID(envOwner)),
+					db.getUserID(userNickname),
 					ans)) {
 				
 				return true;
@@ -482,8 +483,9 @@ public class DatabaseHelper {
 		try {
 			return questionnaireTransformer
 						.transformForModelFromAnswerString(
-								db.getAnswers( 
-									(Integer.valueOf(db.queryUser(userNickname.toLowerCase()).get(0))).intValue()));
+								db.getAnswers(
+										db.getEnvID(envName,db.getUserID(envOwner)),
+										db.getUserID(userNickname)));
 		
 		} catch (IndexOutOfBoundsException e) {
 			logger.warn("Could not find any users with nickname ["+ userNickname +"]");
