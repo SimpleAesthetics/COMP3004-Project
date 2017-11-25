@@ -322,7 +322,7 @@ public class DatabaseHelper {
 		return isEnvAdded;
 	}
 	
-	public ArrayList<ArrayList<String>> getEnvironments(String universityName, String courseName) {
+	public List<Environment> getEnvironments(String universityName, String courseName) {
 		System.out.println("Failed");
 		ArrayList<ArrayList<String>> envInfos = 
 				db.getEnvironments(
@@ -336,7 +336,7 @@ public class DatabaseHelper {
 			envs.add(
 					envTransformer.transformToEnvironment(
 							envInfo, 
-							this.getQuestionnaire(envInfo.get(0), courseName, universityName), 
+							this.getQuestionnaire(envInfo.get(1), courseName, universityName), 
 							userSet));
 		}
 		
@@ -344,7 +344,7 @@ public class DatabaseHelper {
 			logger.warn("No environments were returned for ["+ courseName +"]");
 		}
 //		
-		return null;
+		return envs;
 	}
 	
 	public Environment getSpecificEnvironment(String envName, String courseName, String universityName) {
@@ -495,6 +495,10 @@ public class DatabaseHelper {
 			String envName,
 			String courseName,
 			String universityName) {
+		
+		System.out.println(envName);
+		System.out.println(courseName);
+		System.out.println(universityName);
 		
 		int questId = 
 				db.getQuestionnaire(

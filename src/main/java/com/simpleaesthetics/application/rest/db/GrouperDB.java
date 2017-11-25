@@ -1409,8 +1409,9 @@ public class GrouperDB {
 				
 				while(results.next()) {
 					result = new ArrayList<String>();
+					result.add(String.valueOf(id));
 					result.add(results.getString("name"));
-					result.add(new Integer(results.getInt("course")).toString());
+//					result.add(new Integer(results.getInt("course")).toString());
 					result.add(Integer.toString(results.getInt("owner")));
 					result.add(new Integer(results.getInt("private")).toString());
 					result.add(results.getString("password"));

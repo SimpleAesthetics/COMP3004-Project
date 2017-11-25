@@ -125,18 +125,19 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<ArrayList<ArrayList<String>>> getEnvironments(
+	public @ResponseBody ResponseEntity<List<Environment>> getEnvironments(
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName) {
 		
 		HttpStatus status = HttpStatus.OK;
-		ArrayList<ArrayList<String>> envList = dbHelper.getEnvironments(uniName, courseName);
+//		ArrayList<ArrayList<String>> envList = dbHelper.getEnvironments(uniName, courseName);
+		List<Environment> envList = dbHelper.getEnvironments(uniName, courseName);
 		
 		if (envList.isEmpty()) {
 			status = HttpStatus.NO_CONTENT;
 		}
 		
-		return new ResponseEntity<ArrayList<ArrayList<String>>>(
+		return new ResponseEntity<List<Environment>>(
 				envList,
 				status);
 	}
