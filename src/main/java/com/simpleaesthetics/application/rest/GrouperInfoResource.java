@@ -142,13 +142,14 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}", method=RequestMethod.GET)
-	public @ResponseBody ResponseEntity<ArrayList<String>> getSpecificEnvironment(
+	public @ResponseBody ResponseEntity<Environment> getSpecificEnvironment(
 			@RequestHeader(value="sortGroups", defaultValue="false") boolean toSort,
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName) {
 		
-		ArrayList<String> envInfo = dbHelper.getEnvironmentInfo(envName, courseName, uniName);
+		Environment environment = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
+//		ArrayList<String> envInfo = dbHelper.getEnvironmentInfo(envName, courseName, uniName);
 //		System.out.println("envInfo: "+ envInfo);
 //		Set<User> userSet = userTransformer.transformCsvToUserHashSet(envInfo.get(7));
 //		
@@ -184,8 +185,8 @@ public class GrouperInfoResource {
 //			
 //		}
 		
-		return new ResponseEntity<ArrayList<String>>(
-				envInfo,
+		return new ResponseEntity<Environment>(
+				environment,
 				HttpStatus.OK);
 	}
 	
@@ -218,13 +219,13 @@ public class GrouperInfoResource {
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/users", method=RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> addSpecificUserToGroup(
+	public @ResponseBody ResponseEntity<String> addSpecificUserToEnv(
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName,
 			@RequestBody(required=true) User user) {
 		
-		dbHelper.addSpecificUserToGroup(user, envName, courseName, uniName);
+		dbHelper.addSpecificUserToEnv(user, envName, courseName, uniName);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 

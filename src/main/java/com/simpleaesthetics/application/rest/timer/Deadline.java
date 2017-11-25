@@ -84,30 +84,30 @@ public class Deadline {
 //		success = true;
 	}
 	
-	private HashSet<User> getUserHashSetFromCSV(String usersCSV, String envName, String envOwner) {
-		StringTokenizer st = new StringTokenizer(usersCSV, ",");
-		HashSet<User> userSet = new HashSet<>();
-		while(st.hasMoreTokens()) {
-			String userIdStr = st.nextToken();
-			Integer userIdInt = Integer.valueOf(userIdStr);
-			List<Integer> ansListInt = new ArrayList<Integer>();
-			HashMap<String, List<String>> questionnaireAns = 
-					helper.getUserQuestionnaireAns(
-						envName, 
-						envOwner, 
-						userIdInt);
-			
-			for (List<String> answerListStrs : questionnaireAns.values()) {
-				for (String ansStr : answerListStrs) {
-					ansListInt.add(Integer.valueOf(ansStr));
-				}
-			}
-			
-			userSet.add(
-					new User(helper.getUserNickname(userIdInt), ansListInt));
-		}
-		
-		return userSet;
-	}
+//	private HashSet<User> getUserHashSetFromCSV(String usersCSV, String envName, String envOwner) {
+//		StringTokenizer st = new StringTokenizer(usersCSV, ",");
+//		HashSet<User> userSet = new HashSet<>();
+//		while(st.hasMoreTokens()) {
+//			String userIdStr = st.nextToken();
+//			Integer userIdInt = Integer.valueOf(userIdStr);
+//			List<Integer> ansListInt = new ArrayList<Integer>();
+//			HashMap<String, List<String>> questionnaireAns = 
+//					helper.getUserQuestionnaireAns(
+//						envName, 
+//						envOwner, 
+//						userIdInt);
+//			
+//			for (List<String> answerListStrs : questionnaireAns.values()) {
+//				for (String ansStr : answerListStrs) {
+//					ansListInt.add(Integer.valueOf(ansStr));
+//				}
+//			}
+//			
+//			userSet.add(
+//					new User(helper.getUserNickname(userIdInt), ansListInt));
+//		}
+//		
+//		return userSet;
+//	}
 	
 }

@@ -42,9 +42,18 @@ public class UserInfoResource {
 				HttpStatus.OK);
 	}
 	
+	@RequestMapping(value="/userInfo/{username}", method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<UserInformation> getUserInformation(
+				@PathVariable("username") String username) {
+		
+		UserInformation user = dbHelper.getUserInformation(username);
+		return new ResponseEntity<UserInformation>(user, HttpStatus.OK);
+	}
+	
 	@RequestMapping(value="/users/{userNickname}", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<User> getSpecificUser(
-			@PathVariable("userNickname") String userNickname) {
+				@PathVariable("userNickname") String userNickname
+			) {
 		
 		User user = dbHelper.getUser(userNickname);
 		return new ResponseEntity<User>(user, HttpStatus.OK);
@@ -58,7 +67,7 @@ public class UserInfoResource {
 				userInfo.getStudentNumber(), 
 				userInfo.getFirstName(), 
 				userInfo.getLastName(), 
-				userInfo.getNickname(),
+				userInfo.getUsername(),
 				userInfo.getEmail());
 		
 		if (userId == -1) {

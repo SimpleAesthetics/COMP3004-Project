@@ -24,7 +24,7 @@ public class EnvironmentTransformer {
 	@Autowired
 	UserTransformer userTransformer;
 	
-	public Environment transform(
+	public Environment transformToEnvironment(
 			ArrayList<String> envInfo,
 			Map<String, String[]> questionnaire,
 			Set<User> users

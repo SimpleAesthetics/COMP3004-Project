@@ -6,23 +6,38 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
 import com.simpleaesthetics.application.model.User;
+import com.simpleaesthetics.application.model.UserInformation;
 
 @Component
 public class UserTransformer {
 
+	private final Pattern containsInts = Pattern.compile("^([0-9])+$");
+	
 	public User transform(String nickname, ArrayList<String> userInfo) {
-		String[] ansArrStrs = userInfo.get(4).split(",");
-		Integer[] ansArrInt = new Integer[ansArrStrs.length];
-		
-		for (int i = 0; i < ansArrStrs.length; ++i) {
-			ansArrInt[i] = Integer.parseInt(ansArrStrs[i]);
+		List<Integer> ansList = new ArrayList<Integer>();
+		StringTokenizer st = new StringTokenizer(userInfo.get(4), ",");
+		while(st.hasMoreTokens()) {
+			String token = st.nextToken();
+			if (containsInts.matcher(token).find()) {
+				ansList.add(Integer.valueOf(token));
+			}
 		}
 		
-		return new User(nickname, new ArrayList<Integer>(Arrays.asList(ansArrInt)));
+		return new User(nickname, ansList);
+	}
+	
+	public UserInformation transformToUserDetails(String nickname, ArrayList<String> userInfo) {
+		return new UserInformation(
+				Integer.valueOf(userInfo.get(0)), 
+				userInfo.get(1),
+				userInfo.get(2),
+				nickname,
+				userInfo.get(3));
 	}
 	
 	public User transform(ArrayList<String> userInfo) {
@@ -49,7 +64,7 @@ public class UserTransformer {
 		StringTokenizer st = new StringTokenizer(csv, ",");
 		Set<User> userSet = new HashSet<>();
 		while(st.hasMoreTokens()) {
-			userSet.add(new User(st.nextToken()));
+			userSet.add(new User(st.nextToken().trim()));
 		}
 		
 		return userSet;
@@ -59,7 +74,7 @@ public class UserTransformer {
 		StringTokenizer st = new StringTokenizer(csv, ",");
 		List<User> userList = new ArrayList<>();
 		while(st.hasMoreTokens()) {
-			userList.add(new User(st.nextToken()));
+			userList.add(new User(st.nextToken().trim()));
 		}
 		
 		return userList;

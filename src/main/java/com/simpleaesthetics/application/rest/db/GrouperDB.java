@@ -372,6 +372,7 @@ public class GrouperDB {
 				
 				while(results.next()) {
 					//Add results to course list
+					courses.add(String.valueOf(id));
 					courses.add(results.getString("Name"));
 					courses.add(results.getString("Courses"));
 					//Exit, since we only want the first result; assume first result is the one we want
@@ -653,6 +654,32 @@ public class GrouperDB {
 		return users;
 	}
 	
+	public String getUserNickname(int userId) {
+	    if(opened != false && dbconn != null) {
+	      //Write SQL
+	      String sql = "SELECT NICKNAME FROM Users WHERE id = ? ORDER BY id DESC LIMIT 1";
+	      try {
+	        //Prepare statement
+	        PreparedStatement psql = dbconn.prepareStatement(sql);
+	        //Assign variables
+	        psql.setInt(1,userId);
+	        //Execute statement
+	        ResultSet results = psql.executeQuery();
+	        
+	        while(results.next()) {
+	          //Since there is only one result, it is safe to return it
+	          return results.getString("nickname");
+	        }
+	      }
+	      catch(SQLException e) {
+	        //Error occurred
+	        return "";
+	      }
+	    }
+	    //DB not open
+	    return "";
+	  }
+	
 	//Helper function for obtaining the ID of the most recently added user
 	public int getUserID(String name) {
 		if(opened != false && dbconn != null) {
@@ -873,7 +900,7 @@ public class GrouperDB {
 		ArrayList<ArrayList<String>> courses = new ArrayList<ArrayList<String>>();
 		if(opened != false && dbconn != null) {
 			//Write SQL
-			String sql = "SELECT ID,Name,Instructor,Environments FROM Courses WHERE university = ?";
+			String sql = "SELECT ID,Name,Instructor,University,Environments FROM Courses WHERE university = ?";
 			try {
 				//Prepare statement
 				PreparedStatement psql = dbconn.prepareStatement(sql);
@@ -890,6 +917,7 @@ public class GrouperDB {
 					result.add(new Integer(results.getInt("ID")).toString());
 					result.add(results.getString("Name"));
 					result.add(new Integer(results.getInt("Instructor")).toString());
+					result.add(results.getString("University"));
 					result.add(results.getString("Environments"));
 					//Add course to list
 					courses.add(result);
@@ -921,6 +949,7 @@ public class GrouperDB {
 				
 				while(results.next()) {
 					//Add results to course
+					courses.add(String.valueOf(id));
 					courses.add(results.getString("Name"));
 					courses.add(new Integer(results.getInt("Instructor")).toString());
 					courses.add(new Integer(results.getInt("University")).toString());
