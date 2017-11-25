@@ -478,7 +478,6 @@ public class GrouperDB {
 	public int insertUser(int id, String firstName, String lastName, String nickname, String email, String password) {
 		//Convert to all lowercase letters
 		nickname = nickname.toLowerCase();
-		System.out.println("nickname: "+nickname);
 		if(opened != false && dbconn != null) {
 			//Write SQL
 			String sql = "INSERT INTO Users(id,firstname,lastname,nickname,email,password) VALUES (?,?,?,?,?,?)";
@@ -514,7 +513,6 @@ public class GrouperDB {
 		if(email == "") {
 			return -1;
 		}
-		
 		String nickname = email.substring(0,email.indexOf("@"));
 		return this.insertUser(id,firstName,lastName,nickname,email,password);
 	}
@@ -1562,7 +1560,7 @@ public class GrouperDB {
 				q += y + "|";
 			}
 			q = q.substring(0,q.length()-1);
-			q += ", ";
+			q += ",";
 		}
 		q = q.substring(0,q.length()-1);
 		int id = -1;
@@ -1638,7 +1636,7 @@ public class GrouperDB {
 		HashMap<String,String[]> qamap = new HashMap<String,String[]>();
 		String qs = "";
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT questions FROM Questionnaire WHERE enviroment = ?";
+			String sql = "SELECT questions FROM Questionnaires WHERE environment = ?";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
 				psql.setInt(1, env);
@@ -1655,7 +1653,8 @@ public class GrouperDB {
 			
 			String[] qs2 = qs.split(",");
 			for(String x : qs2) {
-				String[] qs3 = x.split("/[|]/");
+				String y = x.replace("|",",");
+				String[] qs3 = y.split(",");
 				String[] as = new String[qs3.length-1];
 				for(int i = 1; i < qs3.length; i++) {
 					as[i-1]=qs3[i];
@@ -1773,7 +1772,7 @@ public class GrouperDB {
 		HashMap<String,String> qamap = new HashMap<String,String>();
 		String qs = "";
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT questions FROM Answers WHERE enviroment = ? AND student = ? LIMIT 1";
+			String sql = "SELECT questions FROM Answers WHERE environment = ? AND student = ?";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
 				psql.setInt(1, eid);
@@ -1791,7 +1790,8 @@ public class GrouperDB {
 			
 			String[] qs2 = qs.split(",");
 			for(String x : qs2) {
-				String[] qs3 = x.split("/[|]/");
+				String y = x.replace("|",",");
+				String[] qs3 = y.split(",");
 				qamap.put(qs3[0],qs3[1]);
 			}
 		}
@@ -2279,6 +2279,33 @@ public class GrouperDB {
 		else {
 			System.out.println("Failed to open the database");
 		}
+		/*HashMap<String,String[]> questions = new HashMap<String,String[]>();
+		String q = "Question 1";
+		String[] a = {"Answer 1","Answer 2"};
+		questions.put(q,a);
+		q = "Question 2";
+		String[] b = {"Answer 1","Answer 2","Answer 3"};
+		questions.put(q,b);
+		int qid = db.insertQuestionnaire(1,questions);*/
+		int eid = 1;
+		int uid = 1;
+		HashMap<String,String[]> qs = db.getQuestions(1);
+		HashMap<String,String> as = new HashMap<String,String>();
+		for(String x : qs.keySet()) {
+			String[] a = qs.get(x);
+			int ra = 0 + (int)(Math.random() * (a.length-1));
+			as.put(x,a[ra]);
+		}
+		System.out.println(as.toString());
+		oc = db.answerQuestionnaire(eid,uid,as);
+		if(oc == true) {
+			System.out.println("Successfully answered questionnaire");
+		}
+		else {
+			System.out.println("Failed to answer questionnaire");
+		}
+		as = db.getAnswers(eid,uid);
+		System.out.println(as.toString());
 		oc = db.closeDB();
 		if(oc == true) {
 			System.out.println("Successfully closed the database");
