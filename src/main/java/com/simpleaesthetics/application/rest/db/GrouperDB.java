@@ -176,47 +176,6 @@ public class GrouperDB {
 		}
 	}
 	
-	public boolean checkIfTableExists(String tableName) {
-		Statement stmt = null;
-		String sqlTableCheckStr = "SELECT name FROM sqlite_master WHERE type='table' AND name='"+ tableName +"';";
-		
-		try {
-			stmt = dbconn.createStatement();
-			ResultSet result = stmt.executeQuery(sqlTableCheckStr);
-			return (result.next());
-		
-		} catch (SQLException ex) {
-			logger.error("Failed to check if table exits, CAUSE: "+ ex.getMessage());
-			throw new DatabaseException("Failed to check if table exits");
-		}
-		
-	}
-	
-	public void insertUniversityTable() {
-		
-		if (checkIfTableExists("Universities")) {
-			logger.info("Universities table not created; Already exists");
-			return;
-		}
-		
-		Statement stmt = null;
-		String createUniTable = 
-				"CREATE TABLE \"Universities\" ("
-				+ "`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
-				+ "`Name`	TEXT NOT NULL UNIQUE,"
-				+ "`Courses` TEXT );";
-		
-		try {
-			stmt = dbconn.createStatement();
-			stmt.executeUpdate(createUniTable);
-			
-		} catch (SQLException ex) {
-			logger.error("Failed to add the universities table", ex);
-			throw new DatabaseException("Failed to insert new Universities table");
-		}
-			
-	}
-	
 	//Function for opening the database
 	public boolean openDB() {
 		try {
@@ -516,12 +475,12 @@ public class GrouperDB {
 	//Function for inserting a user
 	//Input: first name, last name, email address
 	//Output: ID of added user
-	public int insertUser(int id, String firstName, String lastName, String nickname, String email) {
+	public int insertUser(int id, String firstName, String lastName, String nickname, String email, String password) {
 		//Convert to all lowercase letters
 		nickname = nickname.toLowerCase();
 		if(opened != false && dbconn != null) {
 			//Write SQL
-			String sql = "INSERT INTO Users(id,firstname,lastname,nickname,email) VALUES (?,?,?,?,?)";
+			String sql = "INSERT INTO Users(id,firstname,lastname,nickname,email,password) VALUES (?,?,?,?,?,?)";
 			try {
 				//Prepare statement
 				PreparedStatement psql = dbconn.prepareStatement(sql);
@@ -531,6 +490,7 @@ public class GrouperDB {
 				psql.setString(3,lastName);
 				psql.setString(4,nickname);
 				psql.setString(5,email);
+				psql.setString(6,password);
 				//Execute statement
 				psql.executeUpdate();
 				
@@ -549,12 +509,12 @@ public class GrouperDB {
 	
 	//Function for inserting a user
 	//OVERLOAD: assumes nickname is first part of email
-	public int insertUser(int id, String firstName, String lastName, String email) {
+	public int insertUser(int id, String firstName, String lastName, String email, String password) {
 		if(email == "") {
 			return -1;
 		}
 		String nickname = email.substring(0,email.indexOf("@"));
-		return this.insertUser(id,firstName,lastName,nickname,email);
+		return this.insertUser(id,firstName,lastName,nickname,email,password);
 	}
 	
 	//Function for updating a user's email address
@@ -582,6 +542,60 @@ public class GrouperDB {
 				return false;
 			}
 		}
+	}
+	
+
+	
+	//Function for updating a user's password
+	public boolean changePass(String user, String password) {
+		if(opened == false || dbconn == null) {
+			//DB isn't open
+			return false;
+		}
+		else {
+			//Write SQL
+			String sql = "UPDATE Users SET password = ? where nickname = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setString(1,password);
+				psql.setString(2,user);
+				//Execute statement
+				psql.executeUpdate();
+				//No way to check for success, so assume it did
+				return true;
+			}
+			catch(SQLException e) {
+				//Some kind of error, assume it didn't succeed
+				return false;
+			}
+		}
+	}
+	//Function for getting a user's details based on their nickname
+	public String getPassword(String nickname) {
+		if(opened != false && dbconn != null) {
+			//Write SQL
+			String sql = "SELECT password FROM Users WHERE nickname = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Assign variables
+				psql.setString(1,nickname);
+				//Execute statement
+				ResultSet results = psql.executeQuery();
+				
+				while(results.next()) {
+					return results.getString("password");
+				}
+			}
+			catch(SQLException e) {
+				//Error occurred
+				return "";
+			}
+		}
+		//DB isn't open
+		return "";
 	}
 	
 	//Function for getting a user's details based on their nickname
@@ -1178,6 +1192,31 @@ public class GrouperDB {
 			return envs.get(0);
 		}
 	}
+	public int getEnvID(String name, int owner) {
+		ArrayList<Integer> envs = new ArrayList<Integer>();
+		if(opened != false && dbconn != null) {
+			String sql = "SELECT ID FROM Environments WHERE name = ? AND owner = ?";
+			try {
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				psql.setString(1,name);
+				psql.setInt(2, owner);
+				ResultSet results = psql.executeQuery();
+				
+				while(results.next()) {
+					envs.add(new Integer(results.getInt("ID")));
+				}
+			}
+			catch(SQLException e) {
+				return -1;
+			}
+		}
+		if(envs.isEmpty() == true) {
+			return -1;
+		}
+		else {
+			return envs.get(0);
+		}
+	}
 	//Function to update environment details
 	//Input: env ID, closing date
 	//Output: true on success, false otherwise
@@ -1515,33 +1554,26 @@ public class GrouperDB {
 			return -1;
 		}
 		String q = "";
-		String a = "";
-		q = Arrays.toString(questions.keySet().toArray());
-		q = q.replace("[","");
-		q = q.replace("]","");
-		ArrayList<String[]> answers = new ArrayList<String[]>();
-		answers.addAll(questions.values());
-		for(String[] x : answers) {
-			String y = Arrays.toString(x);
-			y = y.replace("[","");
-			y = y.replace("]","");
-			y = y.replace(", ","|");
-			a += y + ", ";
+		for(String x : questions.keySet()) {
+			q += x + "|";
+			for(String y : questions.get(x)) {
+				q += y + "|";
+			}
+			q = q.substring(0,q.length()-1);
+			q += ", ";
 		}
-		a = a.substring(0,a.lastIndexOf(", "));
+		q = q.substring(0,q.length()-1);
 		int id = -1;
 		if(opened != false && dbconn != null) {
 			//Database is opened, can insert into DB now
-			String sql = "INSERT INTO Questionnaires(environment,questions,answers) VALUES (?,?,?)";
+			String sql = "INSERT INTO Questionnaires(environment,questions) VALUES (?,?)";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
 				psql.setInt(1,eid);
 				psql.setString(2,q);
-				psql.setString(3,a);
 				psql.executeUpdate();
 				id = this.getQuestionnaire(eid);
 				this.changeQuestionnaire(eid,id);
-				
 			}
 			catch(SQLException e) {
 				return -1;
@@ -1600,22 +1632,18 @@ public class GrouperDB {
 		}
 	}
 	
-	public HashMap<String,String[]> getQuestions(int id) {
+	public HashMap<String,String[]> getQuestions(int env) {
 		HashMap<String,String[]> qamap = new HashMap<String,String[]>();
-		ArrayList<String> qset = new ArrayList<String>();
-		ArrayList<String[]> aset = new ArrayList<String[]>();
 		String qs = "";
-		String as = "";
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT questions,answers FROM Questionnaires WHERE id = ? LIMIT 1";
+			String sql = "SELECT questions FROM Questionnaire WHERE enviroment = ?";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
-				psql.setInt(1, id);
+				psql.setInt(1, env);
 				ResultSet results = psql.executeQuery();
 				
 				while(results.next()) {
 					qs = results.getString("questions");
-					as = results.getString("answers");
 					break;
 				}
 			}
@@ -1623,22 +1651,14 @@ public class GrouperDB {
 				return qamap;
 			}
 			
-			qs = qs.replace("[","");
-			qs = qs.replace("]","");
-			as = as.replace("[","");
-			as = as.replace("]","");
-			
-			String[] qs2 = qs.split(", ");
+			String[] qs2 = qs.split(",");
 			for(String x : qs2) {
-				qset.add(x);
-			}
-			String[] as2 = as.split(", ");
-			for(String x : as2) {
-				aset.add(x.split("/[\\|]/"));
-			}
-			
-			for(int i = 0; i < Math.min(qset.size(),aset.size()); i++) {
-				qamap.put(qset.get(i),aset.get(i));
+				String[] qs3 = x.split("/[|]/");
+				String[] as = new String[qs3.length-1];
+				for(int i = 1; i < qs3.length; i++) {
+					as[i-1]=qs3[i];
+				}
+				qamap.put(qs3[0],as);
 			}
 		}
 		return qamap;
@@ -1667,33 +1687,26 @@ public class GrouperDB {
 		}
 	}
 	
-	public boolean answerQuestionnaire(int uid,HashMap<String,String> ans) {
+	public boolean answerQuestionnaire(int eid,int uid,HashMap<String,String> ans) {
 		//Basic sanity check
 		if(this.queryUser(uid).isEmpty() || ans.isEmpty()) {
 			return false;
 		}
 		String q = "";
-		String a = "";
-		q = Arrays.toString(ans.keySet().toArray());
-		q = q.replace("[","");
-		q = q.replace("]","");
-		ArrayList<String> answers = new ArrayList<String>();
-		answers.addAll(ans.values());
-		a = answers.toArray().toString();
-		a = a.replace("[","");
-		a = a.replace("]","");
+		for(String x : ans.keySet()) {
+			q += x + "|" + ans.get(x) + ",";
+		}
+		q=q.substring(0,q.length()-1);
 		if(opened != false && dbconn != null) {
 			//Database is opened, can insert into DB now
-			String sql = "INSERT INTO Answers(student,questions,answers) VALUES (?,?,?)";
+			String sql = "INSERT INTO Answers(environment,student,questions) VALUES (?,?,?)";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
-				psql.setInt(1,uid);
-				psql.setString(2,q);
-				psql.setString(3,a);
+				psql.setInt(1,eid);
+				psql.setInt(2,uid);
+				psql.setString(3,q);
 				psql.executeUpdate();
-				int aid = this.getAnswerID(uid,q,a);
-				this.userAnswer(uid,aid);
-				
+				this.userAnswer(uid,eid);
 			}
 			catch(SQLException e) {
 				logger.error("Failed to add question answers: "+ e.getMessage());
@@ -1734,14 +1747,13 @@ public class GrouperDB {
 			}
 		}
 	}
-	public int getAnswerID(int user, String q, String a) {
+	public int getAnswerID(int user, int env) {
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT ID FROM Answers WHERE student = ? AND questions = ? AND answers = ?";
+			String sql = "SELECT ID FROM Answers WHERE student = ? AND environment = ?";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
 				psql.setInt(1,user);
-				psql.setString(2,q);
-				psql.setString(3,a);
+				psql.setInt(2,env);
 				ResultSet results = psql.executeQuery();
 				
 				while(results.next()) {
@@ -1754,22 +1766,20 @@ public class GrouperDB {
 		}
 		return -1;
 	}
-	public HashMap<String,String> getAnswers(int id) {
+	
+	public HashMap<String,String> getAnswers(int eid, int uid) {
 		HashMap<String,String> qamap = new HashMap<String,String>();
-		ArrayList<String> qset = new ArrayList<String>();
-		ArrayList<String> aset = new ArrayList<String>();
 		String qs = "";
-		String as = "";
 		if(opened != false && dbconn != null) {
-			String sql = "SELECT questions,answers FROM Questionnaires WHERE id = ? LIMIT 1";
+			String sql = "SELECT questions FROM Answers WHERE enviroment = ? AND student = ? LIMIT 1";
 			try {
 				PreparedStatement psql = dbconn.prepareStatement(sql);
-				psql.setInt(1, id);
+				psql.setInt(1, eid);
+				psql.setInt(2, uid);
 				ResultSet results = psql.executeQuery();
 				
 				while(results.next()) {
 					qs = results.getString("questions");
-					as = results.getString("answers");
 					break;
 				}
 			}
@@ -1777,22 +1787,10 @@ public class GrouperDB {
 				return qamap;
 			}
 			
-			qs = qs.replace("[","");
-			qs = qs.replace("]","");
-			as = as.replace("[","");
-			as = as.replace("]","");
-			
-			String[] qs2 = qs.split(", ");
+			String[] qs2 = qs.split(",");
 			for(String x : qs2) {
-				qset.add(x);
-			}
-			String[] as2 = as.split(", ");
-			for(String x : as2) {
-				aset.add(x);
-			}
-			
-			for(int i = 0; i < Math.min(qset.size(),aset.size()); i++) {
-				qamap.put(qset.get(i),aset.get(i));
+				String[] qs3 = x.split("/[|]/");
+				qamap.put(qs3[0],qs3[1]);
 			}
 		}
 		return qamap;
@@ -2103,6 +2101,116 @@ public class GrouperDB {
 				return false;
 			}
 		}
+	}
+	
+	public boolean cacheMatch(int user1, int user2, int percentage) {
+		//Basic sanity check
+		if(this.queryUser(user1).isEmpty() == true || this.queryUser(user2).isEmpty() == true || percentage < 0 || percentage > 100) {
+			return false;
+		}
+		if(opened != false && dbconn != null) {
+			//Database is opened, can insert into DB now
+			String sql = "INSERT INTO MatchCache(UserID,MatchedTo,Percentage) VALUES (?,?,?)";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,user1);
+				psql.setInt(2,user2);
+				psql.setInt(3,percentage);
+				//Execute statement
+				psql.executeUpdate();
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return false;
+			}
+			sql = "INSERT INTO MatchCache(UserID,MatchedTo,Percentage) VALUES (?,?,?)";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,user2);
+				psql.setInt(2,user1);
+				psql.setInt(3,percentage);
+				//Execute statement
+				psql.executeUpdate();
+				return true;
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean updateMatch(int user1, int user2, int percentage) {
+		//Basic sanity check
+		if(this.queryUser(user1).isEmpty() == true || this.queryUser(user2).isEmpty() == true || percentage < 0 || percentage > 100) {
+			return false;
+		}
+		if(opened != false && dbconn != null) {
+			//Database is opened, can insert into DB now
+			String sql = "UPDATE MatchCache SET percentage = ? WHERE userid = ? AND matchedto = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,percentage);
+				psql.setInt(2,user1);
+				psql.setInt(3,user2);
+				//Execute statement
+				psql.executeUpdate();
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return false;
+			}
+			sql = "UPDATE MatchCache SET percentage = ? WHERE userid = ? AND matchedto = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,percentage);
+				psql.setInt(2,user2);
+				psql.setInt(3,user1);
+				//Execute statement
+				psql.executeUpdate();
+				return true;
+			}
+			catch(SQLException e) {
+				//Some error occurred
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public int getMatchPercentage(int user1, int user2) {
+		if(opened != false && dbconn != null) {
+			//Write SQL
+			String sql = "SELECT percentage FROM MatchCache WHERE userid = ? AND matchedto = ?";
+			try {
+				//Prepare statement
+				PreparedStatement psql = dbconn.prepareStatement(sql);
+				//Set variables
+				psql.setInt(1,user1);
+				psql.setInt(2,user2);
+				//Execute statement
+				ResultSet results = psql.executeQuery();
+				
+				while(results.next()) {
+					//Get results
+					return results.getInt("percentage");
+				}
+			}
+			catch(SQLException e) {
+				//Some error occurred, return the current list of groups
+				return 0;
+			}
+		}
+		return 0;
 	}
 	
 	public static void deleteCrap(GrouperDB db, boolean oc, int qid, int eid, int cid, int uid, int uid2, int uid3) {
