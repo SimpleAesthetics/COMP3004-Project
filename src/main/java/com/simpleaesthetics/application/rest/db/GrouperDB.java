@@ -266,8 +266,10 @@ public class GrouperDB {
 		}
 		else {
 			//Get the data for the university
+			System.out.println("id: "+ id);
 			ArrayList<String> university = this.queryUniversity(id);
 			//Get list of courses already added
+			System.out.println("uni: "+university);
 			String existingcourses = university.get(1);
 			//Add the new list of courses
 			if(existingcourses != "") {
@@ -618,6 +620,7 @@ public class GrouperDB {
 					users.add(new Integer(results.getInt("id")).toString());
 					users.add(results.getString("firstname"));
 					users.add(results.getString("lastname"));
+					users.add(nickname);
 					users.add(results.getString("email"));
 					users.add(results.getString("answers"));
 					//Assume the first value is the only value and exit
@@ -650,6 +653,7 @@ public class GrouperDB {
 				
 				while(results.next()) {
 					//Add details
+					users.add(String.valueOf(id));
 					users.add(results.getString("firstname"));
 					users.add(results.getString("lastname"));
 					users.add(results.getString("nickname"));
@@ -824,7 +828,8 @@ public class GrouperDB {
 				}
 				clist += new Integer(id).toString();
 				//Update the university (if it fails, we don't care)
-				this.updateUniversity(this.getUniversityID(universities.get(0)),clist);
+				System.out.println("Uni Info: "+ universities);
+				this.updateUniversity(Integer.valueOf(universities.get(0)),clist);
 			}
 			catch(SQLException e) {
 				//Some error occurred

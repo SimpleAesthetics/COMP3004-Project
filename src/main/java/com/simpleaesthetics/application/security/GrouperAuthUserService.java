@@ -24,6 +24,7 @@ public class GrouperAuthUserService implements UserDetailsService {
 			return dbHelper.getUserInformation(username);
 			
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new UsernameNotFoundException("Failed to authorize username or password");
 		}
     }

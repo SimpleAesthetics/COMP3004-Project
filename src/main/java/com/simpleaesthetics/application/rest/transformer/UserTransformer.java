@@ -20,6 +20,7 @@ public class UserTransformer {
 	
 	public User transform(String nickname, ArrayList<String> userInfo) {
 		List<Integer> ansList = new ArrayList<Integer>();
+		System.out.println(userInfo);
 		StringTokenizer st = new StringTokenizer(userInfo.get(4), ",");
 		while(st.hasMoreTokens()) {
 			String token = st.nextToken();
@@ -32,6 +33,7 @@ public class UserTransformer {
 	}
 	
 	public UserInformation transformToUserDetails(String nickname, ArrayList<String> userInfo) {
+		System.out.println(userInfo);
 		return new UserInformation(
 				Integer.valueOf(userInfo.get(0)), 
 				userInfo.get(1),
@@ -41,14 +43,17 @@ public class UserTransformer {
 	}
 	
 	public User transform(ArrayList<String> userInfo) {
-		String[] ansArrStrs = userInfo.get(4).split(",");
-		Integer[] ansArrInt = new Integer[ansArrStrs.length];
-		
-		for (int i = 0; i < ansArrStrs.length; ++i) {
-			ansArrInt[i] = Integer.parseInt(ansArrStrs[i]);
+		List<Integer> ansList = new ArrayList<Integer>();
+		System.out.println(userInfo);
+		StringTokenizer st = new StringTokenizer(userInfo.get(4), ",");
+		while(st.hasMoreTokens()) {
+			String token = st.nextToken();
+			if (containsInts.matcher(token).find()) {
+				ansList.add(Integer.valueOf(token));
+			}
 		}
 		
-		return new User("", new ArrayList<Integer>(Arrays.asList(ansArrInt)));
+		return new User(userInfo.get(3), ansList);
 	}
 	
 	public ArrayList<User> transformUsers(ArrayList<ArrayList<String>> users) {

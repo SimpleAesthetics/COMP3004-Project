@@ -19,10 +19,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
     protected void configure(HttpSecurity http) throws Exception {
         System.out.println("CONFIGURING SECURITY");
-        http/*.authorizeRequests().antMatchers("POST", "/users").anonymous()
-        		.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-    			.and().csrf().disable()*/
-        	.authorizeRequests()
+        http.authorizeRequests()
         		.anyRequest().authenticated()
 	    			.and().httpBasic()
 	    			.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
