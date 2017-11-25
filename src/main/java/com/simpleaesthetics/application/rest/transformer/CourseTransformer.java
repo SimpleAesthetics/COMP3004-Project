@@ -24,9 +24,7 @@ public class CourseTransformer {
 	
 	public List<Course> transformToCourses(ArrayList<ArrayList<String>> coursesInfo) {
 		List<Course> courses = new ArrayList<Course>();
-		System.out.println(coursesInfo.size());
 		for (ArrayList<String> courseInfo : coursesInfo) {
-			System.out.println(courseInfo);
 			courses.add(this.transformToCourse(courseInfo));
 		}
 		

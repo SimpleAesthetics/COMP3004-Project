@@ -228,7 +228,17 @@ public class DatabaseHelper {
 	}
 	
 	private String getCourseName(String courseId) {
-		return db.queryCourse(Integer.valueOf(courseId)).get(0);
+		try {
+			return db.queryCourse(Integer.valueOf(courseId)).get(1);
+			
+		} catch (NumberFormatException e) {
+			logger.error("Failed to parse course Id: ["+ e.getMessage() +"]");
+			
+		} catch (IndexOutOfBoundsException e) {
+			logger.error("Failed to get course Id: ["+ e.getMessage() +"]");
+		}
+		
+		return "";
 	}
 	
 	public Course getSpecificCourse(String courseName, String universityName) {
@@ -238,13 +248,30 @@ public class DatabaseHelper {
 	
 	public List<Course> getCourses(String universityName) {
 		return courseTransformer.transformToCourses(
-				db.getCourses(this.getUniversityId(universityName)));
+				this.transferEnvIdsToNames(
+						db.getCourses(this.getUniversityId(universityName))));
+	}
+	
+	private ArrayList<ArrayList<String>> transferEnvIdsToNames(ArrayList<ArrayList<String>> envsInfo) {
+		for (ArrayList<String> envInfo : envsInfo) {
+			String envNames = "";
+			for (String envId : utilTransformer.transformCsvToStringList(envInfo.get(4))) {
+				try {
+					envNames += db.queryEnvironment(Integer.valueOf(envId.trim())).get(1) +", ";
+					
+				} catch (NumberFormatException e) {
+					logger.error("Could not parse environment Id ["+ envId +"]:"+ e.getMessage());
+				}
+			}
+			
+			envInfo.set(4, envNames);
+		}
+		
+		return envsInfo;
 	}
 	
 	public int getCourseId(String courseName, String universityName) {
-		logger.info("Course Name: "+ courseName);
-		
-		int courseId = db.getCourseID(courseName, getUniversityId(universityName));
+		int courseId = db.getCourseID(courseName, this.getUniversityId(universityName));
 		
 		if (courseId == -1) {
 			logger.warn("Failed to get course id for ["+ courseName +"]");
