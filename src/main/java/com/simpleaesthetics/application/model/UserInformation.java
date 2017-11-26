@@ -10,12 +10,12 @@ import com.simpleaesthetics.application.security.Role;
 
 public class UserInformation implements UserDetails {
 	
-	private int studentNumber;
-	private String firstName;
-	private String lastName;
-	private String username;
-	private String password;
-	private String email;
+	private int studentNumber = -1;
+	private String firstName = null;
+	private String lastName = null;
+	private String username = null;
+	private String password = null;
+	private String email = null;
 	
 	private List<Role> authorities;
     private boolean accountNonExpired = true;
@@ -24,11 +24,7 @@ public class UserInformation implements UserDetails {
     private boolean enabled = true;
 	
 	public UserInformation() {
-		this.studentNumber = -1;
-		this.firstName = null;
-		this.lastName = null;
-		this.username = null;
-		this.email = null;
+		// Does nothing
 	}
 	
 	public UserInformation(

@@ -1,9 +1,9 @@
 package com.simpleaesthetics.application.rest;
 
 import java.security.Principal;
-import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.websocket.api.BadPayloadException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.simpleaesthetics.application.model.User;
@@ -59,6 +58,8 @@ public class UserInfoResource {
 	public @ResponseBody ResponseEntity<UserInformation> getUsers(
 			@RequestBody(required=true) UserInformation userInfo) {
 		
+		this.verifyUserDetails(userInfo);
+		
 		int userId = db.insertUser(
 				userInfo.getStudentNumber(), 
 				userInfo.getFirstName(), 
@@ -87,6 +88,29 @@ public class UserInfoResource {
 	}
 	
 	
+	/** Helper Functions **/
+	
+	private void verifyUserDetails(UserInformation userInfo) {
+		if (userInfo.getStudentNumber() == -1) {
+			throw new BadCredentialsException("Student number is not set");
+			
+		} else if (userInfo.getFirstName() == null) {
+			throw new BadCredentialsException("Student first name is not set");
+			
+		} else if (userInfo.getLastName() == null) {
+			throw new BadCredentialsException("Student last name is not set");
+			
+		} else if (userInfo.getUsername() == null) {
+			throw new BadCredentialsException("Student username is not set");
+			
+		} else if (userInfo.getEmail() == null) {
+			throw new BadCredentialsException("Student email is not set");
+			
+		}  else if (userInfo.getPassword() == null) {
+			throw new BadCredentialsException("Student password is not set");
+			
+		}
+	}
 	
 	private void verifyUserIntegrity(Principal principal, String requestedUsername) {
 		if (!requestedUsername.equals(principal.getName())) {

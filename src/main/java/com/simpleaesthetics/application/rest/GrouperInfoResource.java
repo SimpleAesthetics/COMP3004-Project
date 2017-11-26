@@ -1,12 +1,15 @@
  package com.simpleaesthetics.application.rest;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -130,7 +133,6 @@ public class GrouperInfoResource {
 			@PathVariable(value="courseName",required=true) String courseName) {
 		
 		HttpStatus status = HttpStatus.OK;
-//		ArrayList<ArrayList<String>> envList = dbHelper.getEnvironments(uniName, courseName);
 		List<Environment> envList = dbHelper.getEnvironments(uniName, courseName);
 		
 		if (envList.isEmpty()) {
@@ -144,17 +146,18 @@ public class GrouperInfoResource {
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<Environment> getSpecificEnvironment(
+			Principal principal,
+			@RequestHeader(value="envPassword", required=false) String envPassword,
 			@RequestHeader(value="sortGroups", defaultValue="false") boolean toSort,
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName) {
 		
 		Environment environment = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
+		this.verifyEnvironmentAccess(principal, environment, envPassword);
 
 		if (toSort) {
-			System.out.println("Running sorting");
-			environment.setGroups(grouper.findAllGroups(environment.getUsers(), 4));
-			
+			environment.setGroups(grouper.findAllGroups(environment.getUsers(), 4));	
 		}
 		
 		return new ResponseEntity<Environment>(
@@ -172,12 +175,31 @@ public class GrouperInfoResource {
 		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 	
+	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}", method=RequestMethod.DELETE)
+	public @ResponseBody ResponseEntity<String> deleteSpecificEnvironment(
+			Principal principal,
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName,
+			@PathVariable(value="envName",required=true) String envName) {
+		
+		String owner = dbHelper.getSpecificEnvironment(envName, courseName, uniName).getOwner();
+		this.verifyUserIntegrity(principal, owner);
+		
+		dbHelper.deleteSpecificEnvironment(envName, courseName, uniName);
+		return new ResponseEntity<String>(HttpStatus.OK);
+	}
+	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addSpecificGroupToEnv(
+			Principal principal,
+			@RequestHeader(value="envPassword", required=false) String envPassword,
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName,
 			@RequestBody(required=true) Group group) {
+		
+		Environment env = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
+		this.verifyEnvironmentAccess(principal, env, envPassword);
 		
 		dbHelper.addSpecificGroupToEnv(group, envName, courseName, uniName);
 		return new ResponseEntity<>(HttpStatus.OK);
@@ -185,13 +207,66 @@ public class GrouperInfoResource {
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/users", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addSpecificUserToEnv(
+			Principal principal,
+			@RequestHeader(value="envPassword", required=false) String envPassword,
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName,
 			@RequestBody(required=true) User user) {
 		
+		Environment env = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
+		this.verifyEnvironmentAccessToAddUser(principal, env, envPassword);
+		
 		dbHelper.addSpecificUserToEnv(user, envName, courseName, uniName);
 		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	
+	/** Helper Functions **/
+	
+	private void verifyUserIntegrity(Principal principal, String requestedUsername) {
+		if (!requestedUsername.equals(principal.getName())) {
+			throw new BadCredentialsException("User is attempting to access another users information");
+		}
+	}
+	
+	private void verifyEnvironmentAccess(Principal principal, Environment env, String password) {
+		if (!env.isPrivateEnv()) {
+			System.out.println("We have a public env");
+			return;
+		}
+		
+		Set<User> users = env.getUsers();
+		String owner = env.getOwner();
+		
+		if (!users.contains(principal.getName()) && !owner.equals(principal.getName())) {
+			throw new BadCredentialsException("User is attempting to access a prohibited environment");
+		}
+		
+		if (principal.getName().equals(owner)) {
+			return;
+		}
+		
+		if (users.contains(principal.getName()) 
+				&& (password == null || !password.equals(env.getPassword()))) {
+			throw new BadCredentialsException("User is attempting to access a prohibited environment");
+		}
+	}
+	
+	private void verifyEnvironmentAccessToAddUser(Principal principal, Environment env, String password) {
+		if (!env.isPrivateEnv()) {
+			return;
+		}
+		
+		String owner = env.getOwner();
+		
+		if (principal.getName().equals(owner)) {
+			return;
+		}
+		
+		if (password == null || !password.equals(env.getPassword())) {
+			throw new BadCredentialsException("User is attempting to access a prohibited environment");
+		}
 	}
 
 	

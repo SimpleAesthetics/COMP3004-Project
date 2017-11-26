@@ -445,6 +445,13 @@ public class DatabaseHelper {
 		return env;
 	}
 	
+	public void deleteSpecificEnvironment(String envName, String courseName, String universityName) {
+		boolean isDeleted = db.deleteEnvironment(this.getEnvironmentId(envName, courseName, universityName));
+		if (!isDeleted) {
+			throw new DatabaseException("Could not delete environment ["+ envName +"]");
+		}
+	}
+	
 	private Set<User> transferAnswers(String envName, String owner, Set<User> userSet) {
 		for (User user : userSet) {
 			List<Integer> answersList = new ArrayList<Integer>();
@@ -629,26 +636,42 @@ public class DatabaseHelper {
 	}
 	
 	private void assertUserDoesNotExists(String username) {
-		if (!db.queryUser(username).isEmpty()) {
-			throw new DatabaseException("Assert failed: User already exists");
+		try {
+			if (!db.queryUser(username).isEmpty()) {
+				throw new DatabaseException("Assert failed: User already exists");
+			}
+		} catch (DatabaseException e) {
+			// Do nothing
 		}
 	}
 	
 	private void assertUniversityDoesNotExists(String universityName) {
-		if (!db.queryUniversity(this.getUniversityId(universityName)).isEmpty()) {
-			throw new DatabaseException("Assert failed: University already exists");
+		try {
+			if (!db.queryUniversity(this.getUniversityId(universityName)).isEmpty()) {
+				throw new DatabaseException("Assert failed: University already exists");
+			}
+		} catch (DatabaseException e) {
+			// Do nothing
 		}
 	}
 	
 	private void assertCourseDoesNotExists(String courseName, String universityName) {
-		if (!db.queryCourse(this.getCourseId(courseName, universityName)).isEmpty()) {
-			throw new DatabaseException("Assert failed: Course already exists for this University");
+		try {
+			if (!db.queryCourse(this.getCourseId(courseName, universityName)).isEmpty()) {
+				throw new DatabaseException("Assert failed: Course already exists for this University");
+			}
+		} catch (DatabaseException e) {
+			// Do nothing
 		}
 	}
 	
 	private void assertEnvironmentDoesNotExists(String environmentName, String courseName, String universityName) {
-		if (!db.queryEnvironment(this.getEnvironmentId(environmentName, courseName, universityName)).isEmpty()) {
-			throw new DatabaseException("Assert failed: Environment already exists for this Course");
+		try {
+			if (!db.queryEnvironment(this.getEnvironmentId(environmentName, courseName, universityName)).isEmpty()) {
+				throw new DatabaseException("Assert failed: Environment already exists for this Course");
+			}
+		} catch (DatabaseException e) {
+			// Do nothing
 		}
 	}
 	
