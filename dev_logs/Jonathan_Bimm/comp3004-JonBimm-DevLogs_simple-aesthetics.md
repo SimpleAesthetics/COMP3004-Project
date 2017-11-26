@@ -4,20 +4,21 @@
 
 The dev logs are based on our weekly cycle of work, which starts on a Wednesday, and continues until the following Wednesday. At the start of each cycle, we have a team meeting, where we discuss how things are going in the development process, and what work should be expected the following week.
 
-  The dev logs prescribe to the following format:
-  - Dev log title for the development week ending on a certain date
-  - Detailed description of what was expected for the week
-  - Items that were completed for that particular week, and whether the week was considered successful
-  - Comments on what was completed (if any), which include
-      - Unexpected incidents
-      - Setbacks
-  - Small and basic list of goals for the following week
+The dev logs prescribe to the following format:
+    - Dev log title for the development week ending on a certain date
+    - Detailed description of what was expected for the week
+    - Items that were completed for that particular week, and whether the week was considered successful
+    - Comments on what was completed (if any), which include
+        - Unexpected incidents
+        - Setbacks
+    - Small and basic list of goals for the following week
+
 
 ## Dev Log #1: Week of Sept 20th ##
 
 ### General description: ###
 
-This week was dedicated to focusing fine tuning the idea for the project, getting all of the team mates on the same page, and preparing the D1 Deliverable Presentation and documentation.
+This week was dedicated to fine tuning the idea for the project, getting all of the team mates on the same page, and preparing the D1 Deliverable Presentation and documentation.
 
 ### What was completed? ###
 
@@ -138,3 +139,109 @@ We were not prepared for our own goals due to midterm exams and assignments bein
 
 - Attempt to get some form of prototype working for the demo
 - Finish the pdf for the D2 requirements
+
+
+## Dev Log #7: Week of November 1st ##
+
+### General description: ###
+ 
+My main goal with my group for this week was to at minimum have some sort of demo working for our D2 Demo, and to complete the finish writing up the D2 document.
+
+### What was completed? ###
+
+This was largely successful, since we finished our D2 document and completed the main portion of our app. There was a large setback, however. The setback was our groups inability to get the server uploaded to the cloud resource for the purpose of successfully demoing all the back end functionality. 
+
+### Comments: ###
+
+The setback this week happened for two reasons. The first being that we did not have the database driver for the SQLite database, which cause the DB to be unable to function initially. The second issue is that we ran out of data for the cloud resource as a result of pushing our app so many times. We had to push the app continually to debug the first issue, and since we are using a free account, we did not know that Pivotal would lock us out at a certain data limit. 
+
+This setback was unfortunate because it prevented us from demoing the extent to which our work was completed in the prototype demo. 
+
+
+### Goals for next week: ###
+
+- Attempt to finish all outstanding work from the previous weeks
+- Make sure to upload the app to a cloud resource
+
+
+## Dev Log #8: Week of November 8th ##
+
+### General description: ###
+ 
+My main goal for this week was to finish all of the outstanding working that has been building up for several weeks before our prototype demo. This included finishing the sorting based on a deadline, refining existing REST calls required for our apps core functionality and adding in PUT and DELETE requests for deleting Environments. I also needed to load the app to the Pivotal cloud resource.
+
+### What was completed? ###
+
+There was quite a lot of progress made onto theses requirements during this week. I implemented the majority of the code for the automatic sorting and refined the existing REST calls. Refining existing REST calls involved moving the existing functionality from Database compatible data structures (structures like lists and maps) to those designed specifically for our app. I was unable to get to the required PUT and DELETE requests since it is taking and extended amount of time to refine and finish the other requests.
+
+Another major accomplishment was getting our app appropriately uploaded to the Cloud Resource. I ended up making another free account using our Groups email account, which allows to have several more free GBs of space to test and use our app. 
+
+### Comments: ###
+
+The main setbacks in refining existing REST calls revolve around creating the Database Helper class for updating the calls to a model used by the REST component and the front end. It is very time consuming to write code to appropriately parse and to test the DB Helper class. Additionally, as the Helper is being written, we Brad and I are also discovering issues with the DB that need to be rectified. For example, when adding a user, the database interface was not actually storing the user.
+
+The issues with the DB stuff is creating a large slow down in work progress, b/c I have to wait for Brad to adjust the issues, but he is working both in school and outside, so sometimes it takes him a long time to address the issues. 
+
+
+### Goals for next week: ###
+
+- Finish the remaining REST calls
+- Look into implementing more Design patterns 
+
+
+## Dev Log #9: Week of November 15th ##
+
+### General description: ###
+ 
+The main purpose of this week was to finally finish the last two types of required REST calls and to look into implementing more design patterns into our app.
+
+### What was completed? ###
+
+This week was successful for the most part in terms of identifying design patterns, but I was unable to touch the last few REST calls yet. I identified that the Database helper class is actually following the Adapter Design pattern, which gives an added incentive to finish it. I also helped to rationalize that our app is divided into Client-Server, Layered and REST architectures. This was a very productive week in terms of preparing for the Oral Exam.
+
+### Comments: ###
+
+There are continued slow downs as a result of the conversations between Brad and I.
+
+
+### Goals for next week: ###
+
+- Prepare for the oral exams by writing D3, creating diagrams, creating a presentation and having review sessions with out group
+
+
+## Dev Log #10: Week of November 22nd ##
+
+### General description: ###
+ 
+The main purpose of this week was to prepare for our oral exams.
+
+### What was completed? ###
+
+This week accomplished everything that was required. All the items for the oral exam were completed, including: writing the D3 Doc, creating the presentation for our oral exam and having multiple practice sessions with my group mates to prepare for questions that may be asked in the Oral exam.
+
+### Comments: ###
+
+There are no comments to make at this time.
+
+### Goals for next week: ###
+
+- Finish everything
+
+
+## Dev Log #11: Week of November 29th ##
+
+### General description: ###
+ 
+The main purpose this week is to finish the entire app and prepare for our D4 deliverable.
+
+### What was completed? ###
+
+
+
+### Comments: ###
+
+
+
+### Goals for next week: ###
+
+- No more development should be necessary
