@@ -27,13 +27,13 @@ public class GrouperAuthProvider implements AuthenticationProvider {
     	String username = authentication.getName();
         String password = (String) authentication.getCredentials();
         
-        UserInformation user = userService.loadUserByUsername(username);;
-    	
+        UserInformation user = userService.loadUserByUsername(username);
+        
         if (user == null || !user.getUsername().equalsIgnoreCase(username)) {
             throw new BadCredentialsException(ERROR_STRING);
         }
  
-        if (!password.equals("password")) {
+        if (password == null || !password.equals(user.getPassword())) {
             throw new BadCredentialsException(ERROR_STRING);
         }
         

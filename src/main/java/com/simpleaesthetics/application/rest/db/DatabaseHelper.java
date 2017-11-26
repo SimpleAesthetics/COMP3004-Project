@@ -20,6 +20,7 @@ import com.simpleaesthetics.application.model.User;
 import com.simpleaesthetics.application.model.UserInformation;
 import com.simpleaesthetics.application.rest.transformer.CourseTransformer;
 import com.simpleaesthetics.application.rest.transformer.EnvironmentTransformer;
+import com.simpleaesthetics.application.rest.transformer.GroupTransformer;
 import com.simpleaesthetics.application.rest.transformer.QuestionnaireTransformer;
 import com.simpleaesthetics.application.rest.transformer.UniversityTransformer;
 import com.simpleaesthetics.application.rest.transformer.UserTransformer;
@@ -48,6 +49,9 @@ public class DatabaseHelper {
 	
 	@Autowired
 	private EnvironmentTransformer envTransformer;
+	
+	@Autowired
+	private GroupTransformer groupTransformer;
 	
 	@Autowired
 	private CourseTransformer courseTransformer;
@@ -90,9 +94,9 @@ public class DatabaseHelper {
 		
 		int userId = 123456785;
 		for (String name: userNames) {
-			UserInformation user = 
-					new UserInformation(userId++,name,"lastName",name,name +".gmail.com");
-			addUser(user);
+//			UserInformation user = 
+//					new UserInformation(userId++,name,"lastName",name,name +".gmail.com");
+//			addUser(user);
 		}
 		
 		for (String universityName : uniNames) {
@@ -134,12 +138,14 @@ public class DatabaseHelper {
 	}
 	
 	public void addUser(UserInformation userInfo) {
+		this.assertUserDoesNotExists(userInfo.getUsername());
 		int userId = db.insertUser(
 				userInfo.getStudentNumber(), 
 				userInfo.getFirstName(), 
 				userInfo.getLastName(), 
 				userInfo.getUsername(),
-				userInfo.getEmail());
+				userInfo.getEmail(),
+				userInfo.getPassword());
 		
 		if (userId == -1) {
 			logger.error("Failed to insert user ["+ userInfo.toString() +"]");
@@ -160,7 +166,7 @@ public class DatabaseHelper {
 	}
 	
 	public UserInformation getUserInformation(String nickname) {	
-		return userTransformer.transformToUserDetails(nickname, db.queryUser(nickname));
+		return userTransformer.transformToUserDetails(nickname, db.queryUser(nickname), db.getPassword(nickname));
 	}
 	
 	public ArrayList<User> getUsers() {	
@@ -204,6 +210,8 @@ public class DatabaseHelper {
 	}
 	
 	public boolean addUniversity(String name) {
+		this.assertUniversityDoesNotExists(name);
+		
 		if (db.insertUniversity(name) == -1) {
 			logger.warn("Could not insert [" + name +"]");
 			return false;
@@ -239,6 +247,7 @@ public class DatabaseHelper {
 	}
 	
 	public boolean addCourse(String courseName, String universityName) {
+		this.assertCourseDoesNotExists(courseName, universityName);
 		return (db.insertCourse(courseName, -1, this.getUniversityId(universityName)) == -1) 
 				? false 
 				: true;
@@ -335,11 +344,8 @@ public class DatabaseHelper {
 		return courseInfo;
 	}
 	
-	public boolean addEnvironment(Environment env, String courseName, String uniName) {
-		logger.info("Attempting to add environment [" + env.getName() +"]");
-		logger.info("using unversity [" + uniName +"] and course ["+ courseName +"]");
-		
-		boolean isEnvAdded = true;
+	public void addEnvironment(Environment env, String courseName, String uniName) {
+		this.assertEnvironmentDoesNotExists(env.getName(), courseName, uniName);
 		int insertedEnvId = db.insertEnvironment(
 				env.getName(),
 				db.getUserID(env.getOwner().toLowerCase()),
@@ -353,8 +359,6 @@ public class DatabaseHelper {
 				-1);
 		
 		if (insertedEnvId == -1) {
-			logger.error("Could not add new environment ["+ env.getName() +"]");
-			isEnvAdded = false;
 			throw new DatabaseException("Could not add new environment ["+ env.getName() +"]");
 			
 		} else {
@@ -364,8 +368,6 @@ public class DatabaseHelper {
 						questionnaireTransformer.transformForDbArray(env.getQuestionnaire()));
 			
 			if (insertedQuestionnnaire == -1) {
-				logger.error("Could not add new questionnaire to env ["+ env.getName() +"]");
-				isEnvAdded = false;
 				throw new DatabaseException("Could not add new questionnaire to env ["+ env.getName() +"]");
 				
 			} else {
@@ -374,14 +376,10 @@ public class DatabaseHelper {
 						insertedQuestionnnaire);
 				
 				if (!successfulUpdate) {
-					logger.error("Could not update questionnaire id for env ["+ env.getName() +"]");
-					isEnvAdded = false;
 					throw new DatabaseException("Could not update questionnaire id for env ["+ env.getName() +"]");
 				}
 			}
 		}
-		
-		return isEnvAdded;
 	}
 	
 	public List<Environment> getEnvironments(String universityName, String courseName) {
@@ -415,6 +413,7 @@ public class DatabaseHelper {
 	public Environment getSpecificEnvironment(String envName, String courseName, String universityName) {
 		ArrayList<String> envInfo = this.getEnvironmentInfo(envName, courseName, universityName);
 		Set<User> userSet = userTransformer.transformCsvToUserHashSet(envInfo.get(7));
+//		Map<String, Group> groupMap = groupTransformer.transformCsvToGroupMap(envInfo.get(8));
 		
 		for (User user : userSet) {
 			List<Integer> answersList = new ArrayList<Integer>();
@@ -430,6 +429,13 @@ public class DatabaseHelper {
 			
 			user.setQuestionAnswers(answersList);
 		}
+		
+//		ArrayList<ArrayList<String>> groupsInfo = 
+//				db.getGroups(db.getGroupID(this.getEnvironmentId(envName, courseName, universityName)));
+		
+//		for (ArrayList<String> groupInfo : groupsInfo) {
+//			groupMap.get(groupInfo.get(1));
+//		}
 		
 		Environment env = envTransformer.transformToEnvironment(
 				envInfo,
@@ -489,11 +495,10 @@ public class DatabaseHelper {
 				db.insertGroup(
 					this.getEnvironmentId(envName, courseName, uniName), 
 					0, 
-					Integer.valueOf(db.queryUser(group.getTaName()).get(0)),
+					-1,
 					this.getCsvFromUserSet(group.getGroupMembers()));
 		
 		if (insertedGroup == -1) {
-			logger.error("Could not add new group ["+ group.getName() +"]");
 			throw new DatabaseException("Could not add new group ["+ group.getName() +"]");
 			
 		}
@@ -581,6 +586,7 @@ public class DatabaseHelper {
 	}
 	
 	public void addSpecificUserToEnv(User user, String envName, String courseName, String uniName) {
+		this.assertUserExists(user.getNickname());
 		int envId = this.getEnvironmentId(envName, courseName, uniName);
 		boolean isSuccessful = db.updateEnvironment(
 				envId,
@@ -613,6 +619,36 @@ public class DatabaseHelper {
 //				logger.error("Could not update questionnaire for ["+ user.getNickname() +"]");
 				throw new DatabaseException("Could not update questionnaire for ["+ user.getNickname() +"]");
 			}
+		}
+	}
+	
+	private void assertUserExists(String username) {
+		if (db.queryUser(username).size() < 6) {
+			throw new DatabaseException("Assert failed: Could not find expected user");
+		}
+	}
+	
+	private void assertUserDoesNotExists(String username) {
+		if (!db.queryUser(username).isEmpty()) {
+			throw new DatabaseException("Assert failed: User already exists");
+		}
+	}
+	
+	private void assertUniversityDoesNotExists(String universityName) {
+		if (!db.queryUniversity(this.getUniversityId(universityName)).isEmpty()) {
+			throw new DatabaseException("Assert failed: University already exists");
+		}
+	}
+	
+	private void assertCourseDoesNotExists(String courseName, String universityName) {
+		if (!db.queryCourse(this.getCourseId(courseName, universityName)).isEmpty()) {
+			throw new DatabaseException("Assert failed: Course already exists for this University");
+		}
+	}
+	
+	private void assertEnvironmentDoesNotExists(String environmentName, String courseName, String universityName) {
+		if (!db.queryEnvironment(this.getEnvironmentId(environmentName, courseName, universityName)).isEmpty()) {
+			throw new DatabaseException("Assert failed: Environment already exists for this Course");
 		}
 	}
 	

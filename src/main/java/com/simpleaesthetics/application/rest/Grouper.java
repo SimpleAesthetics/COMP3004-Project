@@ -22,7 +22,8 @@ public class Grouper {
 		
 		while (users.size() > 0) {
 			User currUser = users.iterator().next();
-			users.remove(currUser);
+			if (currUser.getQuestionAnswers().isEmpty()) continue;
+			
 			Group currGroup = new Group(findSingleGroup(currUser, users, 4));
 			users.removeAll(currGroup.getGroupMembers());
 			sortedGroups.add(currGroup);
@@ -32,12 +33,11 @@ public class Grouper {
 	}
 	
 	public Set<User> findSingleGroup(User toMatch, Set<User> users, Integer maxMatches) {
-		Set<User> matches = new HashSet<>();
-		Iterator<User> userIter = users.iterator();
 		List<Integer> currAns = toMatch.getQuestionAnswers();
-		matches.add(toMatch);
+		Map<Integer, Queue<User>> sortingMap = this.createSortingMap(currAns, users.iterator());
 		
-		Map<Integer, Queue<User>> sortingMap = createSortingMap(currAns, userIter);
+		Set<User> matches = new HashSet<>();
+		matches.add(toMatch);
 		
 		Integer i = currAns.size();
 		while (i >= 0) {
@@ -52,7 +52,7 @@ public class Grouper {
 				}
 			}
 			
-			i--;
+			--i;
 		}
 		
 		return matches;

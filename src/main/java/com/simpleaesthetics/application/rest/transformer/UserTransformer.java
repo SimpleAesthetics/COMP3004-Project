@@ -32,14 +32,15 @@ public class UserTransformer {
 		return new User(nickname, ansList);
 	}
 	
-	public UserInformation transformToUserDetails(String nickname, ArrayList<String> userInfo) {
+	public UserInformation transformToUserDetails(String nickname, ArrayList<String> userInfo, String password) {
 		System.out.println(userInfo);
 		return new UserInformation(
 				Integer.valueOf(userInfo.get(0)), 
 				userInfo.get(1),
 				userInfo.get(2),
 				nickname,
-				userInfo.get(3));
+				userInfo.get(3),
+				password);
 	}
 	
 	public User transform(ArrayList<String> userInfo) {

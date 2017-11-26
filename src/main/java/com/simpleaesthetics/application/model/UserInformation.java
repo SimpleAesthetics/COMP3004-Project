@@ -36,15 +36,15 @@ public class UserInformation implements UserDetails {
 			String firstName, 
 			String lastName, 
 			String username,  
-			String email
-			/*String password*/) {
+			String email,
+			String password) {
 		
 		this.studentNumber = studentNumber;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.username = username;
 		this.email = email;
-//		this.password = password;
+		this.password = password;
 	}
 
 	public int getStudentNumber() {

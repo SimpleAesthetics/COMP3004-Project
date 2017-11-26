@@ -1240,6 +1240,7 @@ public class GrouperDB {
 				return true;
 			}
 			catch(SQLException e) {
+				logger.error("Failed to update environment; CAUSE: ["+ e.getMessage() +"]");
 				return false;
 			}
 		}
@@ -1809,9 +1810,12 @@ public class GrouperDB {
 	//Output: ID of the newly added group, or -1 on failure
 	public int insertGroup(int env, int finalized, int ta, String students) {
 		//Basic sanity check
-		if(this.queryUser(ta).isEmpty() == true || this.queryEnvironment(env).isEmpty() == true || finalized < 0 || finalized > 1) {
+		if((this.queryUser(ta).isEmpty() == true && ta != -1) 
+				|| this.queryEnvironment(env).isEmpty() == true || finalized == 0 || finalized == 1) {
 			return -1;
 		}
+		
+		System.out.println("Finished basic sanity check");
 		//Set base ID number
 		int id = -1;
 		if(opened != false && dbconn != null) {
@@ -1827,6 +1831,7 @@ public class GrouperDB {
 				psql.setInt(4,env);
 				//Execute statement
 				psql.executeUpdate();
+				System.out.println("Finished update");
 				//Get ID
 				id = this.getGroupID(env);
 				//Get the containing environment
@@ -1838,8 +1843,11 @@ public class GrouperDB {
 				envs.set(7,envs.get(3) + new Integer(id).toString());
 				this.updateEnvironment(env,envs.get(6),envs.get(7));
 				
+				System.out.println("Finished updating env");
+				
 			}
 			catch(SQLException e) {
+				logger.error("Could not insert group; CAUSE: ["+ e.getMessage() +"]");
 				//Some error occurred
 				return -1;
 			}
@@ -1849,7 +1857,7 @@ public class GrouperDB {
 	}
 	
 	//Helper function for getting the ID of the most recently added group
-	private int getGroupID(int env) {
+	public int getGroupID(int env) {
 		if(opened != false && dbconn != null) {
 			//Write SQL
 			String sql = "SELECT ID FROM Groups WHERE environmentid = ? ORDER BY id DESC LIMIT 1";

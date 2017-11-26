@@ -8,6 +8,13 @@ public class Group {
 	private String meetingLocation;
 	private String taName;
 	private Set<User> groupMembers;
+	private Set<String> groupNames;
+	
+	public Group() {
+		this.name = null;
+		this.meetingLocation = null;
+		this.groupMembers = null;
+	}
 	
 	public Group(String name, String meetingLocation, Set<User> groupMembers) {
 		this.name = name;
@@ -18,7 +25,15 @@ public class Group {
 	public Group(Set<User> groupMembers) {
 		this.name = null;
 		this.meetingLocation = null;
+		this.groupMembers = null;
 		this.groupMembers = groupMembers;
+	}
+	
+	public Group(String name) {
+		this.name = name;
+		this.meetingLocation = null;
+		this.groupMembers = null;
+		this.groupMembers = null;
 	}
 
 	public String getName() {
@@ -51,6 +66,14 @@ public class Group {
 
 	public void setTaName(String taName) {
 		this.taName = taName;
+	}
+	
+	public Set<String> getGroupNames() {
+		return groupNames;
+	}
+
+	public void setGroupNames(Set<String> groupNames) {
+		this.groupNames = groupNames;
 	}
 
 	@Override

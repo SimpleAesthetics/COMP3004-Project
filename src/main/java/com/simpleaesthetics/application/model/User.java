@@ -45,7 +45,6 @@ public class User {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((nickname == null) ? 0 : nickname.hashCode());
-		result = prime * result + ((questionAnswers == null) ? 0 : questionAnswers.hashCode());
 		return result;
 	}
 
@@ -62,11 +61,6 @@ public class User {
 			if (other.nickname != null)
 				return false;
 		} else if (!nickname.equals(other.nickname))
-			return false;
-		if (questionAnswers == null) {
-			if (other.questionAnswers != null)
-				return false;
-		} else if (!questionAnswers.equals(other.questionAnswers))
 			return false;
 		return true;
 	}

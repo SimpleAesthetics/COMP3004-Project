@@ -150,41 +150,12 @@ public class GrouperInfoResource {
 			@PathVariable(value="envName",required=true) String envName) {
 		
 		Environment environment = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
-//		ArrayList<String> envInfo = dbHelper.getEnvironmentInfo(envName, courseName, uniName);
-//		System.out.println("envInfo: "+ envInfo);
-//		Set<User> userSet = userTransformer.transformCsvToUserHashSet(envInfo.get(7));
-//		
-//		for (User user : userSet) {
-//			System.out.println(user);
-//			List<Integer> answersList = new ArrayList<Integer>();
-//			HashMap<String, List<String>> questionnaire = 
-//					dbHelper.getUserQuestionnaireAns(
-//						envName, 
-//						envInfo.get(2), 
-//						Integer.valueOf(user.getNickname()));
-//				
-//			user.setNickname(dbHelper.getUserNickname(Integer.valueOf(user.getNickname())));
-//			
-//			for (List<String> answers : questionnaire.values()) {
-//				answersList.addAll(utilsTransformer.tranformToIntegerList(answers));
-//			}
-//			
-//			user.setQuestionAnswers(answersList);
-//		}
-//		
-//		System.out.println(userSet);
-//		
-//		Environment env = envTransformer.transform(
-//				envInfo,
-//				dbHelper.getQuestionnaire(envName, courseName, uniName),
-//				userSet);
-//		
-//		if (toSort) {
-//			env.setGroups(grouper.findAllGroups(env.getUsers(), 4));
-//			
-//		} else {
-//			
-//		}
+
+		if (toSort) {
+			System.out.println("Running sorting");
+			environment.setGroups(grouper.findAllGroups(environment.getUsers(), 4));
+			
+		}
 		
 		return new ResponseEntity<Environment>(
 				environment,
@@ -197,15 +168,8 @@ public class GrouperInfoResource {
 			@PathVariable(value="courseName",required=true) String courseName,
 			@RequestBody(required=true) Environment env) {
 		
-		HttpStatus status = HttpStatus.OK;
-		boolean isEnvInserted = dbHelper.addEnvironment(env, courseName, uniName);
-		
-		if (!isEnvInserted) {
-			logger.error("Could not add new environment ["+ env.getName() +"]");
-			status = HttpStatus.BAD_REQUEST;
-		}
-		
-		return new ResponseEntity<String>(status);
+		dbHelper.addEnvironment(env, courseName, uniName);
+		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
