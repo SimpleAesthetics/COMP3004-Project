@@ -270,7 +270,7 @@ public class GrouperDB {
 			ArrayList<String> university = this.queryUniversity(id);
 			//Get list of courses already added
 			System.out.println("uni: "+university);
-			String existingcourses = university.get(1);
+			String existingcourses = university.get(2);
 			//Add the new list of courses
 			if(existingcourses != "") {
 				existingcourses += ", ";
@@ -850,7 +850,7 @@ public class GrouperDB {
 		else {
 			//Get existing environment list
 			ArrayList<String> course = this.queryCourse(id);
-			String elist = course.get(3);
+			String elist = course.get(4);
 			//Add new environment list to existing list
 			if(elist != "") {
 				elist += ", ";

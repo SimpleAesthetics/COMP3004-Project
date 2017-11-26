@@ -168,7 +168,23 @@ public class DatabaseHelper {
 	}
 	
 	public University getSpecificUniversity(String universityName) {
-		return uniTransformer.transformToUniversity(this.getUniversityInfo(universityName));
+		return uniTransformer.transformToUniversity(
+				this.transferCourseIdsToNames(this.getUniversityInfo(universityName)));
+	}
+	
+	private ArrayList<String> transferCourseIdsToNames(ArrayList<String> uniInfo) {
+		String courseNames = "";
+		for (String courseId : utilTransformer.transformCsvToStringList(uniInfo.get(2))) {
+			try {
+				courseNames += db.queryCourse(Integer.valueOf(courseId.trim())).get(1) +", ";
+				
+			} catch (NumberFormatException e) {
+				logger.error("Could not parse course Id ["+ courseId +"]:"+ e.getMessage());
+			}
+		}
+		
+		uniInfo.set(2, courseNames);			
+		return uniInfo;
 	}
 	
 	public List<University> getUniversities() {
@@ -244,16 +260,33 @@ public class DatabaseHelper {
 	
 	public Course getSpecificCourse(String courseName, String universityName) {
 		return courseTransformer.transformToCourse(
-				this.getCourseInfo(courseName, universityName));
+				this.transferEnvIdsToNames(this.getCourseInfo(courseName, universityName)));
+	}
+	
+	private ArrayList<String> transferEnvIdsToNames(ArrayList<String> envInfo) {
+		String envNames = "";
+		System.out.println(envInfo);
+		for (String envId : utilTransformer.transformCsvToStringList(envInfo.get(4))) {
+			System.out.println(envId);
+			try {
+				envNames += db.queryEnvironment(Integer.valueOf(envId.trim())).get(1) +", ";
+				
+			} catch (NumberFormatException e) {
+				logger.error("Could not parse environment Id ["+ envId +"]:"+ e.getMessage());
+			}
+		}
+		
+		envInfo.set(4, envNames);			
+		return envInfo;
 	}
 	
 	public List<Course> getCourses(String universityName) {
 		return courseTransformer.transformToCourses(
-				this.transferEnvIdsToNames(
+				this.transferEnvsIdsToNames(
 						db.getCourses(this.getUniversityId(universityName))));
 	}
 	
-	private ArrayList<ArrayList<String>> transferEnvIdsToNames(ArrayList<ArrayList<String>> envsInfo) {
+	private ArrayList<ArrayList<String>> transferEnvsIdsToNames(ArrayList<ArrayList<String>> envsInfo) {
 		for (ArrayList<String> envInfo : envsInfo) {
 			String envNames = "";
 			for (String envId : utilTransformer.transformCsvToStringList(envInfo.get(4))) {
