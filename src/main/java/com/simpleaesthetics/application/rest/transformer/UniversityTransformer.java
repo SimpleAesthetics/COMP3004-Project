@@ -19,13 +19,10 @@ public class UniversityTransformer {
 				new ArrayList<String>(Arrays.asList(universityInfo.get(2).split(","))));
 	}
 	
-	public List<University> transformToUniversities(
-			ArrayList<ArrayList<String>> toTransform) {
-		
-		List<University> transformed = new ArrayList<>(); 
-		
+	public List<University> transformToUniversities(ArrayList<ArrayList<String>> toTransform) {
+		List<University> transformed = new ArrayList<>();		
 		for (ArrayList<String> universityInfo : toTransform) {
-			transformed.add(transformToUniversity(universityInfo));
+			transformed.add(this.transformToUniversity(universityInfo));
 		}
 		
 		return transformed;

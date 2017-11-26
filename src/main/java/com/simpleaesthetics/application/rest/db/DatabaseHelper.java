@@ -92,7 +92,6 @@ public class DatabaseHelper {
 		for (String name: userNames) {
 			UserInformation user = 
 					new UserInformation(userId++,name,"lastName",name,name +".gmail.com");
-			System.out.println(user);
 			addUser(user);
 		}
 		
@@ -212,7 +211,9 @@ public class DatabaseHelper {
 	}
 	
 	private ArrayList<String> getUniversityInfo(String universityName) {
-		ArrayList<String> universityInfo = db.queryUniversity(getUniversityId(universityName));
+		ArrayList<String> universityInfo = db.queryUniversity(this.getUniversityId(universityName));
+		
+		System.out.println("info: " + universityInfo);
 		
 		if (universityInfo.size() == 0) {
 			logger.warn("No university was returned for ["+ universityName +"]");
@@ -222,10 +223,6 @@ public class DatabaseHelper {
 	}
 	
 	public boolean addCourse(String courseName, String universityName) {
-		System.out.println(courseName);
-		System.out.println(universityName);
-		System.out.println(this.getUniversityId(universityName));
-		
 		return (db.insertCourse(courseName, -1, this.getUniversityId(universityName)) == -1) 
 				? false 
 				: true;
@@ -333,14 +330,6 @@ public class DatabaseHelper {
 						insertedEnvId, 
 						questionnaireTransformer.transformForDbArray(env.getQuestionnaire()));
 			
-			System.out.println("--Questionnaire--");
-			Map<String, String[]> questionnnaire = questionnaireTransformer.transformForDbArray(env.getQuestionnaire());
-			for (String questions : questionnnaire.keySet()) {
-				System.out.println("---");
-				System.out.println(questions);
-				System.out.println(Arrays.toString(questionnnaire.get(questions)));
-			}
-			
 			if (insertedQuestionnnaire == -1) {
 				logger.error("Could not add new questionnaire to env ["+ env.getName() +"]");
 				isEnvAdded = false;
@@ -363,7 +352,6 @@ public class DatabaseHelper {
 	}
 	
 	public List<Environment> getEnvironments(String universityName, String courseName) {
-		System.out.println("Failed");
 		ArrayList<ArrayList<String>> envInfos = 
 				db.getEnvironments(
 						this.getCourseId(courseName, universityName));
@@ -375,20 +363,11 @@ public class DatabaseHelper {
 			userSet = this.transferAnswers(envInfo.get(0), envInfo.get(2), userSet);
 			Map<String, String[]> questionnaire = this.getQuestionnaire(envInfo.get(1), courseName, universityName);
 			
-//			System.out.println("--Questionnaire--");
-//			for (String question : questionnaire.keySet()) {
-//				System.out.println("---");
-//				System.out.println(question);
-//				System.out.println(questionnaire.get(question));
-//			}
-			
 			Environment env = 
 					envTransformer.transformToEnvironment(
 						envInfo, 
 						questionnaire, 
 						userSet);
-			
-			System.out.println("env: "+ env.toString());
 			
 			envs.add(env);
 		}
@@ -403,18 +382,14 @@ public class DatabaseHelper {
 	public Environment getSpecificEnvironment(String envName, String courseName, String universityName) {
 		ArrayList<String> envInfo = this.getEnvironmentInfo(envName, courseName, universityName);
 		Set<User> userSet = userTransformer.transformCsvToUserHashSet(envInfo.get(7));
-		System.out.println(userSet);
 		
 		for (User user : userSet) {
-			System.out.println("Curr user: "+ user.toString());
 			List<Integer> answersList = new ArrayList<Integer>();
 			HashMap<String, List<String>> questionnaire = 
 					this.getUserQuestionnaireAns(
 						envName, 
 						envInfo.get(2), 
 						user.getNickname());
-			
-			System.out.println("User questionnaire ans: "+ questionnaire.toString());
 			
 			for (List<String> answers : questionnaire.values()) {
 				answersList.addAll(utilTransformer.tranformToIntegerList(answers));
@@ -433,15 +408,12 @@ public class DatabaseHelper {
 	
 	private Set<User> transferAnswers(String envName, String owner, Set<User> userSet) {
 		for (User user : userSet) {
-			System.out.println("Curr user: "+ user.toString());
 			List<Integer> answersList = new ArrayList<Integer>();
 			HashMap<String, List<String>> questionnaire = 
 					this.getUserQuestionnaireAns(
 						envName, 
 						owner, 
 						user.getNickname());
-			
-			System.out.println("User questionnaire ans: "+ questionnaire.toString());
 			
 			for (List<String> answers : questionnaire.values()) {
 				answersList.addAll(utilTransformer.tranformToIntegerList(answers));
@@ -506,13 +478,6 @@ public class DatabaseHelper {
 			String envOwner,  
 			HashMap<String,String> ans) {
 		
-		System.out.println(userNickname);
-		System.out.println(envName);
-		System.out.println(envOwner);
-		System.out.println(ans);
-		System.out.println(db.queryUser(userNickname.toLowerCase()));
-		System.out.println("-----------");
-		
 		try {
 			if (db.answerQuestionnaire(
 					db.getEnvID(envName,db.getUserID(envOwner)),
@@ -575,17 +540,6 @@ public class DatabaseHelper {
 								courseName, 
 								universityName));
 		
-		System.out.println("--Questionnaire--");
-		System.out.println(this.getEnvironmentId(
-				envName, 
-				courseName, 
-				universityName));
-		for (String question : questionnaire.keySet()) {
-			System.out.println("---");
-			System.out.println(question);
-			System.out.println(questionnaire.get(question));
-		}
-		
 		if (questionnaire.isEmpty()) {
 			logger.warn("No questionnaire items were returned for ["+ envName +"]");
 		}
@@ -605,17 +559,13 @@ public class DatabaseHelper {
 			
 		} else {
 			Set<String> questions = this.getQuestionnaire(envName, courseName, uniName).keySet();
-			System.out.println("q: "+ questions);
 			List<String> answersStringList = utilTransformer.tranformToStringList(user.getQuestionAnswers());
 			String[] ansStringArray = answersStringList.toArray(new String[answersStringList.size()]);
 			HashMap<String, String> transformedAns = new HashMap<String, String>();
 			String envOwner = this.getEnvironmentInfo(envName, courseName, uniName).get(2);
 			
-			System.out.println("Ans string array: "+ Arrays.toString(ansStringArray));
-			
 			int i = 0;
 			for (String question : questions) {
-				System.out.println(question);
 				transformedAns.put(question, ansStringArray[i]);
 				++i;
 			}

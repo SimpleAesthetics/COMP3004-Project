@@ -336,6 +336,7 @@ public class GrouperDB {
 					courses.add(String.valueOf(id));
 					courses.add(results.getString("Name"));
 					courses.add(results.getString("Courses"));
+					System.out.print("Courses: "+ courses);
 					//Exit, since we only want the first result; assume first result is the one we want
 					break;
 				}
