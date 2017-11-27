@@ -42,13 +42,15 @@ CREATE TABLE "Environments" (
 	`Students`	TEXT,
 	`Groups`	TEXT,
 	`CloseDate`	TEXT NOT NULL,
-	`MaxGroupSize`	INTEGER NOT NULL DEFAULT 0 CHECK(MaxGroupSize > 0),
+	`MaxGroupSize`	INTEGER NOT NULL DEFAULT 2 CHECK(MaxGroupSize > 0),
 	`Questionnaire`	INTEGER DEFAULT -1,
 	`Password`	TEXT,
 	`Private`	INTEGER NOT NULL DEFAULT 0 CHECK(Private = 0 or Private = 1),
 	`Name`	TEXT NOT NULL,
+	`Owner`	INTEGER NOT NULL,
 	FOREIGN KEY(`Course`) REFERENCES `Courses`(`ID`) ON DELETE RESTRICT,
-	FOREIGN KEY(`Questionnaire`) REFERENCES `Questionnaire`(`ID`)
+	FOREIGN KEY(`Questionnaire`) REFERENCES `Questionnaire`(`ID`),
+	FOREIGN KEY(`Owner`) REFERENCES `Users`(`ID`) ON DELETE CASCADE
 );
 CREATE TABLE "Courses" (
 	`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
@@ -59,12 +61,13 @@ CREATE TABLE "Courses" (
 	FOREIGN KEY(`Instructor`) REFERENCES `Users`(`ID`) ON DELETE RESTRICT,
 	FOREIGN KEY(`University`) REFERENCES `Universities`(`ID`) ON DELETE RESTRICT
 );
-CREATE TABLE `Answers` (
-	`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-	`Student`	INTEGER NOT NULL,
+CREATE TABLE "Answers" (
 	`Questionnaire`	INTEGER NOT NULL,
-	`Response`	TEXT NOT NULL,
-	FOREIGN KEY(`Student`) REFERENCES Users(ID) on delete cascade,
-	FOREIGN KEY(`Questionnaire`) REFERENCES Questionnaires(ID) on delete cascade
+	`Student`	INTEGER NOT NULL,
+	`Questions`	TEXT NOT NULL,
+	`Answers`	TEXT NOT NULL,
+	PRIMARY KEY(`Questionnaire`,`Student`),
+	FOREIGN KEY(`Questionnaire`) REFERENCES Questionnaires(ID) ON DELETE CASCADE,
+	FOREIGN KEY(`Student`) REFERENCES `Users`(`ID`) on delete cascade
 );
 COMMIT;
