@@ -96,6 +96,7 @@ public class GrouperDB {
 				"CREATE TABLE IF NOT EXISTS Users (" + 
 				"	`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
 				"	`FirstName`	TEXT NOT NULL," + 
+				"   `Password` TEXT NOT NULL," +
 				"	`LastName`	TEXT NOT NULL," + 
 				"	`Nickname`	TEXT NOT NULL UNIQUE," + 
 				"	`Email`	TEXT," + 
@@ -115,7 +116,7 @@ public class GrouperDB {
 				");" + 
 				"CREATE TABLE IF NOT EXISTS `MatchCache` (" + 
 				"	`UserID`	INTEGER NOT NULL," + 
-				"	`MatchedTo`	INTEGER NOT NULL," + 
+				"	`MatchedTo`	INTEGER NOT NULL," +  
 				"	`Percentage`	INTEGER NOT NULL DEFAULT 0 CHECK(Percentage >= 0 and Percentage <= 100)," + 
 				"	PRIMARY KEY(`UserID`,`MatchedTo`)," + 
 				"	FOREIGN KEY(`UserID`) REFERENCES Users(ID) ON DELETE CASCADE," + 
