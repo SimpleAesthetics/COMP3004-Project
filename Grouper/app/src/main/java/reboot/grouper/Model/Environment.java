@@ -13,7 +13,7 @@ import java.util.Set;
 import reboot.grouper.Model.Group;
 
 public class Environment {
-	
+
 	private String owner;
 	private String name;
 	private Boolean privateEnv;
@@ -21,11 +21,10 @@ public class Environment {
 	private Integer maxGroupSize;
 	private String deadlineStr;
 	private Date deadlineDate;
-	private SimpleDateFormat dateFormat;
 	private Set<Group> groups;
 	private Set<User> users;
 	private Map<String, List<String>> questionnaire;
-	
+
 	public Environment() {
 		this.owner = null;
 		this.name = null;
@@ -36,15 +35,15 @@ public class Environment {
 		this.users = new HashSet<User>();
 		this.questionnaire = new HashMap<>();
 		this.deadlineDate = null;
-		this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		//this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	}
-	
+
 	public Environment(
 			String name,
-			boolean privateEnv, 
-			String password, 
+			boolean privateEnv,
+			String password,
 			Integer maxGroupSize) {
-		
+
 		this.owner = null;
 		this.name = name;
 		this.privateEnv = privateEnv;
@@ -54,9 +53,9 @@ public class Environment {
 		this.users = new HashSet<User>();
 		this.questionnaire = new HashMap<>();
 		this.deadlineDate = null;
-		this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		//this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	}
-	
+
 	public String getOwner() {
 		return owner;
 	}
@@ -99,51 +98,51 @@ public class Environment {
 	public void setUsers(Set<User> users) {
 		this.users = users;
 	}
-	
+
 	public boolean addQuestionAndAnswers(String question, String... answers) {
 		ArrayList<String> answersList = new ArrayList<String>(Arrays.asList(answers));
-		
+
 		if (answersList.size() <= 4) {
 			questionnaire.put(question, answersList);
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	public void setQuestionnaire(Map<String, List<String>> questionnaire) {
 		this.questionnaire = questionnaire;
 	}
-	
+
 	public Map<String, List<String>> getQuestionnaire() {
 		return this.questionnaire;
 	}
-	
+
 	public boolean setDeadline(String day, String month, String year) {
 		try {
-			this.deadlineDate = dateFormat.parse(day+"/"+month+"/"+year);
-			this.deadlineStr = this.dateFormat.format(this.deadlineDate);
-			
+			this.deadlineDate = new SimpleDateFormat("dd/MM/yyyy").parse(day+"/"+month+"/"+year);
+			this.deadlineStr = (new SimpleDateFormat("dd/MM/yyyy")).format(this.deadlineDate);
+
 		} catch (ParseException e) {
 			return false;
 		}
-		
+
 		return true;
 	}
-	
+
 	public boolean afterDate(String day, String month, String year) {
 		boolean isAfterDate = false;
 		try {
-			Date currDate = dateFormat.parse(day+"/"+month+"/"+year);
+			Date currDate = new SimpleDateFormat("dd/MM/yyyy").parse(day+"/"+month+"/"+year);
 			isAfterDate = this.deadlineDate.after(currDate);
-			
+
 		} catch (ParseException e) {
 			return false;
 		}
-		
+
 		return isAfterDate;
 	}
-	
+
 	public String getDeadline() {
 		return this.deadlineStr;
 	}
@@ -162,13 +161,13 @@ public class Environment {
 
 	public boolean setDeadlineStr(String deadlineStr) {
 		try {
-			this.deadlineDate = this.dateFormat.parse(deadlineStr);
+			this.deadlineDate = new SimpleDateFormat("dd/MM/yyyy").parse(deadlineStr);
 			this.deadlineStr = deadlineStr;
-			
+
 		} catch (ParseException e) {
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -225,9 +224,9 @@ public class Environment {
 	public String toString() {
 		return "Environment [owner=" + owner + ", name=" + name + ", privateEnv=" + privateEnv + ", password="
 				+ password + ", maxGroupSize=" + maxGroupSize + ", deadlineStr=" + deadlineStr + ", deadlineDate="
-				+ deadlineDate + ", dateFormat=" + dateFormat + ", groups=" + groups + ", users=" + users
+				+ deadlineDate + ", dateFormat=" + new SimpleDateFormat("dd/MM/yyyy") + ", groups=" + groups + ", users=" + users
 				+ ", questionnaire=" + questionnaire + "]";
 	}
-	
-	
+
+
 }

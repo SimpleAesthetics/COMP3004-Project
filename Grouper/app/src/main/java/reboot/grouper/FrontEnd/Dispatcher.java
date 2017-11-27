@@ -1,6 +1,7 @@
 package reboot.grouper.FrontEnd;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Toast;
@@ -14,6 +15,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -24,7 +26,9 @@ import java.util.Map;
 import reboot.grouper.Model.Course;
 import reboot.grouper.Model.Environment;
 import reboot.grouper.Model.University;
+import reboot.grouper.Model.User;
 import reboot.grouper.UI.Lists;
+import reboot.grouper.UI.Questionnaire;
 
 /**
  * Created by visha on 2017-11-07.
@@ -39,11 +43,11 @@ public class Dispatcher implements Serializable {
 
     private List<Map<String, String>>   lst_Display;
     private List<String>                lst_ID;
-    private List<Boolean>               lst_Formed_List;
+    private List<Environment>           lst_Formed_List;
 
     private List<Map<String, String>>   lst_Search_Display;
     private List<String>                lst_Search_ID;
-    private List<Boolean>               lst_Search_Formed_List;
+    private List<Environment>           lst_Search_Formed_List;
     private Boolean                     isSearch;
 
     private String univ,cour,envi,grou;
@@ -57,6 +61,11 @@ public class Dispatcher implements Serializable {
     private Response<List<University>>  UnivResponse;
     private Response<List<Course>>      CourResponse;
     private Response<List<Environment>> EnviResponse;
+
+    private Map<String, List<String>>   questionnaire;
+    private int selectedenv;
+
+    public Map<String, List<String>> getQuestionnaire(){ return questionnaire; };
 
     private REST rest;
 
@@ -90,8 +99,33 @@ public class Dispatcher implements Serializable {
         }
         isSearch = false;
 
-        JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, create_GET_URL(),null, LstResponse_Single, ErrResponse);
+        JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, create_GET_URL(),null, LstResponse_Single, ErrResponse) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap();
+                String[] auth = UserSession.credentials();
+                headers.put(auth[0], (auth[1]));
+                return headers;
+            }
+        };
+
+        if(state == STATE.ENVI){
+            req = new JsonArrayRequest(Request.Method.GET, create_GET_URL(),null, LstResponse_Environment, ErrResponse) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    HashMap<String, String> headers = new HashMap();
+                    String[] auth = UserSession.credentials();
+                    headers.put(auth[0], (auth[1]));
+                    return headers;
+                }
+            };
+            System.out.println("Environments!");
+        }
         Volley.I(lists).addtoReqQueue(req);
+    }
+
+    public void setupQuiz(){
+        questionnaire = lst_Formed_List.get(selectedenv).getQuestionnaire();
     }
 
     public void doSearch(String Query){
@@ -123,14 +157,17 @@ public class Dispatcher implements Serializable {
             case UNIV       :
                 univ = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
                 state = STATE.COURSES;
+                updateView();
                 break;
             case COURSES    :
                 cour = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
                 state = STATE.ENVI;
+                updateView();
                 break;
             case ENVI       :
                 envi = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
-                /* Check for environment formation status */
+                lists.show_env_settings(lst_Formed_List.get(id));
+                selectedenv = id;
                 break;
             case FORMATION  :lists.show_Admin(4); break;
             case GROUPS     :lists.show_Admin(5); break;
@@ -139,7 +176,7 @@ public class Dispatcher implements Serializable {
 
         }
         clearSearch();
-        updateView();
+
     }
 
     public void back_A_Step(){
@@ -256,6 +293,8 @@ public class Dispatcher implements Serializable {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap();
                 headers.put("Content-Type", "application/json; charset=utf-8");
+                String[] auth = UserSession.credentials();
+                headers.put(auth[0],(auth[1]));
                 return headers;
             }
             @Override
@@ -274,12 +313,37 @@ public class Dispatcher implements Serializable {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap();
                 headers.put("Content-Type", "application/json; charset=utf-8");
+                String[] auth = UserSession.credentials();
+                headers.put(auth[0],(auth[1]));
                 return headers;
             }
             @Override
             public byte[] getBody() throws AuthFailureError {
                 Gson gson = new Gson();
+                System.out.print(gson.toJson(environment));
                 return gson.toJson(environment).getBytes();
+            }
+        };
+        Volley.I(lists).addtoReqQueue(req);
+    }
+
+    public void setQuestionnaireResponse(User usr){
+        final User user = usr;
+        String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses/"+cour+"/environments/"+lst_ID.get(selectedenv)+"/users";
+        StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap();
+                headers.put("Content-Type", "application/json; charset=utf-8");
+                String[] auth = UserSession.credentials();
+                headers.put(auth[0],(auth[1]));
+                return headers;
+            }
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                Gson gson = new Gson();
+                System.out.print(gson.toJson(user));
+                return gson.toJson(user).getBytes();
             }
         };
         Volley.I(lists).addtoReqQueue(req);
@@ -295,9 +359,10 @@ public class Dispatcher implements Serializable {
 
                 for(int i=0; i<response.length();i++){
                     try {
-                        String elem = response.getJSONArray(i).getString(1);
+                        String elem = response.getJSONObject(i).getString("name");
                         lst_ID.add(elem);
                         lst_Display.add(new_List_Item(elem,""));
+                        System.out.println(elem);
                     } catch (Exception e){  e.printStackTrace(); }
                 }
                 lists.lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -314,8 +379,28 @@ public class Dispatcher implements Serializable {
         LstResponse_Environment = new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-                /* todo Form Environment List */
+                lst_Display     = new ArrayList<>();
+                lst_ID          = new ArrayList<>();
+                lst_Formed_List = new ArrayList<>();
 
+                for(int i=0; i<response.length();i++){
+                    try {
+                        String elem = response.getJSONObject(i).getString("name");
+                        lst_ID.add(elem);
+                        lst_Display.add(new_List_Item(elem,""));
+                        JSONObject env = response.getJSONObject(i);
+                        lst_Formed_List.add(new Gson().fromJson(env.toString(),Environment.class));
+                        System.out.println(elem);
+                    } catch (Exception e){  e.printStackTrace(); }
+                }
+                lists.lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        progress_A_Step(i);
+                    }
+                });
+                lists.set_List(lst_Display,-1);
+                lists.set_Loading(false);
             }
         };
 
@@ -354,6 +439,8 @@ public class Dispatcher implements Serializable {
                     public Map<String, String> getHeaders() throws AuthFailureError {
                         HashMap<String, String> headers = new HashMap();
                         headers.put("Content-Type", "application/json; charset=utf-8");
+                        String[] auth = UserSession.credentials();
+                        headers.put(auth[0],(auth[1]));
                         return headers;
                     }
                     @Override

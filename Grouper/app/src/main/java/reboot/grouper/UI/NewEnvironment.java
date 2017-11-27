@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import reboot.grouper.FrontEnd.Dispatcher;
+import reboot.grouper.FrontEnd.UserSession;
 import reboot.grouper.Model.Environment;
 import reboot.grouper.R;
 
@@ -51,11 +52,12 @@ public class NewEnvironment extends AppCompatActivity {
         boolean err = false;
         String errMSG="";
         Environment env= new Environment(Name,(Password.equals("")?false:true),Password,size);
+        env.setOwner(UserSession.I().getUser().getUsername());
         if(Name.equals("")||DueDate.equals("")){
             err=true;
             errMSG="ERROR: A name and a Due Date is required.";
         }
-
+        env.setDeadlineStr(DueDate);
         int i,j;
         j=-1;
         //Parse Quiz
@@ -66,11 +68,11 @@ public class NewEnvironment extends AppCompatActivity {
                     continue;
                 }
                 if(Lines[i].substring(0,1).equals("+")){
-                    Quiz.add(new quizPart(Lines[i].substring(0,Lines[i].length())));
+                    Quiz.add(new quizPart(Lines[i].substring(1,Lines[i].length())));
                     j++;
                 }
                 if(Lines[i].substring(0,1).equals("-")&&j>=0){
-                    Quiz.get(j).addA(Lines[i].substring(0,Lines[i].length()));
+                    Quiz.get(j).addA(Lines[i].substring(1,Lines[i].length()));
                 }
             }
         }

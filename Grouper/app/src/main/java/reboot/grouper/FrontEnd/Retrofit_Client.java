@@ -9,8 +9,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Retrofit_Client {
     private static Retrofit retrofit = null;
-    //private static String address = "http://192.168.2.69:8080/";
-    private static String address = "http://10.0.2.2:8080/";
+    private static String address = "http://192.168.2.69:8080/";
+    //private static String address = "http://grouper-server-deployment.cfapps.io/";
 
     public static Retrofit I() {
         if (retrofit==null) {

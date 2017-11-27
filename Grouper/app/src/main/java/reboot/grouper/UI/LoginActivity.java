@@ -356,12 +356,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         call.enqueue(new Callback<Void>() {
                             @Override
                             public void onResponse(Call<Void> call, Response<Void> response) {
-                                Log.d("CallBack", " response is " + response);
+                                Log.d("CallBack", " response is " + call.toString());
                             }
 
                             @Override
                             public void onFailure(Call<Void> call, Throwable t) {
-                                Log.d("CallBack", " Throwable is " +t);
+                                Log.d("CallBack", " Throwable is " +t.getMessage());
                             }
                         });
                         //retrofit.postUser(user);

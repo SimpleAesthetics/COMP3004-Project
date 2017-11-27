@@ -1,5 +1,10 @@
 package reboot.grouper.FrontEnd;
 
+import android.util.Base64;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import reboot.grouper.Model.UserInformation;
 
 /**
@@ -26,4 +31,20 @@ public final class UserSession {
         return instance;
     }
 
+    public static UserSession I(){
+        return instance;
+    }
+
+
+    public static String[] credentials() {
+        Map<String, String> headerMap = new HashMap<String, String>();
+        String[] out = new String[2];
+        if(I()!=null) {
+            String credentials = I().getUser().getUsername() + ":" + I().getUser().getPassword();
+            String encodedCredentials = Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP);
+            out[0] = "Authorization";
+            out[1] = "Basic " + encodedCredentials;
+        }
+        return out;
+    }
 }

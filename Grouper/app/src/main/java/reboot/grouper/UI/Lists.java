@@ -19,12 +19,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.QuickContactBadge;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -36,6 +39,8 @@ import java.util.Map;
 import reboot.grouper.FrontEnd.Dispatcher;
 import reboot.grouper.FrontEnd.UserSession;
 import reboot.grouper.Model.Course;
+import reboot.grouper.Model.Environment;
+import reboot.grouper.Model.User;
 import reboot.grouper.Model.UserInformation;
 import reboot.grouper.R;
 
@@ -107,7 +112,6 @@ public class Lists extends AppCompatActivity
         set_Floating_Buttons(false);
 
         controller = new Dispatcher(this);
-        controller.updateView();
         show_Username_In_Dash();
         lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -119,14 +123,99 @@ public class Lists extends AppCompatActivity
                 controller.clearSearch();
             }
         });
+        controller.updateView();
     }
 
     public void show_Username_In_Dash(){
         Intent intent = getIntent();
         Gson gson = new Gson();
         UserInformation user=gson.fromJson(intent.getStringExtra("USER_SESSION"), UserInformation.class);
-        un.setText(UserSession.I(user).getUser().getUsername());
-        fn.setText(UserSession.I(user).getUser().getFirstName() + " " + UserSession.I(user).getUser().getLastName());
+        if(user!=null) {
+            un.setText(UserSession.I(user).getUser().getUsername());
+            fn.setText(UserSession.I(user).getUser().getFirstName() + " " + UserSession.I(user).getUser().getLastName());
+        }
+        else{
+            Toast.makeText(this.getApplicationContext(), "Invalid Username or Password!",
+                    Toast.LENGTH_SHORT).show();
+            Intent i = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(i);
+            finish();
+        }
+    }
+
+    public void show_env_settings(Environment e){
+        final Environment env = e;
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        View promptView = layoutInflater.inflate(R.layout.env_settings_diag, null);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(promptView);
+        final Lists lst = this;
+        final TextView EnvPass = promptView.findViewById(R.id.txt_EnvPass);
+        final Button btn_join = promptView.findViewById(R.id.btn_joinwquiz);
+        final Button btn_delete = promptView.findViewById(R.id.btn_delete);
+
+        if(e.getPassword().equals("")){
+            EnvPass.setVisibility(View.GONE);
+        }
+
+        if(!e.getOwner().equals(UserSession.I().getUser().getUsername())){
+            btn_delete.setVisibility(View.GONE);
+        }
+        alertDialogBuilder.setCancelable(false)
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int id) { dialog.cancel(); }});
+
+
+        boolean exists = false;
+        for(User u : e.getUsers()){
+            if(u.getNickname().equals(UserSession.I().getUser().getUsername())){
+                exists = true;
+            }
+        }
+        if(exists)
+        {
+            EnvPass.setVisibility(View.GONE);
+            btn_join.setText("Enter Environment");
+            btn_join.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                }
+            });
+        }
+        else {
+            btn_join.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    btn_join.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if (env.getPassword().equals("") || env.getPassword().equals(EnvPass.getText()) ) {
+                                controller.setupQuiz();
+                                Intent intent = new Intent(lst, Questionnaire.class);
+                                startActivity(intent);
+                            } else {
+                                Toast.makeText(lst.getApplicationContext(), "Invalid Password!",
+                                        Toast.LENGTH_SHORT).show();
+                                System.out.println(env.getPassword());
+                                System.out.println(EnvPass.getText());
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+
+        btn_delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        AlertDialog alert = alertDialogBuilder.create();
+        alert.show();
     }
 
     public void text_Input_Dialog(DialogInterface.OnClickListener listener, String title){
