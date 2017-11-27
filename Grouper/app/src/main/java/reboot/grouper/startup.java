@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import reboot.grouper.UI.Lists;
+import reboot.grouper.UI.LoginActivity;
 
 public class startup extends AppCompatActivity {
 
@@ -12,7 +13,7 @@ public class startup extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Intent intent = new Intent(this, Lists.class);
+        Intent intent = new Intent(this,LoginActivity.class);
         startActivity(intent);
         finish();
 

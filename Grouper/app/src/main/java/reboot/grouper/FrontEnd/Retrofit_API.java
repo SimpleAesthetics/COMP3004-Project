@@ -2,6 +2,8 @@ package reboot.grouper.FrontEnd;
 import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.http.*;
 
 import reboot.grouper.Model.*;
@@ -14,7 +16,7 @@ public interface Retrofit_API {
     Call<List<University>> getUniversities();
 
     @POST("universities")
-    void postUniversity(@Body University univ);
+    Call<Void> postUniversity(@Body University univ);
 
     @GET("universities/{university}/courses")
     Call<List<Course>> getCourses(@Path("university") String univ);
@@ -27,4 +29,10 @@ public interface Retrofit_API {
 
     @POST("universities/{university}/courses/{course}/environments")
     void postEnvironment(@Path("university") String univ, @Path("course") String cour, @Body Environment Envi);
+
+    @POST("users")
+    Call<Void>  postUser(@Body UserInformation us);
+
+    @GET("userInfo/{username}")
+    Call<UserInformation> getUser(@Path("username") String user,@Header("Authorization") String authHeader);
 }

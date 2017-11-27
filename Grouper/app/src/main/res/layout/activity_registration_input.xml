@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Register User"
+        android:id="@+id/lbl_Title" />
+
+    <EditText
+        android:id="@+id/txt_FName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="First Name"
+        android:padding="10dp" />
+    <EditText
+        android:id="@+id/txt_LName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="Last Name"
+        android:padding="10dp" />
+
+    <EditText
+        android:id="@+id/txt_Student_Num"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="Student Number"
+        android:inputType="number"
+        android:padding="10dp" />
+    <EditText
+    android:id="@+id/txt_email"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:hint="Email"
+    android:padding="10dp" />
+    <EditText
+    android:id="@+id/txt_Username"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:hint="Username"
+    android:padding="10dp" />
+    <EditText
+        android:id="@+id/txt_Password"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="Password"
+        android:padding="10dp" />
+
+</LinearLayout>

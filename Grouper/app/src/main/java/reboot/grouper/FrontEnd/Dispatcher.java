@@ -58,6 +58,8 @@ public class Dispatcher implements Serializable {
     private Response<List<Course>>      CourResponse;
     private Response<List<Environment>> EnviResponse;
 
+    private REST rest;
+
     private DialogInterface.OnClickListener Create_University;
 
     private enum STATE{ UNIV, COURSES, ENVI, FORMATION, GROUPS, JOINED, WAITING }
@@ -210,6 +212,36 @@ public class Dispatcher implements Serializable {
         data.put("H1",arg1);
         data.put("H2",arg2);
         return data;
+    }
+
+    public void onError(){
+        lst_Display     = new ArrayList<>();
+        lst_ID          = new ArrayList<>();
+        lst_Formed_List = new ArrayList<>();
+        lists.set_List(lst_Display,-1);
+        lists.set_Loading(false);
+    }
+
+    public void onResponseList(JSONArray response) {
+        lst_Display     = new ArrayList<>();
+        lst_ID          = new ArrayList<>();
+        lst_Formed_List = new ArrayList<>();
+
+        for(int i=0; i<response.length();i++){
+            try {
+                String elem = response.getJSONArray(i).getString(1);
+                lst_ID.add(elem);
+                lst_Display.add(new_List_Item(elem,""));
+            } catch (Exception e){  e.printStackTrace(); }
+        }
+        lists.lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                progress_A_Step(i);
+            }
+        });
+        lists.set_List(lst_Display,-1);
+        lists.set_Loading(false);
     }
 
     public void create_University(){

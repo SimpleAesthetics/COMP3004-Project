@@ -8,18 +8,19 @@ import reboot.grouper.Model.UserInformation;
 
 public final class UserSession {
     private static volatile UserSession instance = null;
-    private UserInformation user;
+    private static UserInformation user;
 
-    private UserSession(){
-        user = new UserInformation(100994856,"Vishahan","Thilagakumar","Advent1013","vishahan@live.com");
+    private UserSession(UserInformation u){
+        user = u;
     }
-
     public UserInformation getUser() { return user; }
 
-    public static UserSession I(){
+    public static void setUser(UserInformation u) { user=u; }
+
+    public static UserSession I(UserInformation u){
         if (instance == null) {
             synchronized(UserSession.class) {
-                if (instance == null) instance = new UserSession();
+                if (instance == null) instance = new UserSession(u);
             }
         }
         return instance;

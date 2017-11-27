@@ -1,27 +1,12 @@
 package reboot.grouper.Model;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 import java.util.Set;
 
 public class Group {
-
-
-	@SerializedName("name")
-	@Expose
+	
 	private String name;
-
-	@SerializedName("meetingLocation")
-	@Expose
 	private String meetingLocation;
-
-	@SerializedName("taName")
-	@Expose
 	private String taName;
-
-	@SerializedName("groupMembers")
-	@Expose
 	private Set<User> groupMembers;
 	
 	public Group(String name, String meetingLocation, Set<User> groupMembers) {

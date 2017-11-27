@@ -1,36 +1,27 @@
 package reboot.grouper.Model;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+import java.util.Collection;
+import java.util.List;
 
 public class UserInformation {
-
-
-	@SerializedName("studentNumber")
-	@Expose
+	
 	private int studentNumber;
-
-	@SerializedName("firstName")
-	@Expose
 	private String firstName;
-
-	@SerializedName("lastName")
-	@Expose
 	private String lastName;
-
-	@SerializedName("nickname")
-	@Expose
-	private String nickname;
-
-	@SerializedName("email")
-	@Expose
+	private String username;
+	private String password;
 	private String email;
+
+    private boolean accountNonExpired = true;
+    private boolean accountNonLocked = true;
+    private boolean credentialsNonExpired = true;
+    private boolean enabled = true;
 	
 	public UserInformation() {
 		this.studentNumber = -1;
 		this.firstName = null;
 		this.lastName = null;
-		this.nickname = null;
+		this.username = null;
 		this.email = null;
 	}
 	
@@ -38,14 +29,16 @@ public class UserInformation {
 			int studentNumber, 
 			String firstName, 
 			String lastName, 
-			String nickname,  
-			String email) {
+			String username,  
+			String email,
+			String password) {
 		
 		this.studentNumber = studentNumber;
 		this.firstName = firstName;
 		this.lastName = lastName;
-		this.nickname = nickname;
+		this.username = username;
 		this.email = email;
+		this.password = password;
 	}
 
 	public int getStudentNumber() {
@@ -72,12 +65,20 @@ public class UserInformation {
 		this.lastName = lastName;
 	}
 
-	public String getNickname() {
-		return nickname;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setNickname(String nickname) {
-		this.nickname = nickname;
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	public String getEmail() {
@@ -88,15 +89,52 @@ public class UserInformation {
 		this.email = email;
 	}
 
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+
+	public void setAccountNonExpired(boolean accountNonExpired) {
+		this.accountNonExpired = accountNonExpired;
+	}
+
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+
+	public void setAccountNonLocked(boolean accountNonLocked) {
+		this.accountNonLocked = accountNonLocked;
+	}
+
+	public boolean isCredentialsNonExpired() {
+		return false;
+	}
+
+	public void setCredentialsNonExpired(boolean credentialsNonExpired) {
+		this.credentialsNonExpired = credentialsNonExpired;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + (accountNonExpired ? 1231 : 1237);
+		result = prime * result + (accountNonLocked ? 1231 : 1237);
+		result = prime * result + (credentialsNonExpired ? 1231 : 1237);
 		result = prime * result + ((email == null) ? 0 : email.hashCode());
+		result = prime * result + (enabled ? 1231 : 1237);
 		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
 		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
-		result = prime * result + ((nickname == null) ? 0 : nickname.hashCode());
+		result = prime * result + ((password == null) ? 0 : password.hashCode());
 		result = prime * result + studentNumber;
+		result = prime * result + ((username == null) ? 0 : username.hashCode());
 		return result;
 	}
 
@@ -109,10 +147,18 @@ public class UserInformation {
 		if (getClass() != obj.getClass())
 			return false;
 		UserInformation other = (UserInformation) obj;
+		if (accountNonExpired != other.accountNonExpired)
+			return false;
+		if (accountNonLocked != other.accountNonLocked)
+			return false;
+		if (credentialsNonExpired != other.credentialsNonExpired)
+			return false;
 		if (email == null) {
 			if (other.email != null)
 				return false;
 		} else if (!email.equals(other.email))
+			return false;
+		if (enabled != other.enabled)
 			return false;
 		if (firstName == null) {
 			if (other.firstName != null)
@@ -124,12 +170,17 @@ public class UserInformation {
 				return false;
 		} else if (!lastName.equals(other.lastName))
 			return false;
-		if (nickname == null) {
-			if (other.nickname != null)
+		if (password == null) {
+			if (other.password != null)
 				return false;
-		} else if (!nickname.equals(other.nickname))
+		} else if (!password.equals(other.password))
 			return false;
 		if (studentNumber != other.studentNumber)
+			return false;
+		if (username == null) {
+			if (other.username != null)
+				return false;
+		} else if (!username.equals(other.username))
 			return false;
 		return true;
 	}
@@ -137,7 +188,9 @@ public class UserInformation {
 	@Override
 	public String toString() {
 		return "UserInformation [studentNumber=" + studentNumber + ", firstName=" + firstName + ", lastName=" + lastName
-				+ ", nickname=" + nickname + ", email=" + email + "]";
+				+ ", username=" + username + ", password=" + password + ", email=" + email + ", authorities="
+				 + ", accountNonExpired=" + accountNonExpired + ", accountNonLocked=" + accountNonLocked
+				+ ", credentialsNonExpired=" + credentialsNonExpired + ", enabled=" + enabled + "]";
 	}
 	
 	

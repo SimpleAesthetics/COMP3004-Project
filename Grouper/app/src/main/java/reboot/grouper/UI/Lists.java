@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -25,12 +26,17 @@ import android.widget.SearchView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.List;
 import java.util.Map;
 
 import reboot.grouper.FrontEnd.Dispatcher;
 import reboot.grouper.FrontEnd.UserSession;
 import reboot.grouper.Model.Course;
+import reboot.grouper.Model.UserInformation;
 import reboot.grouper.R;
 
 public class Lists extends AppCompatActivity
@@ -116,8 +122,11 @@ public class Lists extends AppCompatActivity
     }
 
     public void show_Username_In_Dash(){
-        un.setText(UserSession.I().getUser().getNickname());
-        fn.setText(UserSession.I().getUser().getFirstName() + " " + UserSession.I().getUser().getLastName());
+        Intent intent = getIntent();
+        Gson gson = new Gson();
+        UserInformation user=gson.fromJson(intent.getStringExtra("USER_SESSION"), UserInformation.class);
+        un.setText(UserSession.I(user).getUser().getUsername());
+        fn.setText(UserSession.I(user).getUser().getFirstName() + " " + UserSession.I(user).getUser().getLastName());
     }
 
     public void text_Input_Dialog(DialogInterface.OnClickListener listener, String title){

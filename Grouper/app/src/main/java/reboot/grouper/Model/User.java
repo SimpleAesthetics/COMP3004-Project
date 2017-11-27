@@ -1,19 +1,12 @@
 package reboot.grouper.Model;
 
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class User {
-	@SerializedName("nickname")
-	@Expose
+	
 	private String nickname;
-
-	@SerializedName("questionAnswers")
-	@Expose
 	private List<Integer> questionAnswers;
 
 	public User() {

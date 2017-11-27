@@ -1,8 +1,5 @@
 package reboot.grouper.Model;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,52 +10,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import reboot.grouper.Model.Group;
 
 public class Environment {
-	@SerializedName("owner")
-	@Expose
+	
 	private String owner;
-
-	@SerializedName("name")
-	@Expose
 	private String name;
-
-	@SerializedName("privateEnv")
-	@Expose
 	private Boolean privateEnv;
-
-	@SerializedName("password")
-	@Expose
 	private String password;
-
-	@SerializedName("maxGroupSize")
-	@Expose
 	private Integer maxGroupSize;
-
-	@SerializedName("deadlineStr")
-	@Expose
 	private String deadlineStr;
-
-	@SerializedName("deadlineDate")
-	@Expose
 	private Date deadlineDate;
-
-	@SerializedName("dateFormat")
-	@Expose
-	private String dateFormat = "dd/MM/yyyy";
-
-	//private SimpleDateFormat dateFormat;
-
-	//@SerializedName("groups")
-	//@Expose
+	private SimpleDateFormat dateFormat;
 	private Set<Group> groups;
-
-	//@SerializedName("users")
-	//@Expose
 	private Set<User> users;
-
-	@SerializedName("questionnaire")
-	@Expose
 	private Map<String, List<String>> questionnaire;
 	
 	public Environment() {
@@ -71,7 +36,7 @@ public class Environment {
 		this.users = new HashSet<User>();
 		this.questionnaire = new HashMap<>();
 		this.deadlineDate = null;
-		//this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	}
 	
 	public Environment(
@@ -89,7 +54,7 @@ public class Environment {
 		this.users = new HashSet<User>();
 		this.questionnaire = new HashMap<>();
 		this.deadlineDate = null;
-		//this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		this.dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 	}
 	
 	public String getOwner() {
@@ -156,8 +121,8 @@ public class Environment {
 	
 	public boolean setDeadline(String day, String month, String year) {
 		try {
-			this.deadlineDate = new SimpleDateFormat("dd/MM/yyyy").parse(day+"/"+month+"/"+year);
-			this.deadlineStr = new SimpleDateFormat("dd/MM/yyyy").format(this.deadlineDate);
+			this.deadlineDate = dateFormat.parse(day+"/"+month+"/"+year);
+			this.deadlineStr = this.dateFormat.format(this.deadlineDate);
 			
 		} catch (ParseException e) {
 			return false;
@@ -169,7 +134,7 @@ public class Environment {
 	public boolean afterDate(String day, String month, String year) {
 		boolean isAfterDate = false;
 		try {
-			Date currDate = new SimpleDateFormat("dd/MM/yyyy").parse(day+"/"+month+"/"+year);
+			Date currDate = dateFormat.parse(day+"/"+month+"/"+year);
 			isAfterDate = this.deadlineDate.after(currDate);
 			
 		} catch (ParseException e) {
@@ -197,7 +162,7 @@ public class Environment {
 
 	public boolean setDeadlineStr(String deadlineStr) {
 		try {
-			this.deadlineDate = new SimpleDateFormat("dd/MM/yyyy").parse(deadlineStr);
+			this.deadlineDate = this.dateFormat.parse(deadlineStr);
 			this.deadlineStr = deadlineStr;
 			
 		} catch (ParseException e) {
@@ -260,7 +225,7 @@ public class Environment {
 	public String toString() {
 		return "Environment [owner=" + owner + ", name=" + name + ", privateEnv=" + privateEnv + ", password="
 				+ password + ", maxGroupSize=" + maxGroupSize + ", deadlineStr=" + deadlineStr + ", deadlineDate="
-				+ deadlineDate + ", groups=" + groups + ", users=" + users
+				+ deadlineDate + ", dateFormat=" + dateFormat + ", groups=" + groups + ", users=" + users
 				+ ", questionnaire=" + questionnaire + "]";
 	}
 	

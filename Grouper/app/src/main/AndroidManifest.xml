@@ -25,12 +25,16 @@
         <activity
             android:name=".UI.Lists"
             android:label="@string/title_activity_lists"
-            android:theme="@style/AppTheme.NoActionBar" >
-            <meta-data android:name="android.app.searchable"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
         </activity>
         <activity android:name=".UI.NewEnvironment" />
-        <activity android:name=".UI.GroupSettings"></activity>
+        <activity android:name=".UI.GroupSettings" />
+        <activity
+            android:name=".UI.LoginActivity"
+            android:label="@string/title_activity_login" />
     </application>
 
 </manifest>

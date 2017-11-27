@@ -1,26 +1,13 @@
 package reboot.grouper.Model;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class Course {
-    @SerializedName("name")
-    @Expose
+
 	String name;
-
-    @SerializedName("courseCode")
-    @Expose
 	String courseCode;
-
-    @SerializedName("university")
-    @Expose
 	String university;
-
-    @SerializedName("envList")
-    @Expose
 	List<String> envList;
 	
 	public Course() {
