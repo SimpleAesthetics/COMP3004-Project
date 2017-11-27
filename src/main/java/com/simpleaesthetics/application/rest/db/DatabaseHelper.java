@@ -187,7 +187,10 @@ public class DatabaseHelper {
 				courseNames += db.queryCourse(Integer.valueOf(courseId.trim())).get(1) +", ";
 				
 			} catch (NumberFormatException e) {
-				logger.error("Could not parse course Id ["+ courseId +"]:"+ e.getMessage());
+				logger.error("Could not parse course Id ["+ courseId +"]: "+ e.getMessage());
+				
+			} catch (IndexOutOfBoundsException e) {
+				logger.error("Could not retrieve course using Id ["+ courseId +"]: "+ e.getMessage());
 			}
 		}
 		
@@ -276,14 +279,15 @@ public class DatabaseHelper {
 	
 	private ArrayList<String> transferEnvIdsToNames(ArrayList<String> envInfo) {
 		String envNames = "";
-		System.out.println(envInfo);
 		for (String envId : utilTransformer.transformCsvToStringList(envInfo.get(4))) {
-			System.out.println(envId);
 			try {
 				envNames += db.queryEnvironment(Integer.valueOf(envId.trim())).get(1) +", ";
 				
 			} catch (NumberFormatException e) {
-				logger.error("Could not parse environment Id ["+ envId +"]:"+ e.getMessage());
+				logger.error("Could not parse environment Id ["+ envId.trim() +"]: "+ e.getMessage());
+				
+			} catch (IndexOutOfBoundsException e) {
+				logger.error("Could not retrieve environment using Id ["+ envId.trim() +"]");
 			}
 		}
 		
@@ -305,7 +309,10 @@ public class DatabaseHelper {
 					envNames += db.queryEnvironment(Integer.valueOf(envId.trim())).get(1) +", ";
 					
 				} catch (NumberFormatException e) {
-					logger.error("Could not parse environment Id ["+ envId +"]:"+ e.getMessage());
+					logger.error("Could not parse environment Id ["+ envId.trim() +"]: "+ e.getMessage());
+					
+				} catch (IndexOutOfBoundsException e) {
+					logger.error("Could not retrieve environment using Id ["+ envId.trim() +"]: "+ e.getMessage());
 				}
 			}
 			
