@@ -147,8 +147,8 @@ public class Environment {
 		return this.deadlineDate.after(currDate);
 	}
 	
-	public String getDeadline() {
-		return this.deadlineStr;
+	public Date getDeadline() {
+		return this.deadlineDate;
 	}
 
 	public Integer getMaxGroupSize() {

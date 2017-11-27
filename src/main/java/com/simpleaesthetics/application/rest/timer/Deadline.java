@@ -34,37 +34,70 @@ public class Deadline {
 	@Autowired
 	private DatabaseHelper helper;
 	
-	@Autowired
-	private UniversityTransformer uniTransformer;
+//	Boolean success = false;
 	
-	@Scheduled(fixedDelay=30000)
+	@Scheduled(fixedDelay=12000)
 	public void checkAndExecuteDealines() {
 		Date currDate = new Date();
 		logger.info("RUNNING SCHEDULED TASK ["+ currDate.toString() +"]; Check and execute deadlines");
+//		if (success) return;
 		
-		List<University> universities = helper.getUniversities();
+		List<University> universities = null;
+		try {
+			 universities = helper.getUniversities();
+			
+		} catch (Exception e) {
+			logger.error("Failed to get universities; CAUSE: "+ e.getMessage());
+			return;
+		}
+		
 		logger.info("Found "+ universities.size() +" universities to use for sorting");
 		
 		for (University university : universities) {
 			logger.info("Attempting to sort university ["+ university.getName() +"]");
 			
 			for (String courseName : university.getCoursesList()) {	
+				logger.info("Attempting to sort course ["+ courseName +"]");
 				String trimmedCourse = courseName.trim();
 				if (trimmedCourse.isEmpty()) continue;
 				
-				logger.info("Attempting to sort course ["+ courseName +"]");
-				List<Environment> envList = helper.getEnvironments(university.getName(), courseName);
+				List<Environment> envList = null;
+				try {
+					 envList = helper.getEnvironments(university.getName(), courseName);
+					
+				} catch (Exception e) {
+					logger.error("Failed to get environments for ["+ courseName +"]; CAUSE: "+ e.getMessage()); 
+					continue;
+				}
 				
 				for (Environment env : envList) {
 					logger.info("Sorting environment ["+ env.getName() +"]");
 					
-					if (env.afterDate(currDate)) {
-						Set<Group> groupSet = grouper.findAllGroups(env.getUsers(), env.getMaxGroupSize());
-						helper.addGroupsToEnvironment(groupSet, env.getName(), courseName, university.getName());
+					if (currDate.after(env.getDeadline())) {
+						logger.info("Running sorting; Deadline passed ["+ env.getDeadlineStr() +"]");
+						Set<Group> groupSet = null;
+						try {
+							groupSet = grouper.findAllGroups(env.getUsers(), env.getMaxGroupSize());
+//							logger.info(groupSet);
+							
+						} catch (Exception e) {
+							logger.error("Failed to sort Groups for ["+ env.getName() +"]; CAUSE: "+ e.getMessage());
+							continue;
+						}
+						
+						try {
+//							helper.addGroupsToEnvironment(groupSet, env.getName(), courseName, university.getName());
+							
+						} catch (Exception e) {
+							logger.error("Failed to add Groups to environment ["+ env.getName() +"]; CAUSE: "+ e.getMessage());
+							continue;
+						}
 					}
 				}
 			}	
 		}
+		
+//		success = true;
 	}
 	
 }

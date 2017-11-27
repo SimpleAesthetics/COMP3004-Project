@@ -149,6 +149,7 @@ public class GrouperInfoResource {
 			Principal principal,
 			@RequestHeader(value="envPassword", required=false) String envPassword,
 			@RequestHeader(value="sortGroups", defaultValue="false") boolean toSort,
+			@RequestHeader(value="numMembers", defaultValue="0") int numMembers,
 			@PathVariable(value="uniName",required=true) String uniName,
 			@PathVariable(value="courseName",required=true) String courseName,
 			@PathVariable(value="envName",required=true) String envName) {
@@ -157,7 +158,7 @@ public class GrouperInfoResource {
 		this.verifyEnvironmentAccess(principal, environment, envPassword);
 
 		if (toSort) {
-			environment.setGroups(grouper.findAllGroups(environment.getUsers(), 4));	
+			environment.setGroups(grouper.findAllGroups(environment.getUsers(), numMembers));	
 		}
 		
 		return new ResponseEntity<Environment>(
@@ -224,21 +225,21 @@ public class GrouperInfoResource {
 	
 	// TODO optionally can delete if you think it would be better to store after sorting in the call above:
 	//  getSpecificEnvironment()
-	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> addGroupsToEnv(
-			Principal principal,
-			@RequestHeader(value="envPassword", required=false) String envPassword,
-			@PathVariable(value="uniName",required=true) String uniName,
-			@PathVariable(value="courseName",required=true) String courseName,
-			@PathVariable(value="envName",required=true) String envName,
-			@RequestBody(required=true) List<Group> group) {
-		
-		Environment env = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
-		this.verifyEnvironmentAccess(principal, env, envPassword);
-		
-		// TODO add functionality to add multiple groups
-		return new ResponseEntity<>(HttpStatus.OK);
-	}
+//	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
+//	public @ResponseBody ResponseEntity<String> addGroupsToEnv(
+//			Principal principal,
+//			@RequestHeader(value="envPassword", required=false) String envPassword,
+//			@PathVariable(value="uniName",required=true) String uniName,
+//			@PathVariable(value="courseName",required=true) String courseName,
+//			@PathVariable(value="envName",required=true) String envName,
+//			@RequestBody(required=true) List<Group> group) {
+//		
+//		Environment env = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
+//		this.verifyEnvironmentAccess(principal, env, envPassword);
+//		
+//		// TODO add functionality to add multiple groups
+//		return new ResponseEntity<>(HttpStatus.OK);
+//	}
 	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/users", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addSpecificUserToEnv(

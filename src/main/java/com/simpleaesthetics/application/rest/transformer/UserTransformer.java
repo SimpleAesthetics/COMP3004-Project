@@ -33,7 +33,6 @@ public class UserTransformer {
 	}
 	
 	public UserInformation transformToUserDetails(String nickname, ArrayList<String> userInfo, String password) {
-		System.out.println(userInfo);
 		return new UserInformation(
 				Integer.valueOf(userInfo.get(0)), 
 				userInfo.get(1),

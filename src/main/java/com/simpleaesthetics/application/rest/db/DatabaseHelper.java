@@ -355,7 +355,7 @@ public class DatabaseHelper {
 				env.isPrivateEnv(), 
 				env.getPassword(),
 				env.getMaxGroupSize().intValue(), 
-				env.getDeadline(), 
+				env.getDeadlineStr(), 
 				"", 
 				"",
 				-1);
@@ -604,6 +604,8 @@ public class DatabaseHelper {
 	
 	public void addSpecificUserToEnv(User user, String envName, String courseName, String uniName) {
 		this.assertUserExists(user.getNickname());
+		this.assertUserNotInEnv(user, this.getSpecificEnvironment(envName, courseName, uniName));
+		
 		int envId = this.getEnvironmentId(envName, courseName, uniName);
 		boolean isSuccessful = db.updateEnvironment(
 				envId,
@@ -638,6 +640,12 @@ public class DatabaseHelper {
 		}
 	}
 	
+	private void assertUserNotInEnv(User user, Environment env) {
+		if (env.getUsers().contains(user)) {
+			throw new DatabaseException("Assert failed: User already in Environment");
+		}
+	}
+	
 	private void assertUserExists(String username) {
 		if (db.queryUser(username).size() < 6) {
 			throw new DatabaseException("Assert failed: Could not find expected user");
@@ -645,42 +653,57 @@ public class DatabaseHelper {
 	}
 	
 	private void assertUserDoesNotExists(String username) {
+		boolean exists = false;
 		try {
-			if (!db.queryUser(username).isEmpty()) {
-				throw new DatabaseException("Assert failed: User already exists");
-			}
+			exists = !db.queryUser(username).isEmpty();
 		} catch (DatabaseException e) {
 			// Do nothing
+		}
+		
+		if (exists) {
+			throw new DatabaseException("Assert failed: User already exists");
 		}
 	}
 	
 	private void assertUniversityDoesNotExists(String universityName) {
+		boolean exists = false;
 		try {
-			if (!db.queryUniversity(this.getUniversityId(universityName)).isEmpty()) {
-				throw new DatabaseException("Assert failed: University already exists");
-			}
+			exists = !db.queryUniversity(this.getUniversityId(universityName)).isEmpty();
+					
 		} catch (DatabaseException e) {
 			// Do nothing
+		}
+		
+		if (exists) {
+			throw new DatabaseException("Assert failed: University already exists");
 		}
 	}
 	
 	private void assertCourseDoesNotExists(String courseName, String universityName) {
+		boolean exists = false;
 		try {
-			if (!db.queryCourse(this.getCourseId(courseName, universityName)).isEmpty()) {
-				throw new DatabaseException("Assert failed: Course already exists for this University");
-			}
+			exists = !db.queryCourse(this.getCourseId(courseName, universityName)).isEmpty();
+			
 		} catch (DatabaseException e) {
 			// Do nothing
+		}
+		
+		if (exists) {
+			throw new DatabaseException("Assert failed: Course already exists for this University");
 		}
 	}
 	
 	private void assertEnvironmentDoesNotExists(String environmentName, String courseName, String universityName) {
+		boolean exists = false;
 		try {
-			if (!db.queryEnvironment(this.getEnvironmentId(environmentName, courseName, universityName)).isEmpty()) {
-				throw new DatabaseException("Assert failed: Environment already exists for this Course");
-			}
+			exists = !db.queryEnvironment(this.getEnvironmentId(environmentName, courseName, universityName)).isEmpty();
+			
 		} catch (DatabaseException e) {
 			// Do nothing
+		}
+		
+		if (exists) {
+			throw new DatabaseException("Assert failed: Environment already exists for this Course");
 		}
 	}
 	
