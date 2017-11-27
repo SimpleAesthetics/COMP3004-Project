@@ -232,16 +232,16 @@ There are no comments to make at this time.
 
 ### General description: ###
  
-The main purpose this week is to finish the entire app and prepare for our D4 deliverable.
+The main purpose this week is to finish my portion of the entire app and prepare for our D4 deliverable.
 
 ### What was completed? ###
 
-
+This week is going quite well. The functionality for the Server and Database Component are completed. I worked on resolving issues with the sorting algorithm for deadlines and made some refinements to the original sorting algorithm since it wasn't working appropriately. I also finished up implementing on the security aspects of the Server (ie. preventing users without a password from accessing the protected Environment, etc.). We seem to have a Server completed that can support the expected functional requirements of our app.
 
 ### Comments: ###
 
-
+There were a two unexpected occurrences this week. The first was that the original sorting algorithm that we made for our app was not working appropriately. The app worked when choosing optimal options for a single user, but did not optimize the options for all users. This issue meant that if we chose the wrong user to start with the outputed groups would not be optimal. The second was that the I accidentally deleted the configuration file for the cloud version of the Server (as opposed to local). This issue was quite the setback as I had to recreate the configuration file, which took quite a long time original. Despite their unexpected nature, these setbacks were both solved. 
 
 ### Goals for next week: ###
 
-- No more development should be necessary
+- DONE!
