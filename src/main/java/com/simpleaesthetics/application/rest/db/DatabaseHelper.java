@@ -30,6 +30,8 @@ import com.simpleaesthetics.application.utility.Transformer;
 @Component
 public class DatabaseHelper {
 	
+	// TODO I apologize if I forgot anything 
+	
 	static Logger logger = Logger.getLogger(DatabaseHelper.class.getName());
 	
 	@Autowired
@@ -413,6 +415,7 @@ public class DatabaseHelper {
 	public Environment getSpecificEnvironment(String envName, String courseName, String universityName) {
 		ArrayList<String> envInfo = this.getEnvironmentInfo(envName, courseName, universityName);
 		Set<User> userSet = userTransformer.transformCsvToUserHashSet(envInfo.get(7));
+		// TODO Enable this (basically just gets a map of empty groups if you wanted to add the details below)
 //		Map<String, Group> groupMap = groupTransformer.transformCsvToGroupMap(envInfo.get(8));
 		
 		for (User user : userSet) {
@@ -430,6 +433,9 @@ public class DatabaseHelper {
 			user.setQuestionAnswers(answersList);
 		}
 		
+		// TODO add group functionality here (not sure if you did this)
+		// Did a little below, but its not quite working yet
+		
 //		ArrayList<ArrayList<String>> groupsInfo = 
 //				db.getGroups(db.getGroupID(this.getEnvironmentId(envName, courseName, universityName)));
 		
@@ -437,6 +443,7 @@ public class DatabaseHelper {
 //			groupMap.get(groupInfo.get(1));
 //		}
 		
+		// TODO Add a variable to env transformer to add groups to return
 		Environment env = envTransformer.transformToEnvironment(
 				envInfo,
 				this.getQuestionnaire(envName, courseName, universityName),
@@ -444,6 +451,8 @@ public class DatabaseHelper {
 		
 		return env;
 	}
+	
+	// TODO Add a function to update a specific env
 	
 	public void deleteSpecificEnvironment(String envName, String courseName, String universityName) {
 		boolean isDeleted = db.deleteEnvironment(this.getEnvironmentId(envName, courseName, universityName));
@@ -511,6 +520,7 @@ public class DatabaseHelper {
 		}
 	}
 	
+	// TODO seems like is the add groups function (not sure if it works tho)
 	public void addGroupsToEnvironment(Set<Group> groups, String envName, String courseName, String uniName) {
 		for (Group group : groups) {
 			this.addSpecificGroupToEnv(group, envName, courseName, uniName);
@@ -623,7 +633,6 @@ public class DatabaseHelper {
 					transformedAns);
 			
 			if (!isSuccessful) {
-//				logger.error("Could not update questionnaire for ["+ user.getNickname() +"]");
 				throw new DatabaseException("Could not update questionnaire for ["+ user.getNickname() +"]");
 			}
 		}

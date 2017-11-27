@@ -175,6 +175,23 @@ public class GrouperInfoResource {
 		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 	
+	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}", method=RequestMethod.PUT)
+	public @ResponseBody ResponseEntity<String> updateSpecificEnvironment(
+			Principal principal,
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName,
+			@PathVariable(value="envName",required=true) String envName,
+			@RequestBody(required=true) Environment env) {
+		
+		// TODO this can be left, it should just work I think (please make sure)
+		String owner = dbHelper.getSpecificEnvironment(envName, courseName, uniName).getOwner();
+		this.verifyUserIntegrity(principal, owner);
+		
+		// TODO Add a call here to update the environment
+		
+		return new ResponseEntity<String>(HttpStatus.OK);
+	}
+	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}", method=RequestMethod.DELETE)
 	public @ResponseBody ResponseEntity<String> deleteSpecificEnvironment(
 			Principal principal,
@@ -205,6 +222,24 @@ public class GrouperInfoResource {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	
+	// TODO optionally can delete if you think it would be better to store after sorting in the call above:
+	//  getSpecificEnvironment()
+	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> addGroupsToEnv(
+			Principal principal,
+			@RequestHeader(value="envPassword", required=false) String envPassword,
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName,
+			@PathVariable(value="envName",required=true) String envName,
+			@RequestBody(required=true) List<Group> group) {
+		
+		Environment env = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
+		this.verifyEnvironmentAccess(principal, env, envPassword);
+		
+		// TODO add functionality to add multiple groups
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/users", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addSpecificUserToEnv(
 			Principal principal,
@@ -232,7 +267,6 @@ public class GrouperInfoResource {
 	
 	private void verifyEnvironmentAccess(Principal principal, Environment env, String password) {
 		if (!env.isPrivateEnv()) {
-			System.out.println("We have a public env");
 			return;
 		}
 		
