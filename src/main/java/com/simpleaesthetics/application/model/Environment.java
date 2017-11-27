@@ -143,6 +143,10 @@ public class Environment {
 		return isAfterDate;
 	}
 	
+	public boolean afterDate(Date currDate) {
+		return this.deadlineDate.after(currDate);
+	}
+	
 	public String getDeadline() {
 		return this.deadlineStr;
 	}
