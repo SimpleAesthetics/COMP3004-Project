@@ -345,10 +345,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        /*UserInformation user= new UserInformation(Integer.parseInt(SNum.getText().toString()),
+                        UserInformation user= new UserInformation(Integer.parseInt(SNum.getText().toString()),
                                 Fname.getText().toString(),Lname.getText().toString(),userName.getText().toString(),
-                                email.getText().toString(),pass.getText().toString());*/
-                        UserInformation user= new UserInformation(312,"osama","khan","osama","osama@gmail.com","password");
+                                email.getText().toString(),pass.getText().toString());
+                        //UserInformation user= new UserInformation(99999,"dsfsddsf","dsfsddsf","hello","sdfdsfdsfsd@gmail.com","password");
                         //University u= new University("hello");
                         retrofitAPI=Retrofit_Client.getAPI();
                         //retrofitAPI.postUniversity(u);

@@ -30,9 +30,9 @@ public interface Retrofit_API {
     @POST("universities/{university}/courses/{course}/environments")
     void postEnvironment(@Path("university") String univ, @Path("course") String cour, @Body Environment Envi);
 
-    @POST("users")
+    @POST("usersInfo")
     Call<Void>  postUser(@Body UserInformation us);
 
-    @GET("userInfo/{username}")
+    @GET("usersInfo/{username}")
     Call<UserInformation> getUser(@Path("username") String user,@Header("Authorization") String authHeader);
 }
