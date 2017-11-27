@@ -185,7 +185,10 @@ public class DatabaseHelper {
 				courseNames += db.queryCourse(Integer.valueOf(courseId.trim())).get(1) +", ";
 				
 			} catch (NumberFormatException e) {
-				logger.error("Could not parse course Id ["+ courseId +"]:"+ e.getMessage());
+				logger.error("Could not parse course Id ["+ courseId +"]: "+ e.getMessage());
+				
+			} catch (IndexOutOfBoundsException e) {
+				logger.error("Could not retrieve course using Id ["+ courseId +"]: "+ e.getMessage());
 			}
 		}
 		
@@ -274,14 +277,15 @@ public class DatabaseHelper {
 	
 	private ArrayList<String> transferEnvIdsToNames(ArrayList<String> envInfo) {
 		String envNames = "";
-		System.out.println(envInfo);
 		for (String envId : utilTransformer.transformCsvToStringList(envInfo.get(4))) {
-			System.out.println(envId);
 			try {
 				envNames += db.queryEnvironment(Integer.valueOf(envId.trim())).get(1) +", ";
 				
 			} catch (NumberFormatException e) {
-				logger.error("Could not parse environment Id ["+ envId +"]:"+ e.getMessage());
+				logger.error("Could not parse environment Id ["+ envId.trim() +"]: "+ e.getMessage());
+				
+			} catch (IndexOutOfBoundsException e) {
+				logger.error("Could not retrieve environment using Id ["+ envId.trim() +"]");
 			}
 		}
 		
@@ -303,7 +307,10 @@ public class DatabaseHelper {
 					envNames += db.queryEnvironment(Integer.valueOf(envId.trim())).get(1) +", ";
 					
 				} catch (NumberFormatException e) {
-					logger.error("Could not parse environment Id ["+ envId +"]:"+ e.getMessage());
+					logger.error("Could not parse environment Id ["+ envId.trim() +"]: "+ e.getMessage());
+					
+				} catch (IndexOutOfBoundsException e) {
+					logger.error("Could not retrieve environment using Id ["+ envId.trim() +"]: "+ e.getMessage());
 				}
 			}
 			
@@ -353,7 +360,7 @@ public class DatabaseHelper {
 				env.isPrivateEnv(), 
 				env.getPassword(),
 				env.getMaxGroupSize().intValue(), 
-				env.getDeadline().toString(), 
+				env.getDeadlineStr(), 
 				"", 
 				"",
 				-1);
@@ -380,61 +387,6 @@ public class DatabaseHelper {
 				}
 			}
 		}
-	}
-	
-	public void updateEnvironment(Environment env, String courseName, String uniName) {
-		/* TODO: probably need some kind of assertion that the env exists here */
-		Set<User> userset = env.getUsers();
-		String userlist = "";
-		for(User x : userset) {
-			userlist += db.getUserID(x.getNickname()) + ", ";
-		}
-		userlist=userlist.substring(0,userlist.length()-2);
-		Set<Group> groupset = env.getGroups();
-		String grouplist = "";
-		for(Group x : groupset) {
-			grouplist += db.getGroupID(this.getEnvironmentId(env.getName(),courseName,uniName),x.getName())	+ ", ";
-		}
-		grouplist=grouplist.substring(0,grouplist.length()-2);
-		int qid = -1;
-		if(db.getQuestionnaire(this.getEnvironmentId(env.getName(),courseName,uniName)) > -1) {
-			qid = this.getEnvironmentId(env.getName(),courseName,uniName);
-		}
-		boolean updated = db.updateEnvironment(
-				this.getEnvironmentId(env.getName(),courseName,uniName),
-				env.getName(),
-				db.getUserID(env.getOwner().toLowerCase()),
-				getCourseId(courseName,uniName), 
-				env.isPrivateEnv(), 
-				env.getPassword(),
-				env.getMaxGroupSize().intValue(), 
-				env.getDeadline().toString(), 
-				userlist, 
-				grouplist,
-				qid);
-		
-		if (updated == false) {
-			throw new DatabaseException("Could not update environment ["+ env.getName() +"]");
-			
-		} /*else {
-			int insertedQuestionnnaire = 
-					db.insertQuestionnaire(
-						insertedEnvId, 
-						questionnaireTransformer.transformForDbArray(env.getQuestionnaire()));
-			
-			if (insertedQuestionnnaire == -1) {
-				throw new DatabaseException("Could not add new questionnaire to env ["+ env.getName() +"]");
-				
-			} else {
-				boolean successfulUpdate = db.changeQuestionnaire(
-						insertedEnvId, 
-						insertedQuestionnnaire);
-				
-				if (!successfulUpdate) {
-					throw new DatabaseException("Could not update questionnaire id for env ["+ env.getName() +"]");
-				}
-			}
-		}*/
 	}
 	
 	public void updateEnvironment(Environment env, String courseName, String uniName) {
@@ -705,6 +657,8 @@ public class DatabaseHelper {
 	
 	public void addSpecificUserToEnv(User user, String envName, String courseName, String uniName) {
 		this.assertUserExists(user.getNickname());
+		this.assertUserNotInEnv(user, this.getSpecificEnvironment(envName, courseName, uniName));
+		
 		int envId = this.getEnvironmentId(envName, courseName, uniName);
 		boolean isSuccessful = db.updateEnvironment(
 				envId,
@@ -734,9 +688,14 @@ public class DatabaseHelper {
 					transformedAns);
 			
 			if (!isSuccessful) {
-//				logger.error("Could not update questionnaire for ["+ user.getNickname() +"]");
 				throw new DatabaseException("Could not update questionnaire for ["+ user.getNickname() +"]");
 			}
+		}
+	}
+	
+	private void assertUserNotInEnv(User user, Environment env) {
+		if (env.getUsers().contains(user)) {
+			throw new DatabaseException("Assert failed: User already in Environment");
 		}
 	}
 	
@@ -747,42 +706,57 @@ public class DatabaseHelper {
 	}
 	
 	private void assertUserDoesNotExists(String username) {
+		boolean exists = false;
 		try {
-			if (!db.queryUser(username).isEmpty()) {
-				throw new DatabaseException("Assert failed: User already exists");
-			}
+			exists = !db.queryUser(username).isEmpty();
 		} catch (DatabaseException e) {
 			// Do nothing
+		}
+		
+		if (exists) {
+			throw new DatabaseException("Assert failed: User already exists");
 		}
 	}
 	
 	private void assertUniversityDoesNotExists(String universityName) {
+		boolean exists = false;
 		try {
-			if (!db.queryUniversity(this.getUniversityId(universityName)).isEmpty()) {
-				throw new DatabaseException("Assert failed: University already exists");
-			}
+			exists = !db.queryUniversity(this.getUniversityId(universityName)).isEmpty();
+					
 		} catch (DatabaseException e) {
 			// Do nothing
+		}
+		
+		if (exists) {
+			throw new DatabaseException("Assert failed: University already exists");
 		}
 	}
 	
 	private void assertCourseDoesNotExists(String courseName, String universityName) {
+		boolean exists = false;
 		try {
-			if (!db.queryCourse(this.getCourseId(courseName, universityName)).isEmpty()) {
-				throw new DatabaseException("Assert failed: Course already exists for this University");
-			}
+			exists = !db.queryCourse(this.getCourseId(courseName, universityName)).isEmpty();
+			
 		} catch (DatabaseException e) {
 			// Do nothing
+		}
+		
+		if (exists) {
+			throw new DatabaseException("Assert failed: Course already exists for this University");
 		}
 	}
 	
 	private void assertEnvironmentDoesNotExists(String environmentName, String courseName, String universityName) {
+		boolean exists = false;
 		try {
-			if (!db.queryEnvironment(this.getEnvironmentId(environmentName, courseName, universityName)).isEmpty()) {
-				throw new DatabaseException("Assert failed: Environment already exists for this Course");
-			}
+			exists = !db.queryEnvironment(this.getEnvironmentId(environmentName, courseName, universityName)).isEmpty();
+			
 		} catch (DatabaseException e) {
 			// Do nothing
+		}
+		
+		if (exists) {
+			throw new DatabaseException("Assert failed: Environment already exists for this Course");
 		}
 	}
 	
