@@ -3,6 +3,7 @@ package com.simpleaesthetics.application.rest.db;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -428,7 +429,17 @@ public class DatabaseHelper {
 	}
 	
 	public List<Environment> getEnvironments(String universityName, String courseName) {
-		ArrayList<ArrayList<String>> envInfos = 
+		ArrayList<ArrayList<String>> envInfos = db.getEnvironments(this.getCourseId(courseName, universityName));
+		List<Environment> envs = new ArrayList<Environment>();
+		for(ArrayList<String> info : envInfos) {
+			if(info.size() >= 2) {
+				String envName = info.get(1);
+				Environment env = this.getSpecificEnvironment(envName,courseName,universityName);
+				envs.add(env);
+			}
+		}
+		return envs;
+		/*ArrayList<ArrayList<String>> envInfos = 
 				db.getEnvironments(
 						this.getCourseId(courseName, universityName));
 		
@@ -452,14 +463,13 @@ public class DatabaseHelper {
 			logger.warn("No environments were returned for ["+ courseName +"]");
 		}
 //		
-		return envs;
+		return envs;*/
 	}
 	
 	public Environment getSpecificEnvironment(String envName, String courseName, String universityName) {
 		ArrayList<String> envInfo = this.getEnvironmentInfo(envName, courseName, universityName);
 		Set<User> userSet = userTransformer.transformCsvToUserHashSet(envInfo.get(7));
-//		Map<String, Group> groupMap = groupTransformer.transformCsvToGroupMap(envInfo.get(8));
-//		db.getGroups(env)
+		Set<Group> groupSet = this.getAllGroupsForEnv(envName,courseName,universityName);
 		
 		for (User user : userSet) {
 			List<Integer> answersList = new ArrayList<Integer>();
@@ -486,7 +496,8 @@ public class DatabaseHelper {
 		Environment env = envTransformer.transformToEnvironment(
 				envInfo,
 				this.getQuestionnaire(envName, courseName, universityName),
-				userSet);
+				userSet,
+				groupSet);
 		
 		return env;
 	}
@@ -686,6 +697,32 @@ public class DatabaseHelper {
 		}
 	}
 	
+	public Group getGroup(String groupName, String envName, String courseName, String uniName) {
+		int envID = this.getEnvironmentId(envName,courseName,uniName);
+		this.assertGroupExists(db.getGroupID(envID,groupName));
+		ArrayList<String> groupinfo = db.queryGroup(db.getGroupID(envID,groupName));
+		Group group = new Group();
+		group.setName(groupName);
+		group.setTaName(db.getUserNickname(Integer.parseInt(groupinfo.get(3))));
+		group.setGroupMembers(userTransformer.transformCsvToUserHashSet(groupinfo.get(4)));
+		return group;
+	}
+	
+	public Set<Group> getAllGroupsForEnv(String envName, String courseName, String uniName) {
+		int envID = this.getEnvironmentId(envName,courseName,uniName);
+		ArrayList<ArrayList<String>> groupsinfo = db.getGroups(envID);
+		Set<Group> groups = new HashSet<Group>();
+		for(ArrayList<String> g: groupsinfo) {
+			this.assertIsActuallyAGroup(g);
+			Group temp = new Group();
+			temp.setName(g.get(1));
+			temp.setTaName(db.getUserNickname(Integer.parseInt(g.get(3))));
+			temp.setGroupMembers(userTransformer.transformCsvToUserHashSet(g.get(4)));
+			groups.add(temp);
+		}
+		return groups;
+	}
+	
 	
 	/** Helper Functions **/
 	
@@ -693,6 +730,19 @@ public class DatabaseHelper {
 	private void assertUserNotInEnv(User user, Environment env) {
 		if (env.getUsers().contains(user)) {
 			throw new DatabaseException("Assert failed: User already in Environment");
+		}
+	}
+	
+	private void assertGroupExists(int groupID) {
+		ArrayList<String> temp = db.queryGroup(groupID);
+		if(temp.isEmpty() || temp.size() < 5) {
+			throw new DatabaseException("Assert failed: Group does not exist");
+		}
+	}
+	
+	private void assertIsActuallyAGroup(ArrayList<String> groupinfo) {
+		if(groupinfo.isEmpty() || groupinfo.size() < 5) {
+			throw new DatabaseException("Assert failed: Not actually a group");
 		}
 	}
 	
