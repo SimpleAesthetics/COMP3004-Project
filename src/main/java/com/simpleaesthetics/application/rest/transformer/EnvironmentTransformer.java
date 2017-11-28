@@ -27,8 +27,8 @@ public class EnvironmentTransformer {
 	public Environment transformToEnvironment(
 			ArrayList<String> envInfo,
 			Map<String, String[]> questionnaire,
-			Set<User> users/*,
-			ArrayList<ArrayList<String>> groups*/
+			Set<User> users,
+			Set<Group> groups
 			) {
 		
 		Environment env = new Environment(
@@ -40,7 +40,7 @@ public class EnvironmentTransformer {
 		env.setOwner(envInfo.get(2));
 		env.setDeadlineStr(envInfo.get(6));
 		env.setUsers(users);
-//		env.setGroups(this.getGroupHashSetFromCSV(envInfo.get(8)));
+		env.setGroups(groups);
 		env.setQuestionnaire(
 				questTransformer.transformForModel(questionnaire));
 		
