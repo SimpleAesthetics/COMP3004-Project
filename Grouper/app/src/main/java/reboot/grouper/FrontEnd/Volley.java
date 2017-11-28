@@ -22,7 +22,8 @@ public final class Volley {
     private Volley(Context c){
         context = c;
         //Address = "http://grouper-server-deployment.cfapps.io/";
-        Address = "http:/192.168.2.69:8080/";
+        Address = "http://192.168.2.69:8080/";
+        //Address = "http://172.17.135.12:8080/";
     }
 
     public String getAddress(){ getRequestQueue(); return Address; }

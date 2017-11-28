@@ -145,6 +145,7 @@ public class Lists extends AppCompatActivity
     }
 
     public void show_env_settings(Environment e){
+
         final Environment env = e;
         LayoutInflater layoutInflater = LayoutInflater.from(this);
         View promptView = layoutInflater.inflate(R.layout.env_settings_diag, null);
@@ -190,8 +191,10 @@ public class Lists extends AppCompatActivity
                     btn_join.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            if (env.getPassword().equals("") || env.getPassword().equals(EnvPass.getText()) ) {
-                                controller.setupQuiz();
+                            String enteredPass = EnvPass.getText().toString();
+                            String envPass = env.getPassword();
+                            if (envPass.equals("") || enteredPass.equals(enteredPass)) {
+                                controller.setupQuiz(env.getQuestionnaire());
                                 Intent intent = new Intent(lst, Questionnaire.class);
                                 startActivity(intent);
                             } else {

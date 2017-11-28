@@ -98,7 +98,8 @@ public class Dispatcher implements Serializable {
             case WAITING    :lists.show_Admin(6); break;
         }
         isSearch = false;
-
+        selectedenv = 0;
+        questionnaire = null;
         JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET, create_GET_URL(),null, LstResponse_Single, ErrResponse) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
@@ -124,8 +125,8 @@ public class Dispatcher implements Serializable {
         Volley.I(lists).addtoReqQueue(req);
     }
 
-    public void setupQuiz(){
-        questionnaire = lst_Formed_List.get(selectedenv).getQuestionnaire();
+    public void setupQuiz(Map<String, List<String>> quiz){
+        questionnaire = quiz;
     }
 
     public void doSearch(String Query){
