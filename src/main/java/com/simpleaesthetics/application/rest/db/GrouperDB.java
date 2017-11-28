@@ -91,78 +91,78 @@ public class GrouperDB {
 	
 	public void populateTables() {
 		//Create universities table
-		/* TODO: clean this crap up! */
 		String bigAssSQLStatement = "BEGIN TRANSACTION;" + 
-				"CREATE TABLE IF NOT EXISTS Users (" + 
-				"	`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
-				"	`FirstName`	TEXT NOT NULL," + 
-				"	`LastName`	TEXT NOT NULL," + 
-				"	`Nickname`	TEXT NOT NULL UNIQUE," + 
-				"	`Email`	TEXT," + 
-				"	`Answers`	TEXT" + 
+				"CREATE TABLE Users (" + 
+				"	'ID'	INTEGER NOT NULL," + 
+				"	'FirstName'	TEXT NOT NULL," + 
+				"	'LastName'	TEXT NOT NULL," + 
+				"	'Nickname'	TEXT NOT NULL UNIQUE," + 
+				"	'Email'	TEXT," + 
+				"	'Answers'	TEXT," + 
+				"	'Password'	TEXT NOT NULL," + 
+				"	PRIMARY KEY('ID')" + 
 				");" + 
-				"CREATE TABLE IF NOT EXISTS Universities (" + 
-				"	`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
-				"	`Name`	TEXT NOT NULL UNIQUE," + 
-				"	`Courses`	TEXT" + 
+				"CREATE TABLE Universities (" + 
+				"	'ID'	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
+				"	'Name'	TEXT NOT NULL UNIQUE," + 
+				"	'Courses'	TEXT" + 
 				");" + 
-				"CREATE TABLE IF NOT EXISTS Questionnaires (" + 
-				"	`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
-				"	`Environment`	INTEGER NOT NULL UNIQUE," + 
-				"	`Questions`	TEXT NOT NULL," + 
-				"	`Answers`	TEXT NOT NULL," + 
-				"	FOREIGN KEY(`Environment`) REFERENCES `Environments`(`ID`) ON DELETE CASCADE" + 
+				"CREATE TABLE Questionnaires (" + 
+				"	'ID'	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
+				"	'Environment'	INTEGER NOT NULL UNIQUE," + 
+				"	'Questions'	TEXT NOT NULL," + 
+				"	FOREIGN KEY('Environment') REFERENCES 'Environments'('ID') ON DELETE CASCADE" + 
 				");" + 
-				"CREATE TABLE IF NOT EXISTS `MatchCache` (" + 
-				"	`UserID`	INTEGER NOT NULL," + 
-				"	`MatchedTo`	INTEGER NOT NULL," + 
-				"	`Percentage`	INTEGER NOT NULL DEFAULT 0 CHECK(Percentage >= 0 and Percentage <= 100)," + 
-				"	PRIMARY KEY(`UserID`,`MatchedTo`)," + 
-				"	FOREIGN KEY(`UserID`) REFERENCES Users(ID) ON DELETE CASCADE," + 
-				"	FOREIGN KEY(`MatchedTo`) REFERENCES Users(ID) ON DELETE CASCADE" + 
+				"CREATE TABLE MatchCache (" + 
+				"	'UserID'	INTEGER NOT NULL," + 
+				"	'MatchedTo'	INTEGER NOT NULL," + 
+				"	'Percentage'	INTEGER NOT NULL DEFAULT 0 CHECK(Percentage >= 0 and Percentage <= 100)," + 
+				"	PRIMARY KEY('UserID','MatchedTo')," + 
+				"	FOREIGN KEY('UserID') REFERENCES Users(ID) ON DELETE CASCADE," + 
+				"	FOREIGN KEY('MatchedTo') REFERENCES Users(ID) ON DELETE CASCADE" + 
 				");" + 
-				"CREATE TABLE IF NOT EXISTS Groups (" + 
-				"	`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
-				"	`Finalized`	INTEGER NOT NULL DEFAULT 0 CHECK(Finalized = 0 or Finalized = 1)," + 
-				"	`TA`	INTEGER," + 
-				"	`Students`	TEXT NOT NULL," + 
-				"	`EnvironmentID`	INTEGER NOT NULL," + 
-				"	FOREIGN KEY(`TA`) REFERENCES Users(ID) ON DELETE RESTRICT," + 
-				"	FOREIGN KEY(`EnvironmentID`) REFERENCES `Environments`(`ID`) ON DELETE CASCADE" + 
+				"CREATE TABLE Groups (" + 
+				"	'ID'	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
+				"	'Finalized'	INTEGER NOT NULL DEFAULT 0 CHECK(Finalized = 0 or Finalized = 1)," + 
+				"	'TA'	INTEGER," + 
+				"	'Students'	TEXT NOT NULL," + 
+				"	'EnvironmentID'	INTEGER NOT NULL," + 
+				"	'Name'	TEXT NOT NULL," + 
+				"	FOREIGN KEY('TA') REFERENCES 'Users'('ID') ON DELETE RESTRICT," + 
+				"	FOREIGN KEY('EnvironmentID') REFERENCES 'Environments'('ID') ON DELETE CASCADE" + 
 				");" + 
-				"CREATE TABLE IF NOT EXISTS Environments (" + 
-				"	`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
-				"	`Course`	INTEGER NOT NULL," + 
-				"	`Students`	TEXT," + 
-				"	`Groups`	TEXT," + 
-				"	`CloseDate`	TEXT NOT NULL," + 
-				"	`MaxGroupSize`	INTEGER NOT NULL DEFAULT 2 CHECK(MaxGroupSize > 0)," + 
-				"	`Questionnaire`	INTEGER DEFAULT -1," + 
-				"	`Password`	TEXT," + 
-				"	`Private`	INTEGER NOT NULL DEFAULT 0 CHECK(Private = 0 or Private = 1)," + 
-				"	`Name`	TEXT NOT NULL," + 
-				"	`Owner`	INTEGER NOT NULL," + 
-				"	FOREIGN KEY(`Course`) REFERENCES `Courses`(`ID`) ON DELETE RESTRICT," + 
-				"	FOREIGN KEY(`Questionnaire`) REFERENCES `Questionnaire`(`ID`)," + 
-				"	FOREIGN KEY(`Owner`) REFERENCES `Users`(`ID`) ON DELETE CASCADE" + 
+				"CREATE TABLE Environments (" + 
+				"	'ID'	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
+				"	'Course'	INTEGER NOT NULL," + 
+				"	'Students'	TEXT," + 
+				"	'Groups'	TEXT," + 
+				"	'CloseDate'	TEXT NOT NULL," + 
+				"	'MaxGroupSize'	INTEGER NOT NULL DEFAULT 2 CHECK(MaxGroupSize > 0)," + 
+				"	'Questionnaire'	INTEGER DEFAULT -1," + 
+				"	'Password'	TEXT," + 
+				"	'Private'	INTEGER NOT NULL DEFAULT 0 CHECK(Private = 0 or Private = 1)," + 
+				"	'Name'	TEXT NOT NULL," + 
+				"	'Owner'	INTEGER NOT NULL," + 
+				"	FOREIGN KEY('Course') REFERENCES 'Courses'('ID') ON DELETE RESTRICT," + 
+				"	FOREIGN KEY('Questionnaire') REFERENCES 'Questionnaire'('ID')," + 
+				"	FOREIGN KEY('Owner') REFERENCES 'Users'('ID') ON DELETE CASCADE" + 
 				");" + 
-				"CREATE TABLE IF NOT EXISTS Courses (" + 
-				"	`ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
-				"	`Name`	TEXT NOT NULL," + 
-				"	`Instructor`	INTEGER NOT NULL," + 
-				"	`University`	INTEGER NOT NULL," + 
-				"	`Environments`	TEXT," + 
-				"	FOREIGN KEY(`Instructor`) REFERENCES `Users`(`ID`) ON DELETE RESTRICT," + 
-				"	FOREIGN KEY(`University`) REFERENCES `Universities`(`ID`) ON DELETE RESTRICT" + 
+				"CREATE TABLE Courses (" + 
+				"	'ID'	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE," + 
+				"	'Name'	TEXT NOT NULL," + 
+				"	'Instructor'	INTEGER NOT NULL," + 
+				"	'University'	INTEGER NOT NULL," + 
+				"	'Environments'	TEXT," + 
+				"	FOREIGN KEY('Instructor') REFERENCES 'Users'('ID') ON DELETE RESTRICT," + 
+				"	FOREIGN KEY('University') REFERENCES 'Universities'('ID') ON DELETE RESTRICT" + 
 				");" + 
-				"CREATE TABLE IF NOT EXISTS Answers (" + 
-				"	`Questionnaire`	INTEGER NOT NULL," + 
-				"	`Student`	INTEGER NOT NULL," + 
-				"	`Questions`	TEXT NOT NULL," + 
-				"	`Answers`	TEXT NOT NULL," + 
-				"	PRIMARY KEY(`Questionnaire`,`Student`)," + 
-				"	FOREIGN KEY(`Questionnaire`) REFERENCES Questionnaires(ID) ON DELETE CASCADE," + 
-				"	FOREIGN KEY(`Student`) REFERENCES `Users`(`ID`) on delete cascade" + 
+				"CREATE TABLE Answers (" + 
+				"	'Environment'	INTEGER NOT NULL," + 
+				"	'Student'	INTEGER NOT NULL," + 
+				"	'Questions'	TEXT NOT NULL," + 
+				"	PRIMARY KEY('Environment','Student')," + 
+				"	FOREIGN KEY('Environment') REFERENCES 'Environments'('ID') ON DELETE CASCADE," + 
+				"	FOREIGN KEY('Student') REFERENCES 'Users'('ID') on delete cascade" + 
 				");" + 
 				"COMMIT;";
 		try {
@@ -2324,7 +2324,7 @@ public class GrouperDB {
 	}
 
 	public static void main(String[] args) {
-		GrouperDB db = new GrouperDB("grouperdb.db");
+		/*GrouperDB db = new GrouperDB("grouperdb.db");
 		boolean oc = false;
 		oc = db.openDB();
 		if(oc == true) {
@@ -2346,27 +2346,20 @@ public class GrouperDB {
 		System.out.println(env1.toString());
 		System.out.println(env2.toString());
 		System.out.println(env3.toString());
-		oc = db.closeDB();
-		if(oc == true) {
-			System.out.println("Successfully closed the database");
-		}
-		else {
-			System.out.println("Failed to close the database");
-		}
-		/*HashMap<String,String[]> questions = new HashMap<String,String[]>();
+		HashMap<String,String[]> questions = new HashMap<String,String[]>();
 		String q = "Question 1";
-		String[] a = {"Answer 1","Answer 2"};
-		questions.put(q,a);
+		String[] aset = {"Answer 1","Answer 2"};
+		questions.put(q,aset);
 		q = "Question 2";
 		String[] b = {"Answer 1","Answer 2","Answer 3"};
 		questions.put(q,b);
-		int qid = db.insertQuestionnaire(1,questions);
-		int eid = 1;
-		int uid = 1;
-		HashMap<String,String[]> qs = db.getQuestions(1);
+		int qid = db.insertQuestionnaire(eid,questions);
+		System.out.println(qid);
+		HashMap<String,String[]> qs = db.getQuestions(qid);
 		HashMap<String,String> as = new HashMap<String,String>();
 		for(String x : qs.keySet()) {
 			String[] a = qs.get(x);
+			System.out.println(Arrays.toString(a));
 			int ra = 0 + (int)(Math.random() * (a.length-1));
 			as.put(x,a[ra]);
 		}
@@ -2379,164 +2372,13 @@ public class GrouperDB {
 			System.out.println("Failed to answer questionnaire");
 		}
 		as = db.getAnswers(eid,uid);
-		System.out.println(as.toString());*/
-		/*GrouperDB db = new GrouperDB("grouperdb.db");
-		boolean oc = false;
-		int uid = -1;
-		int uid2 = -1;
-		int uid3 = -1;
-		int cid = -1;
-		int eid = -1;
-		int gid = -1;
-		int qid = -1;
-		
-		oc = db.openDB();
+		System.out.println(as.toString());
+		oc = db.closeDB();
 		if(oc == true) {
-			System.out.println("Successfully opened the database");
+			System.out.println("Successfully closed the database");
 		}
 		else {
-			System.out.println("Failed to open the database");
-		}
-		if(db.getState() == true) {
-			//VERY UNSAFE!
-			uid = 4;
-			eid = 1;
-			gid = 1;
-			
-			System.out.println(db.queryEnvironment(eid));
-			db.updateEnvironment(eid,Integer.toString(uid),"");
-			System.out.println(db.queryEnvironment(eid));
-			db.updateEnvironment(eid,"",Integer.toString(gid));
-			System.out.println(db.queryEnvironment(eid));
-			ArrayList<String> s = new ArrayList<String>();
-			s.add(Integer.toString(uid));
-			ArrayList<String> g = new ArrayList<String>();
-			g.add(Integer.toString(gid));
-			db.addStudentsToEnvironment(eid,s);
-			System.out.println(db.queryEnvironment(eid));
-			db.removeStudentsFromEnvironment(eid,s);
-			System.out.println(db.queryEnvironment(eid));
-			db.addGroupsToEnvironment(eid,g);
-			System.out.println(db.queryEnvironment(eid));
-			db.removeGroupsFromEnvironment(eid,g);
-			System.out.println("");
-			System.out.println("ADDING DATA");
-			
-			uid = db.insertUniversity("Carleton",new int[0]);
-			if(uid > -1) {
-				System.out.println("Successfully added university to the database");
-			}
-			else {
-				System.out.println("Failed to add university to the database");
-			}
-			
-			uid2 = db.insertUser(123456789,"Test","User","test@test.com");
-			if(uid2 > -1) {
-				System.out.println("Successfully added user to the database");
-			}
-			else {
-				System.out.println("Failed to add user to the database");
-			}
-			uid3 = db.insertUser(133713371,"LOL","User","java-sucks@LOL.com");
-			if(uid3 > -1) {
-				System.out.println("Successfully added user to the database");
-			}
-			else {
-				System.out.println("Failed to add user to the database");
-			}
-			
-			oc = db.updateUser(uid2,"test2@test.com");
-			if(oc == true) {
-				System.out.println("Successfully updated user in the database");
-			}
-			else {
-				System.out.println("Failed to update user in the database");
-			}
-			
-			cid = db.insertCourse("LOLcourse",uid2,uid);
-			if(cid > -1) {
-				System.out.println("Successfully added course to the database");
-			}
-			else {
-				System.out.println("Failed to add course to the database");
-			}
-			
-			oc = db.updateCourse(cid,uid3);
-			if(oc == true) {
-				System.out.println("Successfully updated course in the database");
-			}
-			else {
-				System.out.println("Failed to update course in the database");
-			}
-			
-			int[] c = new int[1];
-			c[0]=cid;
-			oc = db.updateUniversity(uid,c);
-			if(oc == true) {
-				System.out.println("Successfully updated university in the database");
-			}
-			else {
-				System.out.println("Failed to update university in the database");
-			}
-			
-			eid = db.insertEnvironment("Test Environment",cid,false,"",3,"2/25/2069");
-			if(eid > -1) {
-				System.out.println("Successfully added environment to the database");
-			}
-			else {
-				System.out.println("Failed to add environment to the database");
-			}
-			
-			HashMap<String,String[]> qset = new HashMap<String,String[]>();
-			String[] a1 = {"yes","no","sure"};
-			String[] a2 = {"go away","broken application"};
-			qset.put("Is this application broken?",a1);
-			qset.put("What?",a2);
-			
-			qid = db.insertQuestionnaire(eid,qset);
-			if(qid > -1) {
-				System.out.println("Successfully added questionnaire to the database");
-			}
-			else {
-				System.out.println("Failed to add questionnaire to the database");
-			}
-			
-			db.getQuestions(qid);
-			
-			System.out.println("");
-			System.out.println("DISPLAYING DATA");			
-			ArrayList<String[]> universities = db.queryAllUniversities();
-			for(String[] x : universities) {
-				System.out.println(Arrays.toString(x));
-			}
-			universities = db.queryUniversity(uid);
-			for(String[] x : universities) {
-				System.out.println(Arrays.toString(x));
-			}
-			ArrayList<String[]> users = db.queryAllUsers();
-			for(String[] x : users) {
-				System.out.println(Arrays.toString(x));
-			}
-			users = db.queryUser(uid2);
-			for(String[] x : users) {
-				System.out.println(Arrays.toString(x));
-			}
-			ArrayList<String[]> courses = db.queryAllCourses();
-			for(String[] x : courses) {
-				System.out.println(Arrays.toString(x));
-			}
-			courses = db.queryCourse(cid);
-			for(String[] x : courses) {
-				System.out.println(Arrays.toString(x));
-			}
-			ArrayList<ArrayList<String>> envs = db.queryAllEnvironments();
-			for(ArrayList<String> x : envs) {
-				System.out.println(Arrays.toString(x.toArray()));
-			}
-			qset = db.getQuestions(qid);
-			System.out.println(qset.toString());
-			System.out.println("");
-			deleteCrap(db,oc,qid,eid,cid,uid,uid2,uid3);
+			System.out.println("Failed to close the database");
 		}*/
 	}
 

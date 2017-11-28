@@ -544,11 +544,20 @@ public class DatabaseHelper {
 	}
 	
 	public void addSpecificGroupToEnv(Group group, String envName, String courseName, String uniName) {
+		ArrayList<String> envinfo = this.getEnvironmentInfo(envName,courseName,uniName);
+		int finalized = 0;
+		if(envinfo.size() >= 9) {
+			int maxsize = Integer.parseInt(envinfo.get(5));
+			if(group.getGroupMembers().size() >= maxsize) {
+				finalized = 1;
+			}
+		}
+		
 		int insertedGroup = 
 				db.insertGroup(
 					this.getEnvironmentId(envName, courseName, uniName),
 					group.getName(),
-					this.getCourseId(courseName,uniName), 
+					finalized, 
 					this.getUserId(group.getTaName()),
 					this.getCsvFromUserSet(group.getGroupMembers()));
 		
