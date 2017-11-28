@@ -206,6 +206,41 @@ public class GrouperInfoResource {
 		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 	
+	/* TODO: verify that this is correct, I'm not familiar enough with REST to make that judgement */
+	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<Set<Group>> getEnvGroups(
+			Principal principal,
+			@RequestHeader(value="envPassword", required=false) String envPassword,
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName,
+			@PathVariable(value="envName",required=true) String envName) {
+		
+		Environment env = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
+		this.verifyEnvironmentAccess(principal, env, envPassword);
+		
+		Set<Group> groups = dbHelper.getAllGroupsForEnv(envName,courseName,uniName);
+		
+		return new ResponseEntity<>(groups,HttpStatus.OK);
+	}
+	
+	/* TODO: also verify that this is correct */
+	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups/{groupName}", method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<Group> getGroup(
+			Principal principal,
+			@RequestHeader(value="envPassword", required=false) String envPassword,
+			@PathVariable(value="uniName",required=true) String uniName,
+			@PathVariable(value="courseName",required=true) String courseName,
+			@PathVariable(value="envName",required=true) String envName,
+			@PathVariable(value="groupName",required=true) String groupName) {
+		
+		Environment env = dbHelper.getSpecificEnvironment(envName, courseName, uniName);
+		this.verifyEnvironmentAccess(principal, env, envPassword);
+		
+		Group group = dbHelper.getGroup(groupName,envName,courseName,uniName);
+		
+		return new ResponseEntity<>(group,HttpStatus.OK);
+	}
+	
 	@RequestMapping(value="/universities/{uniName}/courses/{courseName}/environments/{envName}/groups", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addSpecificGroupToEnv(
 			Principal principal,
