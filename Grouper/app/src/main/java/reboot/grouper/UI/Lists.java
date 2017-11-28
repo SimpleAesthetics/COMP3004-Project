@@ -184,10 +184,11 @@ public class Lists extends AppCompatActivity
             btn_join.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    alert.cancel();
                     /* Go to user view */
                     controller.enter_environment(env);
                     controller.updateView();
-                    alert.cancel();
+
                 }
             });
         }
@@ -198,6 +199,7 @@ public class Lists extends AppCompatActivity
                     btn_join.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+                            alert.cancel();
                             String enteredPass = EnvPass.getText().toString();
                             String envPass = env.getPassword();
                             if (envPass.equals("") || enteredPass.equals(enteredPass)) {
@@ -208,7 +210,6 @@ public class Lists extends AppCompatActivity
                                 System.out.println(env.getPassword());
                                 System.out.println(EnvPass.getText());
                             }
-                            alert.cancel();
                         }
                     });
                 }
@@ -239,8 +240,8 @@ public class Lists extends AppCompatActivity
 
         final TextView      txt_Question= promptView.findViewById(R.id.txt_Question);
         final RadioGroup    radioGroup = promptView.findViewById(R.id.radio_Group);
-        final Button        button = promptView.findViewById(R.id.btn_Submit);
-        button.setVisibility(View.GONE);
+        final Button        btn_Submit = promptView.findViewById(R.id.btn_Submit);
+        btn_Submit.setVisibility(View.GONE);
 
         List<Question>  Questions;
         Questions = new ArrayList<>();

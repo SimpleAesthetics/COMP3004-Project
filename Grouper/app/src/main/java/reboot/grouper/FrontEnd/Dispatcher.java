@@ -1,10 +1,8 @@
 package reboot.grouper.FrontEnd;
 
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -30,7 +28,6 @@ import reboot.grouper.Model.Environment;
 import reboot.grouper.Model.University;
 import reboot.grouper.Model.User;
 import reboot.grouper.UI.Lists;
-import reboot.grouper.UI.Questionnaire;
 
 /**
  * Created by visha on 2017-11-07.
@@ -453,8 +450,7 @@ public class Dispatcher implements Serializable {
         ErrResponse = new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(lists.getApplicationContext(), create_GET_URL() + " : " + error.toString(),
-                        Toast.LENGTH_SHORT).show();
+                System.out.println(create_GET_URL() + " : " + error.toString());
                 lst_Display     = new ArrayList<>();
                 lst_ID          = new ArrayList<>();
                 lst_Formed_List = new ArrayList<>();
