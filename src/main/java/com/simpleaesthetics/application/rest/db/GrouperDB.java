@@ -1847,15 +1847,14 @@ public class GrouperDB {
 	//Output: ID of the newly added group, or -1 on failure
 	public int insertGroup(int env, String name, int finalized, int ta, String students) {
 		//Basic sanity check
-		if((this.queryUser(ta).isEmpty() == true && ta != -1) || this.queryEnvironment(env).isEmpty() == true || finalized == 0 || finalized == 1 || this.getGroupID(env,name) != -1) {
+		if((this.queryUser(ta).isEmpty() == true && ta != -1) || this.queryEnvironment(env).isEmpty() == true || (finalized != 0 && finalized != 1) || this.getGroupID(env,name) != -1) {
 			return -1;
 		}
-		//System.out.println("Finished basic sanity check");
 		//Set base ID number
 		int id = -1;
 		if(opened != false && dbconn != null) {
 			//Database is opened, can insert into DB now
-			String sql = "INSERT INTO Groups(name,finalized,ta,students,environmentid) VALUES (?,?,?,?)";
+			String sql = "INSERT INTO Groups(name,finalized,ta,students,environmentid) VALUES (?,?,?,?,?)";
 			try {
 				//Prepare statement
 				PreparedStatement psql = dbconn.prepareStatement(sql);
@@ -2324,7 +2323,7 @@ public class GrouperDB {
 	}
 
 	public static void main(String[] args) {
-		/*GrouperDB db = new GrouperDB("grouperdb.db");
+		GrouperDB db = new GrouperDB("grouperdb.db");
 		boolean oc = false;
 		oc = db.openDB();
 		if(oc == true) {
@@ -2333,53 +2332,20 @@ public class GrouperDB {
 		else {
 			System.out.println("Failed to open the database");
 		}
-		ArrayList<ArrayList<String>> courses = db.queryAllCourses();
-		ArrayList<ArrayList<String>> users = db.queryAllUsers();
-		System.out.println(courses.get(0).toString());
-		System.out.println(users.get(0).toString());
-		int cid = Integer.parseInt(courses.get(0).get(0));
-		int uid = Integer.parseInt(users.get(0).get(0));
-		int eid = db.insertEnvironment("Test Env 3",uid,cid,true,"javasucks02",4,"4/11/2020","","",-1);
-		ArrayList<String> env1 = db.queryEnvironment(1);
-		ArrayList<String> env2 = db.queryEnvironment(2);
-		ArrayList<String> env3 = db.queryEnvironment(eid);
-		System.out.println(env1.toString());
-		System.out.println(env2.toString());
-		System.out.println(env3.toString());
-		HashMap<String,String[]> questions = new HashMap<String,String[]>();
-		String q = "Question 1";
-		String[] aset = {"Answer 1","Answer 2"};
-		questions.put(q,aset);
-		q = "Question 2";
-		String[] b = {"Answer 1","Answer 2","Answer 3"};
-		questions.put(q,b);
-		int qid = db.insertQuestionnaire(eid,questions);
-		System.out.println(qid);
-		HashMap<String,String[]> qs = db.getQuestions(qid);
-		HashMap<String,String> as = new HashMap<String,String>();
-		for(String x : qs.keySet()) {
-			String[] a = qs.get(x);
-			System.out.println(Arrays.toString(a));
-			int ra = 0 + (int)(Math.random() * (a.length-1));
-			as.put(x,a[ra]);
-		}
-		System.out.println(as.toString());
-		oc = db.answerQuestionnaire(eid,uid,as);
-		if(oc == true) {
-			System.out.println("Successfully answered questionnaire");
-		}
-		else {
-			System.out.println("Failed to answer questionnaire");
-		}
-		as = db.getAnswers(eid,uid);
-		System.out.println(as.toString());
+		int eid = 1;
+		ArrayList<String> env = db.queryEnvironment(eid);
+		System.out.println(env.toString());
+		int gid1 = 2;
+		int gid2 = 3;
+		System.out.println(db.getGroupID(1,"Test Group 1"));
+		System.out.println(db.getGroups(1));
 		oc = db.closeDB();
 		if(oc == true) {
 			System.out.println("Successfully closed the database");
 		}
 		else {
 			System.out.println("Failed to close the database");
-		}*/
+		}
 	}
 
 }
