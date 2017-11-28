@@ -390,7 +390,8 @@ public class DatabaseHelper {
 	}
 	
 	public void updateEnvironment(Environment env, String courseName, String uniName) {
-		/* TODO: probably need some kind of assertion that the env exists here */
+		this.assertEnvironmentExists(env.getName(), courseName, uniName);
+		
 		Set<User> userset = env.getUsers();
 		String userlist = "";
 		for(User x : userset) {
@@ -423,25 +424,7 @@ public class DatabaseHelper {
 		if (updated == false) {
 			throw new DatabaseException("Could not update environment ["+ env.getName() +"]");
 			
-		} /*else {
-			int insertedQuestionnnaire = 
-					db.insertQuestionnaire(
-						insertedEnvId, 
-						questionnaireTransformer.transformForDbArray(env.getQuestionnaire()));
-			
-			if (insertedQuestionnnaire == -1) {
-				throw new DatabaseException("Could not add new questionnaire to env ["+ env.getName() +"]");
-				
-			} else {
-				boolean successfulUpdate = db.changeQuestionnaire(
-						insertedEnvId, 
-						insertedQuestionnnaire);
-				
-				if (!successfulUpdate) {
-					throw new DatabaseException("Could not update questionnaire id for env ["+ env.getName() +"]");
-				}
-			}
-		}*/
+		} 
 	}
 	
 	public List<Environment> getEnvironments(String universityName, String courseName) {
@@ -476,6 +459,7 @@ public class DatabaseHelper {
 		ArrayList<String> envInfo = this.getEnvironmentInfo(envName, courseName, universityName);
 		Set<User> userSet = userTransformer.transformCsvToUserHashSet(envInfo.get(7));
 //		Map<String, Group> groupMap = groupTransformer.transformCsvToGroupMap(envInfo.get(8));
+//		db.getGroups(env)
 		
 		for (User user : userSet) {
 			List<Integer> answersList = new ArrayList<Integer>();
@@ -494,7 +478,7 @@ public class DatabaseHelper {
 		
 //		ArrayList<ArrayList<String>> groupsInfo = 
 //				db.getGroups(db.getGroupID(this.getEnvironmentId(envName, courseName, universityName)));
-		
+//		
 //		for (ArrayList<String> groupInfo : groupsInfo) {
 //			groupMap.get(groupInfo.get(1));
 //		}
@@ -693,6 +677,10 @@ public class DatabaseHelper {
 		}
 	}
 	
+	
+	/** Helper Functions **/
+	
+	
 	private void assertUserNotInEnv(User user, Environment env) {
 		if (env.getUsers().contains(user)) {
 			throw new DatabaseException("Assert failed: User already in Environment");
@@ -743,6 +731,20 @@ public class DatabaseHelper {
 		
 		if (exists) {
 			throw new DatabaseException("Assert failed: Course already exists for this University");
+		}
+	}
+	
+	private void assertEnvironmentExists(String environmentName, String courseName, String universityName) {
+		boolean exists = false;
+		try {
+			exists = !db.queryEnvironment(this.getEnvironmentId(environmentName, courseName, universityName)).isEmpty();
+			
+		} catch (DatabaseException e) {
+			// Do nothing
+		}
+		
+		if (!exists) {
+			throw new DatabaseException("Assert failed: Environment does not exist");
 		}
 	}
 	

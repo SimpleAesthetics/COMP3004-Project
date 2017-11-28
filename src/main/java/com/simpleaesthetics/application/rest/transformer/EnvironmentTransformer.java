@@ -27,7 +27,8 @@ public class EnvironmentTransformer {
 	public Environment transformToEnvironment(
 			ArrayList<String> envInfo,
 			Map<String, String[]> questionnaire,
-			Set<User> users
+			Set<User> users/*,
+			ArrayList<ArrayList<String>> groups*/
 			) {
 		
 		Environment env = new Environment(
