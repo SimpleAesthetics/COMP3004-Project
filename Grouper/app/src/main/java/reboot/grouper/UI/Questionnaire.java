@@ -1,5 +1,6 @@
 package reboot.grouper.UI;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -16,12 +17,14 @@ import java.util.Map;
 
 import reboot.grouper.FrontEnd.Dispatcher;
 import reboot.grouper.FrontEnd.UserSession;
+import reboot.grouper.Model.Environment;
 import reboot.grouper.Model.User;
 import reboot.grouper.R;
 
 public class Questionnaire extends AppCompatActivity {
     private Dispatcher      controller;
     private List<Question>  Questions;
+    private String     E;
     private List<Integer>   response;
     private int             currentQuestion;
 
@@ -32,6 +35,7 @@ public class Questionnaire extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         controller = Dispatcher.getList();
+        E = getIntent().getExtras().getString("envName");
         setContentView(R.layout.activity_questionnaire);
         radioGroup      = findViewById(R.id.radio_Group);
         txt_Question    = findViewById(R.id.txt_Question);
@@ -72,20 +76,11 @@ public class Questionnaire extends AppCompatActivity {
                 else{
                     User usr = new User(UserSession.I().getUser().getUsername());
                     usr.setQuestionAnswers(response);
-                    controller.setQuestionnaireResponse(usr);
+                    controller.setQuestionnaireResponse(usr,E);
                     controller.updateView();
                     finish();
                 }
             }
         });
-    }
-}
-
-class Question{
-    public String Q;
-    public List<String> A;
-    public Question(String q, List<String> a){
-        Q=q;
-        A=a;
     }
 }

@@ -23,6 +23,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.QuickContactBadge;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.SimpleAdapter;
@@ -33,6 +35,7 @@ import com.google.gson.Gson;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +70,8 @@ public class Lists extends AppCompatActivity
     private EditText                Text_Input;
     private SearchView              searchView;
     private MenuItem                searchMenu;
-
+    private AlertDialog             alert;
+    private List<RadioButton>       radioButtons;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,7 +149,7 @@ public class Lists extends AppCompatActivity
     }
 
     public void show_env_settings(Environment e){
-
+        alert = null;
         final Environment env = e;
         LayoutInflater layoutInflater = LayoutInflater.from(this);
         View promptView = layoutInflater.inflate(R.layout.env_settings_diag, null);
@@ -180,7 +184,10 @@ public class Lists extends AppCompatActivity
             btn_join.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
+                    /* Go to user view */
+                    controller.enter_environment(env);
+                    controller.updateView();
+                    alert.cancel();
                 }
             });
         }
@@ -194,15 +201,14 @@ public class Lists extends AppCompatActivity
                             String enteredPass = EnvPass.getText().toString();
                             String envPass = env.getPassword();
                             if (envPass.equals("") || enteredPass.equals(enteredPass)) {
-                                controller.setupQuiz(env.getQuestionnaire());
-                                Intent intent = new Intent(lst, Questionnaire.class);
-                                startActivity(intent);
+                                questionnaire(env);
                             } else {
                                 Toast.makeText(lst.getApplicationContext(), "Invalid Password!",
                                         Toast.LENGTH_SHORT).show();
                                 System.out.println(env.getPassword());
                                 System.out.println(EnvPass.getText());
                             }
+                            alert.cancel();
                         }
                     });
                 }
@@ -217,8 +223,77 @@ public class Lists extends AppCompatActivity
             }
         });
 
-        AlertDialog alert = alertDialogBuilder.create();
+        alert = alertDialogBuilder.create();
         alert.show();
+    }
+
+    public void questionnaire(Environment E){
+        questionnaire_Dialog(E,0,new ArrayList<Integer>());
+    }
+
+    private void questionnaire_Dialog(Environment env,int question,List<Integer> response){
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        View promptView = layoutInflater.inflate(R.layout.activity_questionnaire, null);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(promptView);
+
+        final TextView      txt_Question= promptView.findViewById(R.id.txt_Question);
+        final RadioGroup    radioGroup = promptView.findViewById(R.id.radio_Group);
+        final Button        button = promptView.findViewById(R.id.btn_Submit);
+        button.setVisibility(View.GONE);
+
+        List<Question>  Questions;
+        Questions = new ArrayList<>();
+        for (Map.Entry<String,List<String>> entry : env.getQuestionnaire().entrySet()) {
+            Questions.add(new Question(entry.getKey(),entry.getValue()));
+        }
+
+        txt_Question.setText(Questions.get(question).Q);
+        radioButtons = new ArrayList<>();
+        for(String A : Questions.get(question).A){
+            RadioButton button = new RadioButton(this);
+            radioButtons.add(button);
+            button.setText(A);
+            radioGroup.addView(button);
+        }
+
+        String buttontext = "Submit";
+        if(question<env.getQuestionnaire().size()-1) buttontext="Next";
+
+
+
+        final Environment e = env;
+        final int q = question;
+        final List<Integer> r = response;
+        alertDialogBuilder.setCancelable(false)
+                .setPositiveButton(buttontext, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        int checked = -1;
+                        int index = 0;
+                        for(RadioButton b : radioButtons){
+                            if(b.isChecked()) checked=index;
+                            index++;
+                        }
+                        if(checked<0){ questionnaire_Dialog(e,q,r); }
+                        else if(q+1<e.getQuestionnaire().size()){
+                            r.add(checked);
+                            questionnaire_Dialog(e, q + 1, r);
+                        }
+                        else{
+                            r.add(checked);
+                            User usr = new User(UserSession.I().getUser().getUsername());
+                            usr.setQuestionAnswers(r);
+                            controller.setQuestionnaireResponse(usr,e.getName());
+                            controller.updateView();
+                        }
+                        dialogInterface.cancel();
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int id) { dialog.cancel(); }});
+        // create an alert dialog
+        AlertDialog ALERT = alertDialogBuilder.create();
+        ALERT.show();
     }
 
     public void text_Input_Dialog(DialogInterface.OnClickListener listener, String title){
@@ -499,5 +574,15 @@ public class Lists extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+}
+
+
+class Question{
+    public String Q;
+    public List<String> A;
+    public Question(String q, List<String> a){
+        Q=q;
+        A=a;
     }
 }

@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import reboot.grouper.Model.Course;
 import reboot.grouper.Model.Environment;
@@ -63,7 +65,12 @@ public class Dispatcher implements Serializable {
     private Response<List<Environment>> EnviResponse;
 
     private Map<String, List<String>>   questionnaire;
+    private Environment Envir;
     private int selectedenv;
+
+
+
+    public Environment getEnvir(){ return Envir; }
 
     public Map<String, List<String>> getQuestionnaire(){ return questionnaire; };
 
@@ -122,7 +129,15 @@ public class Dispatcher implements Serializable {
             };
             System.out.println("Environments!");
         }
-        Volley.I(lists).addtoReqQueue(req);
+        if(state == STATE.FORMATION){
+            PreviewUsers();
+        }
+        else {
+
+        }
+        if(state == STATE.UNIV || state == STATE.COURSES ||state == STATE.ENVI) {
+            Volley.I(lists).addtoReqQueue(req);
+        }
     }
 
     public void setupQuiz(Map<String, List<String>> quiz){
@@ -180,6 +195,33 @@ public class Dispatcher implements Serializable {
 
     }
 
+    public void enter_environment(Environment E){
+        Envir = E;
+        if(E.getGroups().size()>0){
+            /* Show Groups */
+            state = STATE.GROUPS;
+        }
+        else{
+            state = STATE.FORMATION;
+        }
+        clearSearch();
+    }
+
+    public void PreviewUsers(){
+        lst_Display     = new ArrayList<>();
+        lst_ID          = new ArrayList<>();
+        if(Envir!=null) {
+            Set<User> users = Envir.getUsers();
+            for (User u : users) {
+                lst_Display.add(new_List_Item(u.getNickname(), ""));
+                lst_ID.add(u.getNickname());
+            }
+            lists.set_List(lst_Display, -1);
+        }
+        else updateView();
+        lists.set_Loading(false);
+    }
+
     public void back_A_Step(){
         switch (state){
             case UNIV       : lists.finish(); return;
@@ -192,8 +234,8 @@ public class Dispatcher implements Serializable {
                 state = STATE.COURSES;
                 /* Check for environment formation status */
                 break;
-            case FORMATION  :lists.show_Admin(4); break;
-            case GROUPS     :lists.show_Admin(5); break;
+            case FORMATION  :lists.show_Admin(4); state = STATE.ENVI; break;
+            case GROUPS     :lists.show_Admin(5); state = STATE.ENVI; break;
             case JOINED     :lists.show_Admin(0); break;
             case WAITING    :lists.show_Admin(6); break;
 
@@ -328,9 +370,9 @@ public class Dispatcher implements Serializable {
         Volley.I(lists).addtoReqQueue(req);
     }
 
-    public void setQuestionnaireResponse(User usr){
+    public void setQuestionnaireResponse(User usr, String e){
         final User user = usr;
-        String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses/"+cour+"/environments/"+lst_ID.get(selectedenv)+"/users";
+        String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses/"+cour+"/environments/"+e+"/users";
         StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
