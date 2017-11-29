@@ -2,6 +2,7 @@ package reboot.grouper.FrontEnd;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Toast;
@@ -25,12 +26,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import co.chatsdk.core.dao.Thread;
+import co.chatsdk.core.interfaces.ThreadType;
+import co.chatsdk.core.session.NM;
+import co.chatsdk.core.types.AccountDetails;
+import co.chatsdk.ui.manager.InterfaceManager;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.BiConsumer;
 import reboot.grouper.Model.Course;
 import reboot.grouper.Model.Environment;
 import reboot.grouper.Model.Group;
 import reboot.grouper.Model.University;
 import reboot.grouper.Model.User;
 import reboot.grouper.UI.Lists;
+
+import static co.chatsdk.core.types.AccountDetails.signUp;
+import static co.chatsdk.core.types.AccountDetails.username;
 
 /**
  * Created by visha on 2017-11-07.
@@ -73,8 +85,38 @@ public class Dispatcher implements Serializable {
     private int selectedenv;
 
     public void chatButtonPressed(){
-        Context listContext = lists.getApplicationContext();
-        /* To create a group chat, you'd prolly have to use univ,cour,envi and groupID to come up with a new chat session? */
+
+        List<Thread>  threads = NM.thread().getThreads(ThreadType.Public);
+        final Context listContext = lists.getApplicationContext();
+        AccountDetails details = username("some.email@domain.com", "Joe123");
+        NM.auth().authenticate(details).subscribe(new Action() {
+            @Override
+            public void run() throws Exception {
+                List<Thread>  threads = NM.thread().getThreads(ThreadType.Public);
+                Thread chat=null;
+                for (int i=0;i<threads.size();i++){
+                    if (threads.get(i).getDisplayName()==grou){
+                        chat=threads.get(i);
+                        break;
+                    }
+
+                }
+                if (chat!=null)  InterfaceManager.shared().a.startChatActivityForID(listContext, chat.getEntityID());
+                else{
+                NM.publicThread().createPublicThreadWithName(grou)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new BiConsumer<Thread, Throwable>() {
+                            @Override
+                            public void accept(Thread thread, Throwable throwable) {
+                                if (throwable == null) {
+                                    InterfaceManager.shared().a.startChatActivityForID(listContext, thread.getEntityID());
+                                } else {
+                                    Log.d("error",throwable.getMessage());
+                                }
+                            }
+                        });
+                 }}});
+
     }
 
     public Environment getEnvir(){ return Envir; }

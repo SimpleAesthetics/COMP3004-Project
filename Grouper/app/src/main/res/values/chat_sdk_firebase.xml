@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="firebase_url">https://grouper-chat.firebaseio.com</string>
+    <string name="firebase_root_path">grouper-chat</string>
+    <string name="firebase_storage_url">gs://grouper-chat.appspot.com</string>
+    <string name="firebase_cloud_messaging_server_key">AAAArN6yBkY:APA91bGSRJYMQzgMCcWKvvG1JwIoOs_2ghx55-uGeqf4MA817Hh__EvQ5Ky5W4Y-64lfaiJ8pUG3HUg3t9p8i_Xxk1jnMp-ZP9M2Wn7nQMwJKUoWWfCCuOcQXY4-goIrUqyLyNbuagcH</string>
+    <string name="google_web_client_id">742470583878-m4lnv1rts09u3lfq8c23gm5n2s0gb2e1.apps.googleusercontent.com</string>
+</resources>

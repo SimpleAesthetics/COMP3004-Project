@@ -30,7 +30,7 @@ import android.widget.SearchView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.support.multidex.MultiDex;
 import com.google.gson.Gson;
 
 import java.io.FileNotFoundException;
@@ -39,6 +39,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import co.chatsdk.core.session.ChatSDK;
+import co.chatsdk.core.session.Configuration;
+import co.chatsdk.firebase.FirebaseModule;
+import co.chatsdk.firebase.file_storage.FirebaseFileStorageModule;
+import co.chatsdk.ui.manager.UserInterfaceModule;
 import reboot.grouper.FrontEnd.Dispatcher;
 import reboot.grouper.FrontEnd.UserSession;
 import reboot.grouper.Model.Course;
@@ -80,6 +85,18 @@ public class Lists extends AppCompatActivity
         loadingBar = findViewById(R.id.loadingPanel);
         setSupportActionBar(toolbar);
 
+        MultiDex.install(this);
+        Context context = getApplicationContext();
+        Configuration.Builder builder = new Configuration.Builder(context);
+        builder.firebaseRootPath("firebase_v4_web_new_4");
+
+        ChatSDK.initialize(builder.build());
+
+        UserInterfaceModule.activate(context);
+
+        FirebaseModule.activate();
+
+        FirebaseFileStorageModule.activate();
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
