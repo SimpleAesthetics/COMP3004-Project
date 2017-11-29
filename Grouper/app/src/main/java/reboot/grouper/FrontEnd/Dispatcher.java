@@ -1,5 +1,6 @@
 package reboot.grouper.FrontEnd;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.view.View;
 import android.widget.AdapterView;
@@ -10,6 +11,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
 
@@ -25,6 +27,7 @@ import java.util.Set;
 
 import reboot.grouper.Model.Course;
 import reboot.grouper.Model.Environment;
+import reboot.grouper.Model.Group;
 import reboot.grouper.Model.University;
 import reboot.grouper.Model.User;
 import reboot.grouper.UI.Lists;
@@ -56,6 +59,8 @@ public class Dispatcher implements Serializable {
     private Response.Listener<JSONArray>    LstResponse_Environment;
     private Response.Listener<String>       StrResponse;
     private Response.ErrorListener          ErrResponse;
+    private Response.Listener<JSONObject>   EnvirResponse;
+    private int                             groupID;
 
     private Response<List<University>>  UnivResponse;
     private Response<List<Course>>      CourResponse;
@@ -65,7 +70,10 @@ public class Dispatcher implements Serializable {
     private Environment Envir;
     private int selectedenv;
 
-
+    public void chatButtonPressed(){
+        Context listContext = lists.getApplicationContext();
+        /* To create a group chat, you'd prolly have to use univ,cour,envi and groupID to come up with a new chat session? */
+    }
 
     public Environment getEnvir(){ return Envir; }
 
@@ -96,8 +104,8 @@ public class Dispatcher implements Serializable {
             case UNIV       :lists.show_Admin(1); break;
             case COURSES    :lists.show_Admin(2); break;
             case ENVI       :lists.show_Admin(3); break;
-            case FORMATION  :lists.show_Admin(4); break;
-            case GROUPS     :lists.show_Admin(5); break;
+            case FORMATION  :lists.show_Admin(5); break;
+            case GROUPS     :lists.show_Admin(4); break;
             case JOINED     :lists.show_Admin(0); break;
             case WAITING    :lists.show_Admin(6); break;
         }
@@ -129,8 +137,12 @@ public class Dispatcher implements Serializable {
         if(state == STATE.FORMATION){
             PreviewUsers();
         }
-        else {
-
+        if(state == STATE.GROUPS){
+            PreviewGroup();
+            lists.set_Floating_Buttons(true);
+        }
+        else{
+            lists.set_Floating_Buttons(false);
         }
         if(state == STATE.UNIV || state == STATE.COURSES ||state == STATE.ENVI) {
             Volley.I(lists).addtoReqQueue(req);
@@ -194,6 +206,7 @@ public class Dispatcher implements Serializable {
 
     public void enter_environment(Environment E){
         Envir = E;
+        envi = E.getName();
         if(E.getGroups().size()>0){
             /* Show Groups */
             state = STATE.GROUPS;
@@ -213,6 +226,38 @@ public class Dispatcher implements Serializable {
                 lst_Display.add(new_List_Item(u.getNickname(), ""));
                 lst_ID.add(u.getNickname());
             }
+            lists.set_List(lst_Display, -1);
+        }
+        else updateView();
+        lists.set_Loading(false);
+    }
+
+    public void PreviewGroup(){
+        lst_Display     = new ArrayList<>();
+        lst_ID          = new ArrayList<>();
+        if(Envir!=null) {
+            Set<Group> groups = Envir.getGroups();
+            int i = 0;
+            for(Group g : groups) {
+                i++;
+                boolean found = false;
+                for(User u : g.getGroupMembers()){
+                    if(u.getNickname().equals(UserSession.I().getUser().getUsername())){
+                        found=true;
+                    }
+                }
+                if(found){
+                    groupID = i;
+                    grou = g.getName();
+                    lists.set_Title(g.getName());
+                    for (User u : g.getGroupMembers()) {
+                        lst_Display.add(new_List_Item(u.getNickname(), ""));
+                        lst_ID.add(u.getNickname());
+                    }
+                    break;
+                }
+            }
+
             lists.set_List(lst_Display, -1);
         }
         else updateView();
@@ -389,6 +434,23 @@ public class Dispatcher implements Serializable {
         Volley.I(lists).addtoReqQueue(req);
     }
 
+    public void forceSort(String e){
+        String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses/"+cour+"/environments/"+e;
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, URL, null, EnvirResponse, ErrResponse){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap();
+                headers.put("sortGroups", "true");
+                headers.put("numMembers", "?");
+                String[] auth = UserSession.credentials();
+                headers.put(auth[0],(auth[1]));
+                return headers;
+            }
+        };
+        Volley.I(lists).addtoReqQueue(req);
+    }
+
+
     private void init_Function_Listeners(){
         LstResponse_Single = new Response.Listener<JSONArray>() {
             @Override
@@ -441,6 +503,18 @@ public class Dispatcher implements Serializable {
                 });
                 lists.set_List(lst_Display,-1);
                 lists.set_Loading(false);
+            }
+        };
+
+        EnvirResponse =new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Environment E = new Gson().fromJson(response.toString(),Environment.class);
+                for(Environment Env : lst_Formed_List){
+                    if(Env.getName().equals(E.getName())) {
+                        Env.setGroups(E.getGroups());
+                    }
+                }
             }
         };
 

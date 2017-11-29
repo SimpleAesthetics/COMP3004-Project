@@ -28,4 +28,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="delete environment" />
+
+    <Button
+        android:id="@+id/btn_forceSort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Invoke Group Sort" />
 </LinearLayout>

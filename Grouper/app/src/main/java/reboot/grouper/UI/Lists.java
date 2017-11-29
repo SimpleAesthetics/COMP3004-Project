@@ -127,6 +127,12 @@ public class Lists extends AppCompatActivity
                 controller.clearSearch();
             }
         });
+        btn_Chat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                controller.chatButtonPressed();
+            }
+        });
         controller.updateView();
     }
 
@@ -159,7 +165,7 @@ public class Lists extends AppCompatActivity
         final TextView EnvPass = promptView.findViewById(R.id.txt_EnvPass);
         final Button btn_join = promptView.findViewById(R.id.btn_joinwquiz);
         final Button btn_delete = promptView.findViewById(R.id.btn_delete);
-
+        final Button btn_forceSort = promptView.findViewById(R.id.btn_forceSort);
         if(e.getPassword().equals("")){
             EnvPass.setVisibility(View.GONE);
         }
@@ -181,6 +187,7 @@ public class Lists extends AppCompatActivity
         {
             EnvPass.setVisibility(View.GONE);
             btn_join.setText("Enter Environment");
+            btn_forceSort.setVisibility(View.VISIBLE);
             btn_join.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -193,6 +200,7 @@ public class Lists extends AppCompatActivity
             });
         }
         else {
+            btn_forceSort.setVisibility(View.GONE);
             btn_join.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -217,10 +225,11 @@ public class Lists extends AppCompatActivity
         }
 
 
-        btn_delete.setOnClickListener(new View.OnClickListener() {
+        btn_forceSort.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                alert.cancel();
+                controller.forceSort(env.getName());
             }
         });
 
