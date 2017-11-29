@@ -115,7 +115,8 @@ public class Lists extends AppCompatActivity
         show_Admin(0);
         set_Floating_Buttons(false);
 
-        controller = new Dispatcher(this);
+        controller = Dispatcher.getDispatch();
+        controller.setLists(this);
         show_Username_In_Dash();
         lst_Main.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -155,6 +156,8 @@ public class Lists extends AppCompatActivity
     }
 
     public void show_env_settings(Environment e){
+        controller.envPass = "";
+        if(alert!=null) alert.cancel();
         alert = null;
         final Environment env = e;
         LayoutInflater layoutInflater = LayoutInflater.from(this);
@@ -194,8 +197,9 @@ public class Lists extends AppCompatActivity
                     alert.cancel();
                     /* Go to user view */
                     controller.enter_environment(env);
+                    controller.envPass = EnvPass.getText().toString();
                     controller.updateView();
-
+                    alert.cancel();
                 }
             });
         }
@@ -208,6 +212,7 @@ public class Lists extends AppCompatActivity
                         @Override
                         public void onClick(View view) {
                             alert.cancel();
+                            controller.envPass = EnvPass.getText().toString();
                             String enteredPass = EnvPass.getText().toString();
                             String envPass = env.getPassword();
                             if (envPass.equals("") || enteredPass.equals(enteredPass)) {
@@ -218,6 +223,7 @@ public class Lists extends AppCompatActivity
                                 System.out.println(env.getPassword());
                                 System.out.println(EnvPass.getText());
                             }
+                            alert.cancel();
                         }
                     });
                 }
@@ -230,6 +236,7 @@ public class Lists extends AppCompatActivity
             public void onClick(View view) {
                 alert.cancel();
                 controller.forceSort(env.getName());
+                alert.cancel();
             }
         });
 
@@ -374,6 +381,14 @@ public class Lists extends AppCompatActivity
                     new int[]{android.R.id.text1});
             lst_Main.setAdapter(adapter);
         }
+    }
+
+    public void set_Double_List(List<Map<String, String>> lst_cur){
+            adapter = new SimpleAdapter(this, lst_cur,
+                    android.R.layout.simple_list_item_2,
+                    new String[]{"H1", "H2"},
+                    new int[]{android.R.id.text1, android.R.id.text2});
+            lst_Main.setAdapter(adapter);
     }
 
     public String get_Text_Input(){ return Text_Input.getText().toString(); }

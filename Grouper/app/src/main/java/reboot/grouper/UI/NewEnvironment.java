@@ -38,7 +38,7 @@ public class NewEnvironment extends AppCompatActivity {
                 }
             }
         });
-        controller = Dispatcher.getList();
+        controller = Dispatcher.getDispatch();
     }
 
     private void Submit() throws JSONException {

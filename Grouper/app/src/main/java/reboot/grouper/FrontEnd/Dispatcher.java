@@ -66,6 +66,8 @@ public class Dispatcher implements Serializable {
     private Response<List<Course>>      CourResponse;
     private Response<List<Environment>> EnviResponse;
 
+    public String envPass;
+
     private Map<String, List<String>>   questionnaire;
     private Environment Envir;
     private int selectedenv;
@@ -85,16 +87,17 @@ public class Dispatcher implements Serializable {
 
     private enum STATE{ UNIV, COURSES, ENVI, FORMATION, GROUPS, JOINED, WAITING }
 
-    public Dispatcher(Lists lst){
-        lists = lst;
+    public Dispatcher(){
+        lists = null;
         state = STATE.UNIV;
         init_Function_Listeners();
         inst = this;
         retrofit = Retrofit_Client.getAPI();
         isSearch = false;
     }
+    public void setLists(Lists l){ lists = l; }
 
-    public static Dispatcher getList(){ return inst; }
+    public static Dispatcher getDispatch(){ if(inst==null) inst=new Dispatcher(); return inst; }
 
     public void updateView(){
         lists.set_Loading(true);
@@ -217,16 +220,28 @@ public class Dispatcher implements Serializable {
         clearSearch();
     }
 
+    private String printAnswers(List<Integer> r){
+        String out = "Quiz Responses: ";
+        for(int i = 0; i < r.size()-1; i++){
+            out+= (i+1)+") "+getCharForNumber(r.get(i)+1)+", ";
+        }
+        out+= (r.size()+1)+") "+getCharForNumber(r.get(r.size()-1)+1);
+        return out;
+    }
+    private String getCharForNumber(int i) {
+        return i > 0 && i < 27 ? String.valueOf((char)(i + 64)) : ""+i;
+    }
+
     public void PreviewUsers(){
         lst_Display     = new ArrayList<>();
         lst_ID          = new ArrayList<>();
         if(Envir!=null) {
             Set<User> users = Envir.getUsers();
             for (User u : users) {
-                lst_Display.add(new_List_Item(u.getNickname(), ""));
+                lst_Display.add(new_List_Item(u.getNickname(), printAnswers(u.getQuestionAnswers())));
                 lst_ID.add(u.getNickname());
             }
-            lists.set_List(lst_Display, -1);
+            lists.set_Double_List(lst_Display);
         }
         else updateView();
         lists.set_Loading(false);
@@ -251,14 +266,14 @@ public class Dispatcher implements Serializable {
                     grou = g.getName();
                     lists.set_Title(g.getName());
                     for (User u : g.getGroupMembers()) {
-                        lst_Display.add(new_List_Item(u.getNickname(), ""));
+                        lst_Display.add(new_List_Item(u.getNickname(), printAnswers(u.getQuestionAnswers())));
                         lst_ID.add(u.getNickname());
                     }
                     break;
                 }
             }
 
-            lists.set_List(lst_Display, -1);
+            lists.set_Double_List(lst_Display);
         }
         else updateView();
         lists.set_Loading(false);
@@ -420,6 +435,7 @@ public class Dispatcher implements Serializable {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap();
                 headers.put("Content-Type", "application/json; charset=utf-8");
+                headers.put("envPassword", envPass);
                 String[] auth = UserSession.credentials();
                 headers.put(auth[0],(auth[1]));
                 return headers;
@@ -524,7 +540,7 @@ public class Dispatcher implements Serializable {
         ErrResponse = new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                System.out.println(create_GET_URL() + " : " + error.toString());
+                System.out.println(create_GET_URL() + "\n" + error.toString() + "\n" + error.getMessage());
                 lst_Display     = new ArrayList<>();
                 lst_ID          = new ArrayList<>();
                 lst_Formed_List = new ArrayList<>();
