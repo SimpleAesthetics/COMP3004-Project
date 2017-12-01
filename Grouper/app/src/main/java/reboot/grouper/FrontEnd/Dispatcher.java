@@ -2,6 +2,8 @@ package reboot.grouper.FrontEnd;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -63,6 +65,7 @@ public class Dispatcher implements Serializable {
     private List<String>                lst_Search_ID;
     private List<Environment>           lst_Search_Formed_List;
     private Boolean                     isSearch;
+    private Group                       group;
 
     private String univ,cour,envi,grou;
     private STATE state;
@@ -71,6 +74,7 @@ public class Dispatcher implements Serializable {
     private Response.Listener<JSONArray>    LstResponse_Environment;
     private Response.Listener<String>       StrResponse;
     private Response.ErrorListener          ErrResponse;
+    private Response.ErrorListener          ErrResponseU;
     private Response.Listener<JSONObject>   EnvirResponse;
     private int                             groupID;
 
@@ -84,8 +88,29 @@ public class Dispatcher implements Serializable {
     private Environment Envir;
     private int selectedenv;
 
-    public void chatButtonPressed(){
+    public void mapButtonPressed(){
+        if(group.getMeetingLocation()==null){
+            Toast.makeText(lists.getApplicationContext(), "No meeting location set!",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        else if(group.getMeetingLocation().equals("")){
+            Toast.makeText(lists.getApplicationContext(), "No meeting location set!",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        else{
+            Uri gmmIntentUri = Uri.parse(group.getMeetingLocation());
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            if (mapIntent.resolveActivity(lists.getPackageManager()) != null) {
+                lists.startActivity(mapIntent);
+            }
+        }
+    }
 
+    public void chatButtonPressed(){
+        lists.set_Loading(true);
         List<Thread>  threads = NM.thread().getThreads(ThreadType.Public);
         final Context listContext = lists.getApplicationContext();
         AccountDetails details = username("some.email@domain.com", "Joe123");
@@ -101,7 +126,10 @@ public class Dispatcher implements Serializable {
                     }
 
                 }
-                if (chat!=null)  InterfaceManager.shared().a.startChatActivityForID(listContext, chat.getEntityID());
+                if (chat!=null){
+                    InterfaceManager.shared().a.startChatActivityForID(listContext, chat.getEntityID());
+                    lists.set_Loading(false);
+                }
                 else{
                 NM.publicThread().createPublicThreadWithName(grou)
                         .observeOn(AndroidSchedulers.mainThread())
@@ -110,6 +138,7 @@ public class Dispatcher implements Serializable {
                             public void accept(Thread thread, Throwable throwable) {
                                 if (throwable == null) {
                                     InterfaceManager.shared().a.startChatActivityForID(listContext, thread.getEntityID());
+                                    lists.set_Loading(false);
                                 } else {
                                     Log.d("error",throwable.getMessage());
                                 }
@@ -223,6 +252,7 @@ public class Dispatcher implements Serializable {
 
     public void progress_A_Step(int id){
         /* Transition to next list */
+        String Name;
         switch (state){
             case UNIV       :
                 univ = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
@@ -236,11 +266,17 @@ public class Dispatcher implements Serializable {
                 break;
             case ENVI       :
                 envi = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
-                lists.show_env_settings(lst_Formed_List.get(id));
+                lists.show_env_settings(getEnvi(envi));
                 selectedenv = id;
                 break;
-            case FORMATION  :lists.show_Admin(4); break;
-            case GROUPS     :lists.show_Admin(5); break;
+            case FORMATION  :lists.show_Admin(5);
+                Name = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
+                ShowUserResponses(getUser(Envir.getUsers(),Name));
+                break;
+            case GROUPS     :lists.show_Admin(4);
+                Name = isSearch?lst_Search_ID.get(id):lst_ID.get(id);
+                ShowUserResponses(getUser(group.getGroupMembers(),Name));
+                break;
             case JOINED     :lists.show_Admin(0); break;
             case WAITING    :lists.show_Admin(6); break;
 
@@ -249,6 +285,23 @@ public class Dispatcher implements Serializable {
 
     }
 
+    private Environment getEnvi(String Name){
+        for(Environment e : lst_Formed_List){
+            if(e.getName().equals(Name)){
+                return e;
+            }
+        }
+        return null;
+    }
+
+    private User getUser(Set<User> U,String Name){
+        for(User u : U){
+            if(u.getNickname().equals(Name)){
+                return u;
+            }
+        }
+        return null;
+    }
     public void enter_environment(Environment E){
         Envir = E;
         envi = E.getName();
@@ -262,12 +315,17 @@ public class Dispatcher implements Serializable {
         clearSearch();
     }
 
+    private void ShowUserResponses(User U){
+        if(U!=null)
+            lists.show_Responses_to_Questions(U,Envir.getQuestionnaire());
+    }
+
     private String printAnswers(List<Integer> r){
         String out = "Quiz Responses: ";
         for(int i = 0; i < r.size()-1; i++){
-            out+= (i+1)+") "+getCharForNumber(r.get(i)+1)+", ";
+            out+= (i+1)+") "+getCharForNumber(r.get(i))+", ";
         }
-        out+= (r.size()+1)+") "+getCharForNumber(r.get(r.size()-1)+1);
+        out+= (r.size())+") "+getCharForNumber(r.get(r.size()-1));
         return out;
     }
     private String getCharForNumber(int i) {
@@ -283,7 +341,7 @@ public class Dispatcher implements Serializable {
                 lst_Display.add(new_List_Item(u.getNickname(), printAnswers(u.getQuestionAnswers())));
                 lst_ID.add(u.getNickname());
             }
-            lists.set_Double_List(lst_Display);
+            lists.set_List(lst_Display,-1);
         }
         else updateView();
         lists.set_Loading(false);
@@ -304,6 +362,7 @@ public class Dispatcher implements Serializable {
                     }
                 }
                 if(found){
+                    group = g;
                     groupID = i;
                     grou = g.getName();
                     lists.set_Title(g.getName());
@@ -315,11 +374,12 @@ public class Dispatcher implements Serializable {
                 }
             }
 
-            lists.set_Double_List(lst_Display);
+            lists.set_List(lst_Display,-1);
         }
         else updateView();
         lists.set_Loading(false);
     }
+
 
     public void back_A_Step(){
         switch (state){
@@ -430,7 +490,7 @@ public class Dispatcher implements Serializable {
     public void Create_Course(Course c){
         final Course course = c;
         String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses";
-        StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
+        StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponseU){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap();
@@ -450,7 +510,7 @@ public class Dispatcher implements Serializable {
     public void Create_Environment(Environment e){
         final Environment environment = e;
         String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses/"+cour+"/environments";
-        StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
+        StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponseU){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap();
@@ -472,7 +532,7 @@ public class Dispatcher implements Serializable {
     public void setQuestionnaireResponse(User usr, String e){
         final User user = usr;
         String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses/"+cour+"/environments/"+e+"/users";
-        StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponse){
+        StringRequest req = new StringRequest(Request.Method.POST, URL, StrResponse, ErrResponseU){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap();
@@ -494,7 +554,7 @@ public class Dispatcher implements Serializable {
 
     public void forceSort(String e){
         String URL = Volley.I(lists).getAddress() + "universities/"+univ+"/courses/"+cour+"/environments/"+e;
-        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, URL, null, EnvirResponse, ErrResponse){
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, URL, null, EnvirResponse, ErrResponseU){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap();
@@ -588,6 +648,19 @@ public class Dispatcher implements Serializable {
                 lst_Formed_List = new ArrayList<>();
                 lists.set_List(lst_Display,-1);
                 lists.set_Loading(false);
+            }
+        };
+
+        ErrResponseU = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                System.out.println(create_GET_URL() + "\n" + error.toString() + "\n" + error.getMessage());
+                lst_Display     = new ArrayList<>();
+                lst_ID          = new ArrayList<>();
+                lst_Formed_List = new ArrayList<>();
+                lists.set_List(lst_Display,-1);
+                lists.set_Loading(false);
+                updateView();
             }
         };
 

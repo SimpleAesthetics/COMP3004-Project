@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -113,6 +114,7 @@ public class Lists extends AppCompatActivity
 
 
         btn_Maps    = findViewById(R.id.btn_Map);
+
         btn_Chat    = findViewById(R.id.btn_Chat);
         View headerLayout = navigationView.getHeaderView(0);
         fn = headerLayout.findViewById(R.id.lbl_FULLNAME);
@@ -151,8 +153,15 @@ public class Lists extends AppCompatActivity
                 controller.chatButtonPressed();
             }
         });
+        btn_Maps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                controller.mapButtonPressed();
+            }
+        });
         controller.updateView();
     }
+
 
     public void show_Username_In_Dash(){
         Intent intent = getIntent();
@@ -170,6 +179,39 @@ public class Lists extends AppCompatActivity
             startActivity(i);
             finish();
         }
+    }
+
+    public void show_Responses_to_Questions(User A, Map<String,List<String>> Q){
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        View promptView = layoutInflater.inflate(R.layout.showuserdetails, null);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(promptView);
+        TextView txt_Title = promptView.findViewById(R.id.txt_Title);
+        TextView txt_Content = promptView.findViewById(R.id.txt_Content);
+
+        String Title = "Questionnaire Responses:";
+        String Content = "";
+
+        int i = 0;
+        for(Map.Entry<String,List<String>> e : Q.entrySet()){
+            Content+="<b>" + e.getKey() + "</b><br/>";
+            if(i<A.getQuestionAnswers().size())
+                if(A.getQuestionAnswers().get(i)-1<e.getValue().size())
+                    Content+=e.getValue().get(A.getQuestionAnswers().get(i)-1)+"<br/>";
+            Content+="<br/>";
+
+            i++;
+        }
+
+        txt_Title.setText(Title);
+        txt_Content.setText(Html.fromHtml(Content));
+        Text_Input = promptView.findViewById(R.id.txt_Input);
+        alertDialogBuilder.setCancelable(true)
+                .setNegativeButton("Close", new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int id) { dialog.cancel(); }});
+
+        // create an alert dialog
+        AlertDialog alert = alertDialogBuilder.create();
+        alert.show();
     }
 
     public void show_env_settings(Environment e){
@@ -303,13 +345,13 @@ public class Lists extends AppCompatActivity
                 .setPositiveButton(buttontext, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        int checked = -1;
-                        int index = 0;
+                        int checked = 0;
+                        int index = 1;
                         for(RadioButton b : radioButtons){
                             if(b.isChecked()) checked=index;
                             index++;
                         }
-                        if(checked<0){ questionnaire_Dialog(e,q,r); }
+                        if(checked<1 && radioButtons.size()!=0){ questionnaire_Dialog(e,q,r); }
                         else if(q+1<e.getQuestionnaire().size()){
                             r.add(checked);
                             questionnaire_Dialog(e, q + 1, r);
@@ -446,6 +488,7 @@ public class Lists extends AppCompatActivity
         searchView.setSearchableInfo( searchManager.getSearchableInfo(getComponentName()));
         searchView.setFocusable(false);
         searchView.setIconified(false);
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
@@ -476,6 +519,7 @@ public class Lists extends AppCompatActivity
                 return false;
             }
         });
+
 
         return true;
     }
